@@ -154,6 +154,18 @@ input[type="text"], input[type="email"], textarea {
   cursor: text;
 }
 
+/* ─── Global SVG & Icon Safety ─── */
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.w-4 { width: 16px !important; }
+.h-4 { height: 16px !important; }
+.w-1\.5 { width: 6px !important; }
+.h-1\.5 { height: 6px !important; }
+
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

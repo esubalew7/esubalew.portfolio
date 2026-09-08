@@ -63,9 +63,9 @@ export const AboutSection = () => {
   const inView = useInView(sectionRef, { once: true, margin: '-100px' });
 
   const stats = about?.stats?.length ? about.stats : [
-    { value: 3,  suffix: '+', label: 'Years of production code' },
+    { value: 3, suffix: '+', label: 'Years of production code' },
     { value: 15, suffix: '+', label: 'Full-stack systems shipped' },
-    { value: 3,  suffix: '',  label: 'Live production stacks' },
+    { value: 3, suffix: '', label: 'Live production stacks' },
   ];
 
   const traits = ['MERN Stack', 'Microservices', 'WebSocket', 'REST + GraphQL', 'System Design', 'DevOps'];
@@ -154,7 +154,7 @@ export const AboutSection = () => {
               style={{ color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '1.5rem' }}
             >
               {about?.description ||
-                `I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. 
+                `I'm Esubalew a full-stack engineer based in Ethiopia, currently interning at Askuala Link. 
                 I architect and ship distributed systems that handle real-world production loads: 
                 from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.`}
             </motion.p>
@@ -166,9 +166,9 @@ export const AboutSection = () => {
               className="text-body-lg"
               style={{ color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '2.5rem' }}
             >
-              My approach is architecture-first: I think in event flows, caching layers, 
-              and separation of concerns before writing the first line of code. 
-              The result is software that scales — and doesn't break at 3 AM.
+              My approach is architecture first: I think in event flows, caching layers,
+              and separation of concerns before writing the first line of code.
+              The result is software that scales and doesn't break at 3 AM.
             </motion.p>
 
             {/* Trait tags */}

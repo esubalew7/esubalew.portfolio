@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useContentStore } from '../store/contentStore';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useVisitorCount } from '../hooks/useVisitorCount';
+import { scrollToSectionById } from '../utils/sectionNavigation';
 
 // Lazy-load the WebGL canvas so critical text renders in <100ms
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
@@ -14,7 +15,7 @@ function StatusPill({ available = true }) {
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1, ease: [0.16,1,0.3,1] }}
+      transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       className="inline-flex items-center gap-2 px-3 py-1.5"
       style={{
         background: isAvailable ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)',
@@ -22,14 +23,14 @@ function StatusPill({ available = true }) {
         borderRadius: 100,
       }}
     >
-      <span className="relative flex h-1.5 w-1.5">
+      <span className="relative flex" style={{ width: 6, height: 6, flexShrink: 0 }}>
         <span
-          className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-          style={{ background: isAvailable ? '#10b981' : '#f59e0b' }}
+          className="animate-ping absolute inline-flex rounded-full opacity-75"
+          style={{ width: '100%', height: '100%', background: isAvailable ? '#10b981' : '#f59e0b' }}
         />
         <span
-          className="relative inline-flex rounded-full h-1.5 w-1.5"
-          style={{ background: isAvailable ? '#10b981' : '#f59e0b' }}
+          className="relative inline-flex rounded-full"
+          style={{ width: 6, height: 6, background: isAvailable ? '#10b981' : '#f59e0b' }}
         />
       </span>
       <span
@@ -54,7 +55,7 @@ function VisitorPill({ count = 1 }) {
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2, ease: [0.16,1,0.3,1] }}
+      transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className="inline-flex items-center gap-2 px-3 py-1.5"
       style={{
         background: 'rgba(255,77,0,0.06)',
@@ -62,9 +63,9 @@ function VisitorPill({ count = 1 }) {
         borderRadius: 100,
       }}
     >
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-400" />
+      <span className="relative flex" style={{ width: 6, height: 6, flexShrink: 0 }}>
+        <span className="animate-ping absolute inline-flex rounded-full bg-orange-400 opacity-75" style={{ width: '100%', height: '100%' }} />
+        <span className="relative inline-flex rounded-full bg-orange-400" style={{ width: 6, height: 6 }} />
       </span>
       <span
         className="font-mono"
@@ -101,7 +102,7 @@ function MetricChip({ value, label, delay = 0 }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.7, ease: [0.16,1,0.3,1] }}
+      transition={{ delay, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="flex flex-col gap-0.5"
       style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: 16 }}
     >
@@ -120,16 +121,40 @@ function MetricChip({ value, label, delay = 0 }) {
 
 // ─── CTA buttons ──────────────────────────────────────────────────────────
 function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
+  const handlePrimaryClick = (e) => {
+    if (!primaryLink || primaryLink === '#projects' || primaryLink.startsWith('#')) {
+      e.preventDefault();
+      const targetId = primaryLink ? primaryLink.replace('#', '') : 'projects';
+      scrollToSectionById(targetId);
+    }
+  };
+
+  const handleResumeClick = (e) => {
+    if (resumeUrl && resumeUrl.startsWith('/')) {
+      e.preventDefault();
+      const link = document.createElement('a');
+      link.href = resumeUrl;
+      link.setAttribute('download', 'Esubalew_Molla_Resume.pdf');
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.9, duration: 0.7, ease: [0.16,1,0.3,1] }}
+      transition={{ delay: 0.9, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="flex flex-wrap items-center gap-4"
     >
       {/* Primary — filled orange */}
       <a
-        href={primaryLink}
+        href={primaryLink || '#projects'}
+        onClick={handlePrimaryClick}
+        data-cursor="hover"
         className="group relative inline-flex items-center gap-2.5 overflow-hidden font-mono"
         style={{
           padding: '12px 28px',
@@ -141,6 +166,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
           textTransform: 'uppercase',
           fontWeight: 500,
           textDecoration: 'none',
+          cursor: 'pointer',
           transition: 'box-shadow 0.3s',
         }}
         onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 32px var(--orange-glow)'; }}
@@ -153,7 +179,16 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
           aria-hidden="true"
         />
         <span className="relative">Selected Work</span>
-        <svg className="w-4 h-4 relative transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg
+          width="16"
+          height="16"
+          style={{ width: 16, height: 16, flexShrink: 0 }}
+          className="relative transition-transform duration-300 group-hover:translate-x-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>
       </a>
@@ -161,8 +196,11 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
       {/* Secondary — ghost */}
       <a
         href={resumeUrl}
+        download="Esubalew_Molla_Resume.pdf"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={handleResumeClick}
+        data-cursor="hover"
         className="inline-flex items-center gap-2 font-mono link-underline"
         style={{
           fontSize: 13,
@@ -171,12 +209,21 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
           color: 'var(--text-secondary)',
           textDecoration: 'none',
           padding: '12px 4px',
+          cursor: 'pointer',
           transition: 'color 0.2s',
         }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
         onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <svg
+          width="16"
+          height="16"
+          style={{ width: 16, height: 16, flexShrink: 0 }}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
         Download CV
@@ -201,7 +248,7 @@ function ScrollCue() {
       <motion.div
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
-        transition={{ delay: 2.2, duration: 0.8, ease: [0.16,1,0.3,1] }}
+        transition={{ delay: 2.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         style={{ width: 1, height: 48, background: 'linear-gradient(to bottom, var(--orange), transparent)', transformOrigin: 'top' }}
       />
     </motion.div>
@@ -228,9 +275,9 @@ export const HeroSection = () => {
   // Subtle parallax on the text block only — canvas stays fixed
   const textY = useTransform(scrollY, [0, 600], [0, 80]);
 
-  const name     = hero?.name || 'Esubalew Molla';
-  const desc     = hero?.description ||
-    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
+  const name = hero?.name || 'Esubalew Molla';
+  const desc = hero?.description ||
+    'Building production-grade distributed systems, MERN platforms, and real-time web architecture from API design to deployment pipeline.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
   const role = useTypewriter(TYPEWRITER_ROLES, 70, 35, 2400);
@@ -260,7 +307,7 @@ export const HeroSection = () => {
       <div
         aria-hidden="true"
         style={{
-          position: 'absolute', inset: 0, zIndex: 1,
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 120% 80% at 30% 50%, transparent 20%, rgba(8,10,14,0.7) 65%, rgba(8,10,14,0.97) 100%)',
         }}
       />
@@ -269,7 +316,7 @@ export const HeroSection = () => {
       <motion.div
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
-        transition={{ delay: 0.2, duration: 1.2, ease: [0.16,1,0.3,1] }}
+        transition={{ delay: 0.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         style={{
           position: 'absolute', left: 0, top: '10%', bottom: '10%',
           width: 3, background: 'var(--orange)', zIndex: 10, transformOrigin: 'top',
@@ -305,7 +352,7 @@ export const HeroSection = () => {
           <motion.h1
             initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.9, ease: [0.16,1,0.3,1] }}
+            transition={{ delay: 0.3, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="font-display text-display"
             style={{ color: 'var(--text-primary)', marginTop: '1.5rem', marginBottom: 0 }}
           >
@@ -339,7 +386,7 @@ export const HeroSection = () => {
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65, duration: 0.8, ease: [0.16,1,0.3,1] }}
+            transition={{ delay: 0.65, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-body-lg"
             style={{ color: 'var(--text-secondary)', marginTop: '1.75rem', maxWidth: 600, lineHeight: 1.75 }}
           >
@@ -365,10 +412,10 @@ export const HeroSection = () => {
               borderTop: '1px solid var(--border-faint)',
             }}
           >
-            <MetricChip value="3+"  label="Years building"     delay={1.2} />
-            <MetricChip value="15+" label="Systems shipped"    delay={1.3} />
-            <MetricChip value="3"   label="Production stacks"  delay={1.4} />
-            <MetricChip value="2FA" label="Auth architecture"  delay={1.5} />
+            <MetricChip value="3+" label="Years building" delay={1.2} />
+            <MetricChip value="15+" label="Systems shipped" delay={1.3} />
+            <MetricChip value="3" label="Production stacks" delay={1.4} />
+            <MetricChip value="2FA" label="Auth architecture" delay={1.5} />
           </motion.div>
         </div>
       </motion.div>

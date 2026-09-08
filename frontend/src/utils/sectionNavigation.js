@@ -16,17 +16,20 @@ export const getSectionHref = (sectionId, pathname = '/') =>
   pathname === '/' ? `#${sectionId}` : `/#${sectionId}`;
 
 export const scrollToSectionById = (sectionId, behavior = 'smooth') => {
-  if (!SECTION_ID_LIST.includes(sectionId)) {
-    console.warn(`[nav] Unknown section: ${sectionId}`);
-    return false;
-  }
   const el = document.getElementById(sectionId);
-  if (!el) {
-    console.warn(`[nav] Element not found: #${sectionId}`);
-    return false;
+  if (el) {
+    el.scrollIntoView({ behavior, block: 'start' });
+    return true;
   }
-  el.scrollIntoView({ behavior, block: 'start' });
-  return true;
+  setTimeout(() => {
+    const retryEl = document.getElementById(sectionId);
+    if (retryEl) {
+      retryEl.scrollIntoView({ behavior, block: 'start' });
+    } else {
+      window.location.hash = sectionId;
+    }
+  }, 80);
+  return false;
 };
 
 export const isValidSectionId = (id, sections = null) => {
