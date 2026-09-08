@@ -59,6 +59,33 @@ const projectSchema = new mongoose.Schema(
             trim: true,          // Clean input
         },
 
+        // Case study details for deep-dive recruiter showcase
+        caseStudy: {
+            problem: {
+                type: String,
+                default: "",
+                trim: true,
+            },
+            solution: {
+                type: String,
+                default: "",
+                trim: true,
+            },
+            techStack: [{
+                type: String,
+                trim: true,
+            }],
+            outcome: {
+                type: String,
+                default: "",
+                trim: true,
+            },
+            metrics: [{
+                label: { type: String, trim: true },
+                value: { type: String, trim: true },
+            }],
+        },
+
         // Created date
         createdAt: {
             type: Date,          // Data type: Date

@@ -23,16 +23,16 @@ router.post("/", createContact);
 // ===============================
 // @route   GET /api/contact
 // @desc    Get all contact messages
-// @access  Public
+// @access  Admin
 // ===============================
-router.get("/", getAllContacts);
+router.get("/", protect, getAllContacts);
 
 // ===============================
 // @route   PUT /api/contact/:id/read
 // @desc    Mark a message as read
-// @access  Public
+// @access  Admin
 // ===============================
-router.put("/:id/read", markMessageAsRead);
+router.put("/:id/read", protect, markMessageAsRead);
 
 // ===============================
 // @route   DELETE /api/contact/:id

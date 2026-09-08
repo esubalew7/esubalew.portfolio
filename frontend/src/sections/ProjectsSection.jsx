@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useProjects } from '../context/ProjectContext';
+import { getCloudinaryUrl } from '../utils/cloudinary';
+import { CaseStudyModal } from '../components/projects/CaseStudyModal';
 
 // ─── Filter chip ───────────────────────────────────────────────────────────
 function FilterChip({ label, active, onClick }) {
@@ -28,7 +30,7 @@ function FilterChip({ label, active, onClick }) {
 }
 
 // ─── Project card — editorial layout ──────────────────────────────────────
-function ProjectCard({ project, index }) {
+function ProjectCard({ project, index, onOpenCaseStudy }) {
   const [hovered, setHovered] = useState(false);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
@@ -63,10 +65,24 @@ function ProjectCard({ project, index }) {
         direction: isRight ? 'rtl' : 'ltr',
       }}
     >
-      {/* Image */}
-      <div style={{ direction: 'ltr', position: 'relative', overflow: 'hidden', borderRadius: 4, aspectRatio: '16/9', background: 'var(--ink-raised)' }}>
+      {/* Image — Clickable for Case Study */}
+      <div
+        onClick={() => onOpenCaseStudy && onOpenCaseStudy(project)}
+        style={{
+          direction: 'ltr',
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: 4,
+          aspectRatio: '16/9',
+          background: 'var(--ink-raised)',
+          cursor: 'pointer',
+        }}
+      >
         <img
-          src={project.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80'}
+          src={getCloudinaryUrl(project.image, {
+            fallback: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
+            width: 800,
+          })}
           alt={project.title}
           loading="lazy"
           style={{
@@ -115,15 +131,19 @@ function ProjectCard({ project, index }) {
           {String(index + 1).padStart(2, '0')} — {project.category || 'MERN'}
         </p>
 
-        {/* Title */}
+        {/* Title — Clickable */}
         <h3
           className="font-display"
+          onClick={() => onOpenCaseStudy && onOpenCaseStudy(project)}
           style={{
             fontSize: 'clamp(1.4rem,2.5vw,2rem)', fontWeight: 700,
             color: 'var(--text-primary)', lineHeight: 1.15,
             marginBottom: 16, letterSpacing: '-0.02em',
             transition: 'color 0.2s',
+            cursor: 'pointer',
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--orange)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
         >
           {project.title}
         </h3>
@@ -158,7 +178,45 @@ function ProjectCard({ project, index }) {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Case Study Trigger Button */}
+          <button
+            type="button"
+            onClick={() => onOpenCaseStudy && onOpenCaseStudy(project)}
+            style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              padding: '6px 14px',
+              borderRadius: 3,
+              background: 'rgba(255, 77, 0, 0.08)',
+              border: '1px solid rgba(255, 77, 0, 0.3)',
+              color: 'var(--orange)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--orange)';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.boxShadow = '0 0 16px var(--orange-glow)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 77, 0, 0.08)';
+              e.currentTarget.style.color = 'var(--orange)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Case Study
+          </button>
+
           <a
             href={liveUrl}
             target="_blank"
@@ -167,9 +225,12 @@ function ProjectCard({ project, index }) {
             style={{
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'var(--orange)', textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: 8,
+              color: 'var(--text-secondary)', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: 6,
+              transition: 'color 0.2s',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--orange)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
           >
             Live
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -185,8 +246,11 @@ function ProjectCard({ project, index }) {
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
               color: 'var(--text-muted)', textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: 8,
+              display: 'flex', alignItems: 'center', gap: 6,
+              transition: 'color 0.2s',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             Source
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -211,6 +275,7 @@ const FILTERS = [
 export const ProjectsSection = () => {
   const { projects, loading } = useProjects();
   const [filter, setFilter] = useState('all');
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState(null);
   const headRef = useRef(null);
   const headInView = useInView(headRef, { once: true, margin: '-60px' });
 
@@ -287,12 +352,23 @@ export const ProjectsSection = () => {
               </p>
             ) : (
               filtered.map((p, i) => (
-                <ProjectCard key={p._id || p.id || i} project={p} index={i} />
+                <ProjectCard
+                  key={p._id || p.id || i}
+                  project={p}
+                  index={i}
+                  onOpenCaseStudy={setSelectedCaseStudy}
+                />
               ))
             )}
           </AnimatePresence>
         )}
       </div>
+
+      {/* Case Study Modal Deep-Dive */}
+      <CaseStudyModal
+        project={selectedCaseStudy}
+        onClose={() => setSelectedCaseStudy(null)}
+      />
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </section>

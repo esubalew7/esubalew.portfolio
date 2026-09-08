@@ -19,6 +19,7 @@ const heroSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   image: { type: String, default: "" },
   backgroundImage: { type: String, default: "" },
+  available: { type: Boolean, default: true },
   cta: {
     primary: { type: ctaSchema, default: () => ({}) },
     secondary: { type: ctaSchema, default: () => ({}) },
@@ -52,13 +53,19 @@ const skillsSchema = new mongoose.Schema({
 
 const experienceItemSchema = new mongoose.Schema({
   role: { type: String, required: true },
+  title: { type: String, default: "" },
   company: { type: String, default: "" },
   duration: { type: String, default: "" },
+  startDate: { type: String, default: "" },
+  endDate: { type: String, default: "" },
+  current: { type: Boolean, default: false },
   location: { type: String, default: "" },
+  description: { type: String, default: "" },
+  skills: [{ type: String }],
   tags: [{ type: String }],
   bullets: [{ type: String }],
   logo: { type: String, default: "" },
-}, { _id: false });
+}, { _id: false, strict: false });
 
 const experienceCategorySchema = new mongoose.Schema({
   name: { type: String, required: true },

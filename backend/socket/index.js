@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import { joinAdminRoom, joinPortfolioRoom, leaveAllRooms } from './rooms.js';
+import Visitor from '../models/Visitor.js';
 
 let io;
 
@@ -33,9 +34,34 @@ export function setupSocket(httpServer) {
       console.log(`[Socket] ${socket.id} joined admin room`);
     });
 
+    const sendVisitorCount = async (targetSocket) => {
+      try {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const count = await Visitor.countDocuments({ createdAt: { $gte: startOfDay } });
+        targetSocket.emit('visitor:count_update', { count: Math.max(count, 1) });
+      } catch (err) {
+        console.error('[Socket] Error sending visitor count:', err.message);
+      }
+    };
+
     socket.on('join:portfolio', () => {
       joinPortfolioRoom(socket);
       console.log(`[Socket] ${socket.id} joined portfolio room`);
+      sendVisitorCount(socket);
+    });
+
+    socket.on('join:visitor_room', () => {
+      joinPortfolioRoom(socket);
+      console.log(`[Socket] ${socket.id} joined visitor_room`);
+      sendVisitorCount(socket);
+    });
+
+    socket.on('content_updated', (payload) => {
+      console.log(`[Socket] content_updated received from ${socket.id}`);
+      io.to('portfolio').emit('content_updated', payload);
+      io.to('visitor_room').emit('content_updated', payload);
+      io.emit('content_updated', payload);
     });
 
     socket.on('disconnect', (reason) => {

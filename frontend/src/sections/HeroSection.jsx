@@ -2,17 +2,59 @@ import React, { Suspense, useEffect, useRef, useState, useCallback, lazy } from 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useContentStore } from '../store/contentStore';
 import { useTypewriter } from '../hooks/useTypewriter';
+import { useVisitorCount } from '../hooks/useVisitorCount';
 
 // Lazy-load the WebGL canvas so critical text renders in <100ms
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
 
 // ─── Availability pill ─────────────────────────────────────────────────────
-function StatusPill() {
+function StatusPill({ available = true }) {
+  const isAvailable = available !== false;
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1, ease: [0.16,1,0.3,1] }}
+      className="inline-flex items-center gap-2 px-3 py-1.5"
+      style={{
+        background: isAvailable ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)',
+        border: isAvailable ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(245,158,11,0.25)',
+        borderRadius: 100,
+      }}
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        <span
+          className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+          style={{ background: isAvailable ? '#10b981' : '#f59e0b' }}
+        />
+        <span
+          className="relative inline-flex rounded-full h-1.5 w-1.5"
+          style={{ background: isAvailable ? '#10b981' : '#f59e0b' }}
+        />
+      </span>
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 11,
+          letterSpacing: '0.12em',
+          color: isAvailable ? '#10b981' : '#f59e0b',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+        }}
+      >
+        {isAvailable ? 'Available for freelance' : 'Taking Q4 Inquiries'}
+      </span>
+    </motion.div>
+  );
+}
+
+// ─── Live visitor telemetry pill ──────────────────────────────────────────
+function VisitorPill({ count = 1 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2, ease: [0.16,1,0.3,1] }}
       className="inline-flex items-center gap-2 px-3 py-1.5"
       style={{
         background: 'rgba(255,77,0,0.06)',
@@ -21,14 +63,15 @@ function StatusPill() {
       }}
     >
       <span className="relative flex h-1.5 w-1.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-400" />
       </span>
       <span
         className="font-mono"
-        style={{ fontSize: 11, letterSpacing: '0.12em', color: 'rgba(255,77,0,0.9)', textTransform: 'uppercase' }}
+        style={{ fontSize: 11, letterSpacing: '0.08em', color: 'var(--text-secondary)' }}
       >
-        Open to Engineering Roles
+        <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{count}</strong>{' '}
+        {count === 1 ? 'engineer' : 'engineers'} viewed this today
       </span>
     </motion.div>
   );
@@ -177,6 +220,7 @@ const TYPEWRITER_ROLES = [
 export const HeroSection = () => {
   const { content } = useContentStore();
   const { hero, resume } = content || {};
+  const { count: visitorCount } = useVisitorCount();
   const [canvasReady, setCanvasReady] = useState(false);
   const sectionRef = useRef(null);
 
@@ -251,8 +295,11 @@ export const HeroSection = () => {
             maxWidth: 780,
           }}
         >
-          {/* Status */}
-          <StatusPill />
+          {/* Status & Visitor Telemetry Row */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+            <StatusPill available={hero?.available} />
+            <VisitorPill count={visitorCount} />
+          </div>
 
           {/* ── Name — display-scale ── */}
           <motion.h1

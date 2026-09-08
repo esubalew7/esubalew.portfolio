@@ -1,6 +1,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { useContentStore } from '../store/contentStore';
+import { getCloudinaryUrl } from '../utils/cloudinary';
 
 // ─── Animated stat ─────────────────────────────────────────────────────────
 function StatBlock({ value, suffix = '', label, index }) {
@@ -129,7 +130,7 @@ export const AboutSection = () => {
                   }}
                 />
                 <img
-                  src={about?.image || '/images/esu.png'}
+                  src={getCloudinaryUrl(about?.image, { fallback: '/images/esu.png', width: 800 })}
                   alt="Esubalew Molla"
                   style={{
                     display: 'block', width: '100%',

@@ -1,7 +1,9 @@
 import express from "express";          // Import Express framework
 import cors from "cors";                // Import CORS middleware
+import helmet from "helmet";            // Import Helmet for secure HTTP headers
 import cookieParser from "cookie-parser"; // Import cookie-parser for HttpOnly cookie auth
 import dotenv from "dotenv";            // Import dotenv for env variables
+import { contactLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 import contactRoutes from "./routes/contactRoutes.js"; // Import contact routes
 import authRoutes from "./routes/authRoutes.js"; // Import auth routes
 import projectRoutes from "./routes/projectRoutes.js"; // Import project routes
@@ -18,29 +20,43 @@ dotenv.config();                        // Load environment variables from .env
 
 const app = express();                  // Create Express app instance
 
-// Middleware
+// Security Middleware (Helmet)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
+// CORS Configuration (port 5173 for frontend, port 5174 for admin-panel)
+const allowedOrigins = [
+  'http://localhost:5173', // Frontend dev
+  'http://localhost:5174', // Admin panel dev
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+  'https://portfolio-mern-one-rho.vercel.app',
+  'https://portfolio-mern-bicw.vercel.app'
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:3000',
-      'https://portfolio-mern-one-rho.vercel.app',
-      "https://portfolio-mern-bicw.vercel.app"
-    ];
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (mobile apps, curl, Postman, etc.)
     if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
-}));                        // Secure CORS for dev/prod
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
+
 app.use(cookieParser());                // Parse cookies for HttpOnly JWT auth
 app.use(express.json());                // Parse incoming JSON requests
+
+// Rate Limiting Middleware
+// 100 requests / 15 min for contact route
+app.use("/api/contact", contactLimiter);
+// 200 requests / 15 min for all other /api/ routes
+app.use("/api", apiLimiter);
 
 
 // Routes

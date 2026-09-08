@@ -6,8 +6,9 @@ import FormInput from '../../components/ui/FormInput';
 import ImageUploader from '../../components/ui/ImageUploader';
 
 const emptyItem = {
-  role: '', company: '', duration: '', location: '',
-  tags: [], bullets: [], logo: ''
+  role: '', title: '', company: '', duration: '', location: '',
+  startDate: '', endDate: '', current: false, description: '',
+  tags: [], skills: [], bullets: [], logo: ''
 };
 
 const ExperienceEditor = () => {
@@ -149,60 +150,101 @@ const ExperienceEditor = () => {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <FormInput
                       label="Role / Title"
-                      value={item.role}
-                      onChange={(e) => setItemField(ci, ii, 'role', e.target.value)}
+                      value={item.title || item.role || ''}
+                      onChange={(e) => {
+                        setItemField(ci, ii, 'role', e.target.value);
+                        setItemField(ci, ii, 'title', e.target.value);
+                      }}
                     />
                     <FormInput
-                      label="Company"
-                      value={item.company}
+                      label="Company / Organization"
+                      value={item.company || ''}
                       onChange={(e) => setItemField(ci, ii, 'company', e.target.value)}
                     />
                     <FormInput
-                      label="Duration"
-                      value={item.duration}
-                      onChange={(e) => setItemField(ci, ii, 'duration', e.target.value)}
-                    />
-                    <FormInput
                       label="Location"
-                      value={item.location}
+                      value={item.location || ''}
                       onChange={(e) => setItemField(ci, ii, 'location', e.target.value)}
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Tags</label>
-                    <input
-                      className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                      placeholder="React, Node.js, MongoDB"
-                      value={item.tags.join(', ')}
-                      onChange={(e) =>
-                        setItemField(
-                          ci,
-                          ii,
-                          'tags',
-                          e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
-                        )
-                      }
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FormInput
+                      label="Start Date / Year"
+                      placeholder="e.g. 2024"
+                      value={item.startDate || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const end = item.current ? 'Present' : (item.endDate || '');
+                        setItemField(ci, ii, 'startDate', val);
+                        setItemField(ci, ii, 'duration', `${val} — ${end}`);
+                      }}
+                    />
+                    <FormInput
+                      label="End Date / Year"
+                      placeholder="e.g. 2025"
+                      disabled={Boolean(item.current)}
+                      value={item.current ? 'Present' : (item.endDate || '')}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setItemField(ci, ii, 'endDate', val);
+                        setItemField(ci, ii, 'duration', `${item.startDate || ''} — ${val}`);
+                      }}
                     />
                   </div>
 
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`current-${ci}-${ii}`}
+                      checked={Boolean(item.current)}
+                      onChange={(e) => {
+                        const isCur = e.target.checked;
+                        setItemField(ci, ii, 'current', isCur);
+                        if (isCur) {
+                          setItemField(ci, ii, 'endDate', 'Present');
+                          setItemField(ci, ii, 'duration', `${item.startDate || ''} — Present`);
+                        }
+                      }}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                    />
+                    <label
+                      htmlFor={`current-${ci}-${ii}`}
+                      className="text-xs font-semibold text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+                    >
+                      Currently working or studying here (Present)
+                    </label>
+                  </div>
+
+                  <FormInput
+                    label="Description (Timeline Summary)"
+                    textarea
+                    rows={3}
+                    placeholder="Describe what you architected, shipped, or learned..."
+                    value={item.description || (Array.isArray(item.bullets) ? item.bullets.join(' ') : '')}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setItemField(ci, ii, 'description', val);
+                      setItemField(ci, ii, 'bullets', val.split('\n').map((s) => s.trim()).filter(Boolean));
+                    }}
+                  />
+
                   <div className="space-y-1">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Bullet Points</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Skills & Technologies (comma separated)
+                    </label>
                     <input
                       className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                      placeholder="Achieved X, Built Y, Led Z"
-                      value={item.bullets.join(', ')}
-                      onChange={(e) =>
-                        setItemField(
-                          ci,
-                          ii,
-                          'bullets',
-                          e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
-                        )
-                      }
+                      placeholder="React, Node.js, MongoDB, Socket.IO"
+                      value={(item.skills?.length ? item.skills : item.tags || []).join(', ')}
+                      onChange={(e) => {
+                        const arr = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                        setItemField(ci, ii, 'skills', arr);
+                        setItemField(ci, ii, 'tags', arr);
+                      }}
                     />
                   </div>
 

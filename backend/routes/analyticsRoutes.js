@@ -2,6 +2,7 @@ import express from "express";
 import protect from "../middleware/authMiddleware.js";
 import {
   trackVisit,
+  getTodayVisitorCount,
   getOverview,
   getCharts,
   getLocations,
@@ -12,6 +13,7 @@ import {
 const router = express.Router();
 
 router.post("/visit", trackVisit);
+router.get("/today", getTodayVisitorCount);
 
 router.use(protect);
 

@@ -1,7 +1,7 @@
 import Visitor from "../models/Visitor.js";
 import geoip from "geoip-lite";
 import requestIp from "request-ip";
-import { emitVisitorNew, emitAnalyticsUpdate } from "../socket/emitters.js";
+import { emitVisitorNew, emitAnalyticsUpdate, emitVisitorCountUpdate } from "../socket/emitters.js";
 
 const DEDUP_WINDOW_MS = 60 * 1000;
 
@@ -66,9 +66,30 @@ export const trackVisit = async (req, res) => {
     emitVisitorNew(visitorPayload);
     emitAnalyticsUpdate({ type: 'new_visit', data: visitorPayload });
 
-    res.status(201).json({ success: true, message: "Visit tracked" });
+    // Calculate today's visitor count and emit to portfolio clients
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayCount = await Visitor.countDocuments({ createdAt: { $gte: startOfDay } });
+    emitVisitorCountUpdate(Math.max(todayCount, 1));
+
+    res.status(201).json({ success: true, message: "Visit tracked", todayVisitors: Math.max(todayCount, 1) });
   } catch (error) {
     console.error("Track visit error:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+export const getTodayVisitorCount = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const count = await Visitor.countDocuments({ createdAt: { $gte: startOfDay } });
+    res.status(200).json({
+      success: true,
+      count: Math.max(count, 1),
+    });
+  } catch (error) {
+    console.error("Get today visitor count error:", error);
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };

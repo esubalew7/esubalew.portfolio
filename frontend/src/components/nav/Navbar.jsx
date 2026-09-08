@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useContentStore } from '../../store/contentStore';
 import { scrollToSectionById, getSectionHref, SECTION_IDS } from '../../utils/sectionNavigation';
+import { AvailabilityTicker } from '../common/AvailabilityTicker';
 
 const NAV_LINKS = [
   { id: SECTION_IDS.HOME,       label: 'Home' },
@@ -98,6 +99,7 @@ export const Navbar = () => {
         WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
       }}
     >
+      <AvailabilityTicker />
       <div
         className="container-main"
         style={{

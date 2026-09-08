@@ -29,6 +29,9 @@ export function emitContentSectionUpdated(section, data) {
   const event = `content:${section}:update`;
   emitToAll(event, { section, data });
   emitToAll('content:update', { section, data });
+  emitToAll('content_updated', { section, data });
+  getIO().to(ROOMS.PORTFOLIO).emit('content_updated', { section, data });
+  getIO().to(ROOMS.VISITOR_ROOM).emit('content_updated', { section, data });
 }
 
 export function emitMessageNew(message) {
@@ -37,6 +40,12 @@ export function emitMessageNew(message) {
 
 export function emitVisitorNew(visitor) {
   emitToAdmin('visitor:new', visitor);
+}
+
+export function emitVisitorCountUpdate(count) {
+  getIO().emit('visitor:count_update', { count });
+  getIO().to(ROOMS.PORTFOLIO).emit('visitor:count_update', { count });
+  getIO().to(ROOMS.VISITOR_ROOM).emit('visitor:count_update', { count });
 }
 
 export function emitAnalyticsUpdate(data) {
