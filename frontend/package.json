@@ -1,6 +1,7 @@
 {
   "name": "redesign",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "tailwind.config.js",
   "scripts": {
@@ -28,6 +29,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",

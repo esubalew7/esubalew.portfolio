@@ -1,7 +1,28 @@
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'development'
+    ? 'http://localhost:5000'
+    : 'https://portfolio-backend-gxhv.onrender.com');
+
 const api = {
-  async post() {
-    return { ok: true };
+  async post(endpoint, data) {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Request failed with status ${res.status}`);
+    }
+
+    return res.json();
   },
 };
 
 export default api;
+
