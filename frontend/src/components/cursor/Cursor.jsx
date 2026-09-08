@@ -1,17 +1,12 @@
-/**
- * Cursor — orange dot + lagging ring, desktop only
- * Replaces the blue cursor with the new orange accent system.
- * All physics logic preserved from original useCursor hook.
- */
 import { useEffect, useState, useCallback } from 'react';
 import { useCursor } from '../../hooks/useCursor';
 import { getInteractionState } from '../../utils/cursorInteractions';
 
 function shouldDisable() {
   if (typeof window === 'undefined') return true;
-  const isTouch     = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches;
-  const isReduced   = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isMobile    = window.innerWidth < 768;
+  const isTouch   = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches;
+  const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile  = window.innerWidth < 768;
   return isTouch || isMobile || isReduced;
 }
 
@@ -25,22 +20,34 @@ export function Cursor({ children }) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  useEffect(() => {
-    document.body.classList.toggle('cursor-hidden', enabled);
-    return () => document.body.classList.remove('cursor-hidden');
-  }, [enabled]);
-
   const onMouseOver = useCallback(e => {
-    const interaction = getInteractionState(e.target);
-    if (interaction) setInteraction(interaction.state);
+    const target = e.target;
+    if (!target) return;
+    const explicit = getInteractionState(target);
+    if (explicit) {
+      setInteraction(explicit.state);
+      return;
+    }
+    if (target.closest('a, button, [role="button"], input, textarea, select, [data-cursor], .interactive')) {
+      setInteraction('hover');
+    }
   }, [setInteraction]);
 
   const onMouseOut = useCallback(e => {
     const related = e.relatedTarget;
-    if (!related || !related.closest) { resetInteraction(); return; }
-    const i = getInteractionState(e.target);
-    const ri = getInteractionState(related);
-    if (i && (!ri || ri.state !== i.state)) resetInteraction();
+    if (!related || !related.closest) {
+      resetInteraction();
+      return;
+    }
+    const explicit = getInteractionState(e.target);
+    const relatedExplicit = getInteractionState(related);
+    if (explicit && (!relatedExplicit || relatedExplicit.state !== explicit.state)) {
+      resetInteraction();
+      return;
+    }
+    if (!related.closest('a, button, [role="button"], input, textarea, select, [data-cursor], .interactive')) {
+      resetInteraction();
+    }
   }, [resetInteraction]);
 
   useEffect(() => {
@@ -57,26 +64,45 @@ export function Cursor({ children }) {
 
   return (
     <>
-      {/* Lagging ring */}
+      {/* Lagging glowing ring follower */}
       <div
         ref={setRingRef}
+        aria-hidden="true"
         style={{
-          position: 'fixed', top: 0, left: 0,
-          pointerEvents: 'none', zIndex: 9998, borderRadius: '50%',
-          border: '1px solid rgba(255,77,0,0.35)',
-          boxShadow: '0 0 8px rgba(255,77,0,0.1)',
-          willChange: 'transform, width, height',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: 32,
+          height: 32,
+          pointerEvents: 'none',
+          zIndex: 99998,
+          borderRadius: '50%',
+          border: '1.5px solid rgba(255, 77, 0, 0.5)',
+          background: 'rgba(255, 77, 0, 0.04)',
+          boxShadow: '0 0 12px rgba(255, 77, 0, 0.25)',
+          opacity: 0,
+          transition: 'opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease',
+          willChange: 'transform',
         }}
       />
-      {/* Core dot */}
+      {/* Core glowing accent dot */}
       <div
         ref={setCoreRef}
+        aria-hidden="true"
         style={{
-          position: 'fixed', top: 0, left: 0,
-          pointerEvents: 'none', zIndex: 9999, borderRadius: '50%',
-          background: 'radial-gradient(circle at 35% 35%, #FF6B3D, #FF4D00)',
-          boxShadow: '0 0 8px rgba(255,77,0,0.6)',
-          willChange: 'transform, width, height',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: 6,
+          height: 6,
+          pointerEvents: 'none',
+          zIndex: 99999,
+          borderRadius: '50%',
+          background: '#FF4D00',
+          boxShadow: '0 0 8px rgba(255, 77, 0, 0.8)',
+          opacity: 0,
+          transition: 'opacity 0.15s ease',
+          willChange: 'transform',
         }}
       />
       {children}

@@ -146,8 +146,13 @@ section[id] { scroll-margin-top: 5rem; }
 }
 
 /* ─── Cursor ─── */
-body.cursor-hidden, body.cursor-hidden * { cursor: none !important; }
-@media (pointer: coarse) { body.cursor-hidden, body.cursor-hidden * { cursor: auto !important; } }
+body { cursor: default; }
+a, button, [role="button"], input[type="submit"], input[type="button"], select {
+  cursor: pointer;
+}
+input[type="text"], input[type="email"], textarea {
+  cursor: text;
+}
 
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 4px; }
