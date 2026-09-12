@@ -2,9 +2,11 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/nav/Navbar';
 import { Footer } from '../components/Footer';
 import { useVisitorTracking } from '../hooks/useVisitorTracking';
+import { useBackendKeepAlive } from '../hooks/useBackendKeepAlive';
 
 export const MainLayout = () => {
   useVisitorTracking();
+  useBackendKeepAlive();
 
   return (
     <div
