@@ -79,17 +79,21 @@ const experienceSchema = new mongoose.Schema({
 }, { _id: false });
 
 const testimonialItemSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, default: "Anonymous client" },
   role: { type: String, default: "" },
   company: { type: String, default: "" },
-  image: { type: String, default: "" },
+  platform: { type: String, default: "Upwork" },
   rating: { type: Number, min: 1, max: 5, default: 5 },
+  text: { type: String, default: "" },
   feedback: { type: String, default: "" },
-}, { _id: false });
+  date: { type: String, default: "" },
+  enabled: { type: Boolean, default: true },
+  image: { type: String, default: "" },
+}, { _id: false, strict: false });
 
 const testimonialsSchema = new mongoose.Schema({
   title: { type: String, default: "Client Feedback" },
-  subtitle: { type: String, default: "" },
+  subtitle: { type: String, default: "What clients say about working with me." },
   items: [testimonialItemSchema],
 }, { _id: false });
 
@@ -138,7 +142,7 @@ const sectionsSchema = new mongoose.Schema({
   skills: { type: Boolean, default: true },
   projects: { type: Boolean, default: true },
   experience: { type: Boolean, default: true },
-  testimonials: { type: Boolean, default: false },
+  testimonials: { type: Boolean, default: true },
   terminal: { type: Boolean, default: false },
   contact: { type: Boolean, default: true },
 }, { _id: false });

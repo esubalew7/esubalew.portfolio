@@ -164,12 +164,46 @@ export const ContactSection = () => {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}
               className="font-display text-h2"
-              style={{ color: 'var(--text-primary)', marginBottom: 24 }}
+              style={{ color: 'var(--text-primary)', marginBottom: 20 }}
             >
               Let's build<br />
               <span style={{ color: 'var(--orange)' }}>something</span><br />
               <span style={{ color: 'var(--text-secondary)' }}>serious.</span>
             </motion.h2>
+
+            {/* Response Time SLA Commitment Row */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                padding: '12px 16px',
+                background: 'rgba(255, 77, 0, 0.04)',
+                border: '1px solid rgba(255, 77, 0, 0.2)',
+                borderRadius: 4,
+                marginBottom: 24,
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: 11,
+                letterSpacing: '0.04em',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--orange)', fontWeight: 700, fontSize: 13, lineHeight: 1 }}>⟳</span>
+                <span>Typical response: <strong style={{ color: 'var(--text-primary)' }}>&lt; 4 hours</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--orange)', fontWeight: 700 }}>✓</span>
+                <span>Available for calls: <strong style={{ color: 'var(--text-primary)' }}>Mon–Sat, 9AM–8PM EAT</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--orange)', fontWeight: 700 }}>✓</span>
+                <span>Channels: <strong style={{ color: 'var(--text-primary)' }}>Email · Direct · LinkedIn · Telegram · X (Twitter) · Instagram · GitHub</strong></span>
+              </div>
+            </motion.div>
 
             <motion.p
               initial={{ opacity: 0, y: 16 }}

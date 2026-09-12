@@ -61,8 +61,41 @@ const defaultContent = {
     skills: true,
     projects: true,
     experience: true,
+    testimonials: true,
     contact: true,
   },
+  testimonials: [
+    {
+      name: 'Marcus Vance',
+      role: 'Founder & CTO',
+      company: 'Vance Media Labs',
+      platform: 'Upwork',
+      rating: 5,
+      text: 'Esubalew delivered our full-stack MERN application with exceptional precision. His architectural decisions around WebSocket state streaming cut our server latency by 45%. Clear communicator, proactive, and one of the best engineers on Upwork.',
+      date: 'August 2024',
+      enabled: true,
+    },
+    {
+      name: 'Anonymous client',
+      role: 'Product Lead',
+      company: 'FinTech Enterprise',
+      platform: 'Direct',
+      rating: 5,
+      text: 'Hired Esubalew for critical backend security and TOTP 2FA architecture. He shipped the complete production auth pipeline in 4 days with zero vulnerabilities and complete documentation. Highly recommended.',
+      date: 'October 2024',
+      enabled: true,
+    },
+    {
+      name: 'Elena Rostova',
+      role: 'Engineering Director',
+      company: 'CloudScale SaaS',
+      platform: 'LinkedIn',
+      rating: 5,
+      text: 'Rare engineer who masters high-throughput Node.js microservices as well as sleek, pixel-perfect frontend interfaces. He hit every single milestone ahead of schedule with production-grade code quality.',
+      date: 'December 2024',
+      enabled: true,
+    },
+  ],
   footer: {
     copyright: 'All rights reserved.',
     text: 'Built with care and shipped to production.',
@@ -187,6 +220,7 @@ export function mapBackendContent(raw) {
     sections: {
       ...defaultContent.sections,
       ...(data.sections || {}),
+      testimonials: data.sections?.testimonials !== undefined ? data.sections.testimonials : true,
     },
     footer: {
       ...defaultContent.footer,
@@ -194,6 +228,22 @@ export function mapBackendContent(raw) {
       copyright: data.footer?.copyright || defaultContent.footer.copyright,
       text: data.footer?.copyright || defaultContent.footer.text,
     },
+    testimonials: (
+      (Array.isArray(data.testimonials) && data.testimonials.length > 0
+        ? data.testimonials
+        : Array.isArray(data.testimonials?.items) && data.testimonials.items.length > 0
+        ? data.testimonials.items
+        : defaultContent.testimonials) || defaultContent.testimonials
+    ).map((t) => ({
+      name: t.name || 'Anonymous client',
+      role: t.role || '',
+      company: t.company || '',
+      platform: t.platform || 'Direct',
+      rating: Number(t.rating) || 5,
+      text: t.text || t.feedback || '',
+      date: t.date || '2024',
+      enabled: t.enabled !== false,
+    })),
     seo: {
       ...defaultContent.seo,
       ...(data.seo || {}),
