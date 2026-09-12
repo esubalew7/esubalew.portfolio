@@ -67,6 +67,14 @@ const defaultContent = {
     copyright: 'All rights reserved.',
     text: 'Built with care and shipped to production.',
   },
+  seo: {
+    title: 'Esubalew Molla | Full Stack Developer',
+    description:
+      'Portfolio of Esubalew Molla — Full Stack Developer & Software Engineer based in Ethiopia. Specializing in React, Node.js, MERN stack, distributed systems, and high-performance web architecture.',
+    keywords:
+      'Esubalew Molla, developer Ethiopia, Full Stack Developer, MERN Stack Developer, Software Engineer Ethiopia, Bahir Dar University, React Developer, Node.js, Web Developer Ethiopia, Upwork',
+    ogImage: '',
+  },
 };
 
 function mapExperienceItem(item) {
@@ -185,6 +193,14 @@ export function mapBackendContent(raw) {
       ...data.footer,
       copyright: data.footer?.copyright || defaultContent.footer.copyright,
       text: data.footer?.copyright || defaultContent.footer.text,
+    },
+    seo: {
+      ...defaultContent.seo,
+      ...(data.seo || {}),
+      title: data.seo?.title || defaultContent.seo.title,
+      description: data.seo?.description || defaultContent.seo.description,
+      keywords: data.seo?.keywords || defaultContent.seo.keywords,
+      ogImage: data.seo?.ogImage || defaultContent.seo.ogImage,
     },
   };
 }
