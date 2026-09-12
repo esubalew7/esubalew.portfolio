@@ -1,7 +1,8 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { useContentStore } from '../store/contentStore';
-import { getCloudinaryUrl } from '../utils/cloudinary';
+import { getCloudinaryUrl, getResponsiveCloudinarySet } from '../utils/cloudinary';
+import { LazyImage } from '../components/common/LazyImage';
 
 // ─── Animated stat ─────────────────────────────────────────────────────────
 function StatBlock({ value, suffix = '', label, index }) {
@@ -129,16 +130,17 @@ export const AboutSection = () => {
                     zIndex: 2,
                   }}
                 />
-                <img
+                <LazyImage
                   src={getCloudinaryUrl(about?.image, { fallback: '/images/esu.png', width: 800 })}
+                  srcSet={getResponsiveCloudinarySet(about?.image || '/images/esu.png')}
                   alt="Esubalew Molla"
-                  style={{
-                    display: 'block', width: '100%',
-                    aspectRatio: '4/5', objectFit: 'cover',
+                  aspectRatio="4/5"
+                  imgStyle={{
                     filter: 'grayscale(20%) contrast(1.05)',
+                  }}
+                  style={{
                     borderRadius: 2,
                   }}
-                  loading="lazy"
                 />
               </motion.div>
             )}

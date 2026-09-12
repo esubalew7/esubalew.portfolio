@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useProjects } from '../context/ProjectContext';
-import { getCloudinaryUrl } from '../utils/cloudinary';
+import { getCloudinaryUrl, getResponsiveCloudinarySet } from '../utils/cloudinary';
+import { LazyImage } from '../components/common/LazyImage';
 import { CaseStudyModal } from '../components/projects/CaseStudyModal';
 
 // ─── Filter chip ───────────────────────────────────────────────────────────
@@ -78,18 +79,24 @@ function ProjectCard({ project, index, onOpenCaseStudy }) {
           cursor: 'pointer',
         }}
       >
-        <img
+        <LazyImage
           src={getCloudinaryUrl(project.image, {
             fallback: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
             width: 800,
           })}
+          srcSet={getResponsiveCloudinarySet(
+            project.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80'
+          )}
           alt={project.title}
-          loading="lazy"
-          style={{
-            display: 'block', width: '100%', height: '100%', objectFit: 'cover',
+          aspectRatio="16/9"
+          imgStyle={{
             transform: hovered ? 'scale(1.04)' : 'scale(1)',
             transition: 'transform 0.7s cubic-bezier(0.16,1,0.3,1)',
             filter: hovered ? 'grayscale(0%)' : 'grayscale(25%)',
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
           }}
         />
         {/* Orange overlay reveal on hover */}
