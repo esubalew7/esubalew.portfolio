@@ -1,457 +1,936 @@
-/**
- * OrbitalSkillsSection.jsx
- *
- * Design: A 3D heliocentric orbital system.
- * - Central core = "FULL STACK" nucleus with a wireframe geodesic shell (Three.js, lazy-loaded)
- * - 4 elliptical orbits, each tilted at a different angle (CSS 3D perspective)
- * - Each node = official tech icon (inline SVG, no external CDN dependency)
- * - Nodes spin around their orbit continuously on GPU (CSS animation, zero JS per-frame)
- * - Hover a node → it lifts out of orbit, glows, shows a tooltip card
- * - CMS-driven: reads from contentStore skills.categories — falls back to full hardcoded set
- * - Admin note: categories order in CMS controls orbit assignment
- *
- * Performance:
- * - Orbits are pure CSS transforms + animation → zero JS per frame
- * - Central wireframe is one Three.js BufferGeometry → ~3 draw calls
- * - DPR clamped to 1.5
- * - IntersectionObserver halts wireframe loop when off-screen
- * - prefers-reduced-motion: pauses all orbit animations, keeps static layout
- */
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
+import { useContentStore } from '../store/contentStore';
+import { SkillsSkeleton } from '../components/SkeletonLoader';
 
-import { useRef, useEffect, useState, useCallback, lazy, Suspense } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-
-// ─── DESIGN TOKENS (matches portfolio system) ─────────────────────────────
-const T = {
-  void: '#0C0A08',
-  ink: '#111009',
-  inkRaised: '#1A1712',
-  inkFloat: '#232018',
-  primary: '#F2EDE6',
-  secondary: '#8A8278',
-  muted: '#4D4843',
-  accent: '#D4860A',   // Precision Amber
-  accentGlow: 'rgba(212,134,10,0.22)',
-  border: 'rgba(242,237,230,0.07)',
-  borderSub: 'rgba(242,237,230,0.12)',
-};
-
-// ─── OFFICIAL TECH ICONS (inline SVG paths, brand colours) ────────────────
-const ICONS = {
-  JavaScript: {
-    color: '#F7DF1E', bg: '#323330',
-    svg: (
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
-        <rect width="32" height="32" fill="#323330" />
-        <path d="M6 6h20v20H6z" fill="#F7DF1E" />
-        <path d="M20.5 22.5c.4.7 1 1.2 2 1.2 1 0 1.5-.5 1.5-1.2 0-.8-.6-1.1-1.6-1.6l-.5-.2c-1.6-.7-2.6-1.5-2.6-3.3 0-1.6 1.2-2.9 3.1-2.9 1.3 0 2.3.5 3 1.5l-1.6 1c-.4-.7-.8-.9-1.4-.9-.7 0-1.1.4-1.1 1 0 .7.4 1 1.4 1.4l.5.2c1.9.8 2.9 1.6 2.9 3.4 0 2-1.5 3.1-3.6 3.1-2 0-3.3-1-3.9-2.2l1.9-1.5zM11.5 22.7c.3.5.6.9 1.2.9.6 0 1-.2 1-1.1v-6.1h2.1V22.5c0 1.9-1.1 2.7-2.7 2.7-1.4 0-2.3-.8-2.7-1.7l1.1-1.8z" fill="#323330" />
-      </svg>
-    ),
-  },
-  TypeScript: {
-    color: '#3178C6', bg: '#1a1a1a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#3178C6" />
-        <path d="M18.2 23.4v2.1c.4.2.8.3 1.3.4.5.1 1 .1 1.5.1.5 0 1-.1 1.5-.2.5-.1.9-.3 1.2-.6.3-.3.6-.6.8-1 .2-.4.3-.9.3-1.5 0-.4 0-.8-.1-1.1-.1-.3-.3-.6-.5-.9-.2-.3-.5-.5-.9-.7-.4-.2-.8-.4-1.4-.6-.4-.1-.7-.3-1-.4-.3-.1-.5-.2-.6-.3-.2-.1-.3-.2-.4-.4-.1-.1-.1-.3-.1-.5 0-.2 0-.3.1-.5.1-.1.2-.2.3-.3.1-.1.3-.1.5-.2.2 0 .4-.1.6-.1.2 0 .4 0 .6.1.2 0 .4.1.5.2.2.1.3.2.5.3.1.1.3.3.4.4v-2c-.3-.1-.7-.2-1.1-.3-.4-.1-.9-.1-1.3-.1-.5 0-1 .1-1.4.2-.4.1-.8.3-1.1.6-.3.3-.6.6-.8 1-.2.4-.3.9-.3 1.4 0 .7.2 1.3.5 1.7.4.4.9.8 1.7 1.1.4.2.8.3 1.1.4.3.1.5.2.7.4.2.1.3.3.4.4.1.2.1.3.1.5 0 .2 0 .3-.1.5-.1.2-.2.3-.3.4-.1.1-.3.2-.5.2-.2 0-.5.1-.7.1-.5 0-.9-.1-1.4-.3-.4-.3-.8-.6-1.1-1zM14.1 17H17v-2H8v2h2.9v9h3.2v-9z" fill="white" />
-      </svg>
-    ),
-  },
-  React: {
-    color: '#61DAFB', bg: '#20232a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#20232a" />
-        <circle cx="16" cy="16" r="2.2" fill="#61DAFB" />
-        <ellipse cx="16" cy="16" rx="10" ry="4" stroke="#61DAFB" strokeWidth="1.1" fill="none" />
-        <ellipse cx="16" cy="16" rx="10" ry="4" stroke="#61DAFB" strokeWidth="1.1" fill="none" transform="rotate(60 16 16)" />
-        <ellipse cx="16" cy="16" rx="10" ry="4" stroke="#61DAFB" strokeWidth="1.1" fill="none" transform="rotate(120 16 16)" />
-      </svg>
-    ),
-  },
-  'Next.js': {
-    color: '#ffffff', bg: '#000000',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#000" />
-        <path d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12 12-5.4 12-12S22.6 4 16 4zm4.8 16.8L11.2 9.6H9.6v12.8h1.6V11.9l8.9 11.5c.2-.2.5-.4.7-.6z" fill="white" />
-        <path d="M20.8 9.6h1.6v12.8h-1.6z" fill="white" />
-      </svg>
-    ),
-  },
-  'Node.js': {
-    color: '#3C873A', bg: '#1a1a1a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a1a1a" />
-        <path d="M16 4L5 10v12l11 6 11-6V10L16 4zm0 2.2l9 4.9v10l-9 4.9-9-4.9v-10l9-4.9z" fill="#3C873A" />
-        <path d="M16 8.5l-6.5 3.7v7.5l6.5 3.7 6.5-3.7v-7.5L16 8.5zm0 2l4.5 2.6v5l-4.5 2.6-4.5-2.6v-5L16 10.5z" fill="#3C873A" opacity="0.6" />
-      </svg>
-    ),
-  },
-  Express: {
-    color: '#CCCCCC', bg: '#1a1a1a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a1a1a" />
-        <text x="4" y="20" fontFamily="monospace" fontWeight="bold" fontSize="9" fill="#CCCCCC">EXP</text>
-        <path d="M4 22h24" stroke="#CCCCCC" strokeWidth="1.2" />
-      </svg>
-    ),
-  },
-  NestJS: {
-    color: '#E0234E', bg: '#1a0a0e',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a0a0e" />
-        <path d="M20.5 8.5c-1-1.5-2.5-2.5-4-2.8 .5.8.7 1.7.5 2.6C15.5 7 14 6.5 12.5 6.5c-3.3 0-6 2.7-6 6 0 .8.2 1.6.5 2.3.8-1.5 2.3-2.5 4-2.5.8 0 1.5.2 2.1.6-.4.6-.7 1.4-.7 2.1 0 2.2 1.8 4 4 4 1.1 0 2.1-.4 2.8-1.1 1.5-1.2 2.3-3 2.3-5 0-1.7-.6-3.3-1-4.4z" fill="#E0234E" />
-        <path d="M19.5 14.5c0 1.9-1.6 3.5-3.5 3.5s-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5z" fill="#E0234E" opacity="0.5" />
-      </svg>
-    ),
-  },
-  MongoDB: {
-    color: '#47A248', bg: '#0d1a0d',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1a0d" />
-        <path d="M16 4c-1 3-4.5 5.5-4.5 10.5 0 2.5 1 4.7 2.5 6.2v4.3c0 .6.4 1 1 1s1-.4 1-1v-4.3c1.5-1.5 2.5-3.7 2.5-6.2C18.5 9.5 17 7 16 4z" fill="#47A248" />
-        <path d="M16 4c1 3 2.5 5 3.5 8-1.5.5-2.5.5-3.5.5V4z" fill="#47A248" opacity="0.6" />
-      </svg>
-    ),
-  },
-  PostgreSQL: {
-    color: '#336791', bg: '#0d1520',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1520" />
-        <ellipse cx="16" cy="10" rx="8" ry="5" stroke="#336791" strokeWidth="1.5" fill="none" />
-        <rect x="8" y="10" width="16" height="12" fill="none" stroke="#336791" strokeWidth="1.5" />
-        <ellipse cx="16" cy="22" rx="8" ry="3" stroke="#336791" strokeWidth="1.5" fill="#0d1520" />
-        <line x1="8" y1="14" x2="24" y2="14" stroke="#336791" strokeWidth="0.8" />
-        <line x1="8" y1="18" x2="24" y2="18" stroke="#336791" strokeWidth="0.8" />
-      </svg>
-    ),
-  },
-  Flutter: {
-    color: '#54C5F8', bg: '#0d1a2a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1a2a" />
-        <polygon points="9,16 16,8 23,16 18,16 16,14 14,16" fill="#54C5F8" />
-        <polygon points="9,20 16,12 18,14 13,20 18,26 16,26" fill="#54C5F8" />
-        <polygon points="13,20 18,14 23,20 18,26" fill="#01579B" />
-      </svg>
-    ),
-  },
-  Tailwind: {
-    color: '#38BDF8', bg: '#0d1a22',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1a22" />
-        <path d="M8 14c.7-3 2.7-4.5 6-4.5 4.5 0 5.3 2.3 7.5 2.7 1.5.3 2.8-.4 4-2.2-.7 3-2.7 4.5-6 4.5-4.5 0-5.3-2.3-7.5-2.7-1.5-.3-2.8.4-4 2.2zM4 20c.7-3 2.7-4.5 6-4.5 4.5 0 5.3 2.3 7.5 2.7 1.5.3 2.8-.4 4-2.2-.7 3-2.7 4.5-6 4.5-4.5 0-5.3-2.3-7.5-2.7-1.5-.3-2.8.4-4 2.2z" fill="#38BDF8" />
-      </svg>
-    ),
-  },
-  Docker: {
-    color: '#2496ED', bg: '#0d1520',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1520" />
-        <rect x="6" y="14" width="4" height="4" rx="0.5" fill="#2496ED" />
-        <rect x="11" y="14" width="4" height="4" rx="0.5" fill="#2496ED" />
-        <rect x="16" y="14" width="4" height="4" rx="0.5" fill="#2496ED" />
-        <rect x="11" y="9" width="4" height="4" rx="0.5" fill="#2496ED" />
-        <rect x="16" y="9" width="4" height="4" rx="0.5" fill="#2496ED" />
-        <path d="M26 16c-.5-1-1.8-1.5-3-1.3-.3-1.5-1.5-2.7-3.2-2.7v1.5c1 0 1.7.7 1.7 1.7v.3H6.5c-.3 2.7.8 5 2.8 6.3 1.5 1 3.3 1.2 5.2 1.2 4.5 0 8.2-2 9.5-6.5.8.1 1.5-.1 2-.5z" fill="#2496ED" opacity="0.7" />
-      </svg>
-    ),
-  },
-  Git: {
-    color: '#F05032', bg: '#1a0d0a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a0d0a" />
-        <path d="M27.5 14.6L17.4 4.5c-.7-.7-1.8-.7-2.5 0l-2.4 2.4 3 3c.7-.3 1.5-.1 2 .4.5.5.7 1.3.4 2l2.9 2.9c.7-.3 1.5-.1 2 .4.8.8.8 2 0 2.8-.8.8-2 .8-2.8 0-.6-.6-.7-1.4-.4-2.1l-2.7-2.7v7c.5.2.9.6 1.1 1.1.8.8.8 2 0 2.8-.8.8-2 .8-2.8 0-.8-.8-.8-2 0-2.8.3-.3.7-.5 1.1-.6v-7c-.4-.1-.8-.3-1.1-.6-.6-.6-.7-1.5-.4-2.2L11 9.5 4.5 15.9c-.7.7-.7 1.8 0 2.5l10.1 10.1c.7.7 1.8.7 2.5 0L27.5 17c.7-.7.7-1.8 0-2.4z" fill="#F05032" />
-      </svg>
-    ),
-  },
-  Postman: {
-    color: '#FF6C37', bg: '#1a0e0a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a0e0a" />
-        <circle cx="16" cy="16" r="10" fill="#FF6C37" opacity="0.15" stroke="#FF6C37" strokeWidth="1" />
-        <circle cx="16" cy="16" r="6" fill="#FF6C37" opacity="0.3" />
-        <circle cx="16" cy="16" r="3" fill="#FF6C37" />
-        <line x1="16" y1="16" x2="22" y2="12" stroke="#FF6C37" strokeWidth="1.5" />
-      </svg>
-    ),
-  },
-  Swagger: {
-    color: '#85EA2D', bg: '#0d1a05',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#0d1a05" />
-        <circle cx="16" cy="16" r="10" fill="#85EA2D" opacity="0.15" stroke="#85EA2D" strokeWidth="1" />
-        <circle cx="16" cy="16" r="7" fill="#85EA2D" opacity="0.25" />
-        <text x="12" y="20" fontFamily="monospace" fontWeight="bold" fontSize="10" fill="#85EA2D">S</text>
-      </svg>
-    ),
-  },
-  Redis: {
-    color: '#DC382D', bg: '#1a0908',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a0908" />
-        <ellipse cx="16" cy="20" rx="10" ry="4" fill="#DC382D" opacity="0.4" />
-        <ellipse cx="16" cy="16" rx="10" ry="4" fill="#DC382D" opacity="0.6" />
-        <ellipse cx="16" cy="12" rx="10" ry="4" fill="#DC382D" />
-      </svg>
-    ),
-  },
-  RabbitMQ: {
-    color: '#FF6600', bg: '#1a0e05',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#1a0e05" />
-        <rect x="6" y="10" width="20" height="15" rx="2" fill="#FF6600" opacity="0.3" stroke="#FF6600" strokeWidth="1" />
-        <rect x="10" y="14" width="4" height="4" rx="0.5" fill="#FF6600" />
-        <rect x="18" y="14" width="4" height="4" rx="0.5" fill="#FF6600" />
-        <path d="M16 6 L18 10 L14 10 Z" fill="#FF6600" />
-        <path d="M20 7 L21 10 L19 10 Z" fill="#FF6600" opacity="0.7" />
-      </svg>
-    ),
-  },
-  Microservices: {
-    color: '#A78BFA', bg: '#12101a',
-    svg: (
-      <svg viewBox="0 0 32 32" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" fill="#12101a" />
-        <circle cx="16" cy="16" r="3" fill="#A78BFA" />
-        <circle cx="8" cy="10" r="2" fill="#A78BFA" opacity="0.7" />
-        <circle cx="24" cy="10" r="2" fill="#A78BFA" opacity="0.7" />
-        <circle cx="8" cy="22" r="2" fill="#A78BFA" opacity="0.7" />
-        <circle cx="24" cy="22" r="2" fill="#A78BFA" opacity="0.7" />
-        <line x1="16" y1="13" x2="10" y2="11" stroke="#A78BFA" strokeWidth="0.8" opacity="0.6" />
-        <line x1="16" y1="13" x2="22" y2="11" stroke="#A78BFA" strokeWidth="0.8" opacity="0.6" />
-        <line x1="16" y1="19" x2="10" y2="21" stroke="#A78BFA" strokeWidth="0.8" opacity="0.6" />
-        <line x1="16" y1="19" x2="22" y2="21" stroke="#A78BFA" strokeWidth="0.8" opacity="0.6" />
-      </svg>
-    ),
-  },
-};
-
-// ─── ORBIT CONFIG ─────────────────────────────────────────────────────────
-// Each orbit: radius (px from center), tilt angle, speed (deg/sec),
-// skills assigned, orbit color
+// ─── 1. ORBIT DEFINITIONS (4 distinct tilted layers) ────────────────────────
 const ORBIT_CONFIGS = [
   {
-    id: 'o1',
-    radius: 115,
-    tiltX: 70,
-    tiltZ: 15,
-    duration: 18,   // seconds for full rotation
-    color: 'rgba(97, 218, 251, 0.15)',
-    label: 'Frontend',
-    skills: ['JavaScript', 'TypeScript', 'React', 'Next.js', 'Tailwind'],
+    id: 'orbit-1',
+    name: 'Frontend',
+    duration: 18,
+    tiltX: 72,
+    tiltZ: 12,
+    radius: 135,
+    skills: ['JavaScript', 'TypeScript', 'React', 'Next.js', 'Tailwind CSS'],
+    angles: [0, 72, 144, 216, 288],
+    darkBorder: 'rgba(56, 189, 248, 0.14)',
+    lightBorder: 'rgba(2, 132, 199, 0.20)',
+    accentColor: '#38BDF8',
   },
   {
-    id: 'o2',
-    radius: 175,
-    tiltX: 60,
-    tiltZ: -20,
+    id: 'orbit-2',
+    name: 'Backend',
     duration: 26,
-    color: 'rgba(60, 135, 58, 0.12)',
-    label: 'Backend',
+    tiltX: 58,
+    tiltZ: -22,
+    radius: 215,
     skills: ['Node.js', 'Express', 'NestJS', 'Redis', 'RabbitMQ'],
+    angles: [36, 108, 180, 252, 324],
+    darkBorder: 'rgba(16, 185, 129, 0.14)',
+    lightBorder: 'rgba(5, 150, 105, 0.20)',
+    accentColor: '#10B981',
   },
   {
-    id: 'o3',
-    radius: 230,
-    tiltX: 65,
-    tiltZ: 35,
+    id: 'orbit-3',
+    name: 'Data & Infrastructure',
     duration: 34,
-    color: 'rgba(212, 134, 10, 0.1)',
-    label: 'Data & Infra',
+    tiltX: 64,
+    tiltZ: 30,
+    radius: 295,
     skills: ['MongoDB', 'PostgreSQL', 'Docker', 'Microservices'],
+    angles: [15, 105, 195, 285],
+    darkBorder: 'rgba(129, 140, 248, 0.14)',
+    lightBorder: 'rgba(99, 102, 241, 0.20)',
+    accentColor: '#818CF8',
   },
   {
-    id: 'o4',
-    radius: 285,
-    tiltX: 55,
-    tiltZ: -10,
+    id: 'orbit-4',
+    name: 'Mobile & Tools',
     duration: 44,
-    color: 'rgba(124, 58, 237, 0.08)',
-    label: 'Mobile & Tools',
+    tiltX: 52,
+    tiltZ: -8,
+    radius: 375,
     skills: ['Flutter', 'Git', 'Postman', 'Swagger'],
+    angles: [60, 150, 240, 330],
+    darkBorder: 'rgba(245, 158, 11, 0.14)',
+    lightBorder: 'rgba(217, 119, 6, 0.20)',
+    accentColor: '#F59E0B',
   },
 ];
 
-// ─── SKILL NODE COMPONENT ─────────────────────────────────────────────────
-function SkillNode({ skill, angle, orbitRadius, orbitDuration, orbitTiltX, orbitTiltZ, orbitColor, isActive, onHover, onLeave }) {
-  const icon = ICONS[skill] || null;
-  const color = icon?.color || T.accent;
-  const nodeId = `node-${skill.replace(/[^a-z]/gi, '')}`;
+// ─── 2. SKILL METADATA (Experience + Production Status) ─────────────────────
+const SKILL_META = {
+  JavaScript: { exp: '3+ yrs', status: 'production' },
+  TypeScript: { exp: '2+ yrs', status: 'production' },
+  React: { exp: '3+ yrs', status: 'production' },
+  'Next.js': { exp: '1+ yr', status: 'production' },
+  'Tailwind CSS': { exp: '2+ yrs', status: 'production' },
+  'Node.js': { exp: '3+ yrs', status: 'production' },
+  Express: { exp: '3+ yrs', status: 'production' },
+  NestJS: { exp: '1+ yr', status: 'production' },
+  Redis: { exp: '1+ yr', status: 'production' },
+  RabbitMQ: { exp: '< 1 yr', status: 'learning' },
+  MongoDB: { exp: '3+ yrs', status: 'production' },
+  PostgreSQL: { exp: '2+ yrs', status: 'production' },
+  Docker: { exp: '1+ yr', status: 'production' },
+  Microservices: { exp: '1+ yr', status: 'production' },
+  Flutter: { exp: '1+ yr', status: 'production' },
+  Git: { exp: '3+ yrs', status: 'production' },
+  Postman: { exp: '3+ yrs', status: 'production' },
+  Swagger: { exp: '2+ yrs', status: 'production' },
+};
 
-  // Each node counter-rotates so the icon stays upright
-  // The node is placed at the edge of orbit using CSS variables
+// ─── 3. SIMPLE ICONS SLUGS & OFFICIAL BRAND COLORS ─────────────────────────
+const SLUG_MAP = {
+  JavaScript: 'javascript',
+  TypeScript: 'typescript',
+  React: 'react',
+  'Next.js': 'nextdotjs',
+  'Tailwind CSS': 'tailwindcss',
+  'Node.js': 'nodedotjs',
+  Express: 'express',
+  NestJS: 'nestjs',
+  Redis: 'redis',
+  RabbitMQ: 'rabbitmq',
+  MongoDB: 'mongodb',
+  PostgreSQL: 'postgresql',
+  Docker: 'docker',
+  Microservices: 'microservices',
+  Flutter: 'flutter',
+  Git: 'git',
+  Postman: 'postman',
+  Swagger: 'swagger',
+};
+
+const BRAND_MAP = {
+  JavaScript: '#F7DF1E',
+  TypeScript: '#3178C6',
+  React: '#61DAFB',
+  'Next.js': '#000000',
+  'Tailwind CSS': '#06B6D4',
+  'Node.js': '#5FA04E',
+  Express: '#000000',
+  NestJS: '#E0234E',
+  Redis: '#DC382D',
+  RabbitMQ: '#FF6600',
+  MongoDB: '#47A248',
+  PostgreSQL: '#4169E1',
+  Docker: '#2496ED',
+  Microservices: '#A78BFA',
+  Flutter: '#02569B',
+  Git: '#F05032',
+  Postman: '#FF6C37',
+  Swagger: '#85EA2D',
+};
+
+// Helper to determine orbit category for any given skill name
+const SKILL_TO_ORBIT = {};
+ORBIT_CONFIGS.forEach((orbit) => {
+  orbit.skills.forEach((skill) => {
+    SKILL_TO_ORBIT[skill] = orbit.name;
+  });
+});
+
+// ─── 4. CDN URL BUILDER ────────────────────────────────────────────────────
+function getIconUrl(slug, hex, isDark) {
+  let cleanHex = (hex || '').replace('#', '');
+  if (isDark) {
+    if (cleanHex === '000000' || slug === 'nextdotjs' || slug === 'express') {
+      cleanHex = 'FFFFFF';
+    }
+  } else {
+    if (cleanHex === '000000' || slug === 'nextdotjs' || slug === 'express') {
+      cleanHex = '555555';
+    }
+  }
+  return `https://cdn.simpleicons.org/${slug}/${cleanHex}`;
+}
+
+// Initials fallback generator
+function getInitials(name) {
+  if (!name) return 'SK';
+  const parts = name.split(/[\s.-]+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+// Custom Microservices SVG icon
+function MicroservicesIcon({ size = 18, color = '#A78BFA' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width={size} height={size} aria-label="Microservices">
+      <circle cx="12" cy="12" r="2.5" fill={color} />
+      <circle cx="5" cy="7" r="1.8" fill={color} opacity="0.75" />
+      <circle cx="19" cy="7" r="1.8" fill={color} opacity="0.75" />
+      <circle cx="5" cy="17" r="1.8" fill={color} opacity="0.75" />
+      <circle cx="19" cy="17" r="1.8" fill={color} opacity="0.75" />
+      <line x1="12" y1="9.5" x2="6.5" y2="8.2" stroke={color} strokeWidth="0.9" opacity="0.6" />
+      <line x1="12" y1="9.5" x2="17.5" y2="8.2" stroke={color} strokeWidth="0.9" opacity="0.6" />
+      <line x1="12" y1="14.5" x2="6.5" y2="15.8" stroke={color} strokeWidth="0.9" opacity="0.6" />
+      <line x1="12" y1="14.5" x2="17.5" y2="15.8" stroke={color} strokeWidth="0.9" opacity="0.6" />
+    </svg>
+  );
+}
+
+// ─── 5. STARFIELD BACKGROUND (70 golden angle stars) ────────────────────────
+const STARFIELD_DOTS = Array.from({ length: 70 }, (_, i) => {
+  const angle = i * 137.508 * (Math.PI / 180);
+  const r = 385 * Math.sqrt((i + 1) / 70);
+  const cx = 410 + r * Math.cos(angle);
+  const cy = 410 + r * Math.sin(angle);
+  const radius = i % 2 === 0 ? 0.6 : 1.2;
+  const op = 0.15 + (i % 5) * 0.04;
+  return { cx: Math.round(cx), cy: Math.round(cy), r: radius, opacity: op };
+});
+
+function Starfield({ isDark }) {
+  const baseOpacity = isDark ? 0.25 : 0.10;
+  return (
+    <svg
+      viewBox="0 0 820 820"
+      className="absolute inset-0 w-full h-full pointer-events-none select-none"
+      aria-hidden="true"
+    >
+      {STARFIELD_DOTS.map((dot, idx) => (
+        <circle
+          key={idx}
+          cx={dot.cx}
+          cy={dot.cy}
+          r={dot.r}
+          fill={isDark ? '#8B939E' : '#9CA3AF'}
+          opacity={dot.opacity * (baseOpacity / 0.25)}
+        />
+      ))}
+    </svg>
+  );
+}
+
+// ─── 6. NUCLEUS (THREE.JS CANVAS COMPONENT) ─────────────────────────────────
+function Nucleus({ isDarkMode }) {
+  const canvasRef = useRef(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    let animId = null;
+    let renderer = null;
+    let scene = null;
+    let camera = null;
+    let observer = null;
+    let isIntersecting = true;
+    let icoMesh = null;
+    let torusMesh = null;
+
+    import('three')
+      .then((THREE) => {
+        if (!isMounted || !canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const width = 140;
+        const height = 140;
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 50);
+        camera.position.z = 3.6;
+
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+        });
+        renderer.setSize(width, height, false);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setClearColor(0x000000, 0);
+
+        const coreGroup = new THREE.Group();
+        scene.add(coreGroup);
+
+        // Inner solid sphere
+        const sphereGeo = new THREE.SphereGeometry(0.5, 24, 24);
+        const sphereMat = new THREE.MeshBasicMaterial({
+          color: isDarkMode ? 0x0e1017 : 0xffffff,
+          transparent: true,
+          opacity: 0.95,
+        });
+        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+        coreGroup.add(sphere);
+
+        // Wireframe Icosahedron
+        const icoGeo = new THREE.IcosahedronGeometry(1.1, 1);
+        const icoMat = new THREE.MeshBasicMaterial({
+          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          wireframe: true,
+          transparent: true,
+          opacity: isDarkMode ? 0.35 : 0.25,
+        });
+        icoMesh = new THREE.Mesh(icoGeo, icoMat);
+        coreGroup.add(icoMesh);
+
+        // Outer glow Torus ring
+        const torusGeo = new THREE.TorusGeometry(1.3, 0.03, 16, 64);
+        const torusMat = new THREE.MeshBasicMaterial({
+          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          transparent: true,
+          opacity: 0.18,
+          blending: THREE.AdditiveBlending,
+        });
+        torusMesh = new THREE.Mesh(torusGeo, torusMat);
+        torusMesh.rotation.x = Math.PI / 3;
+        coreGroup.add(torusMesh);
+
+        let lastTime = performance.now();
+        const animate = (time) => {
+          if (!isMounted) return;
+          animId = requestAnimationFrame(animate);
+          if (!isIntersecting) return;
+
+          const dt = Math.min((time - lastTime) * 0.001, 0.1);
+          lastTime = time;
+
+          if (icoMesh) {
+            icoMesh.rotation.x += 0.18 * dt;
+            icoMesh.rotation.y += 0.28 * dt;
+          }
+          if (torusMesh) {
+            torusMesh.rotation.z += 0.15 * dt;
+            torusMesh.rotation.y += 0.1 * dt;
+          }
+
+          renderer.render(scene, camera);
+        };
+        animId = requestAnimationFrame(animate);
+
+        // Viewport intersection observer to pause rendering when off-screen
+        observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0]) {
+              isIntersecting = entries[0].isIntersecting;
+            }
+          },
+          { threshold: 0.05 }
+        );
+        if (canvas.parentElement) {
+          observer.observe(canvas.parentElement);
+        }
+      })
+      .catch((err) => {
+        console.warn('Three.js failed to initialize in Nucleus:', err);
+        if (isMounted) setHasError(true);
+      });
+
+    return () => {
+      isMounted = false;
+      if (animId) cancelAnimationFrame(animId);
+      if (observer) observer.disconnect();
+      if (renderer) renderer.dispose();
+    };
+  }, [isDarkMode]);
+
   return (
     <div
-      id={nodeId}
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none select-none z-20"
+      style={{ width: 140, height: 140 }}
+    >
+      {hasError ? (
+        <div
+          className="w-20 h-20 rounded-full flex items-center justify-center border border-blue-500/30"
+          style={{
+            background: isDarkMode
+              ? 'radial-gradient(circle, #1a2030 0%, #0e1017 70%)'
+              : 'radial-gradient(circle, #ffffff 0%, #e2e8f0 70%)',
+            boxShadow: '0 0 24px rgba(59,130,246,0.2)',
+          }}
+        >
+          <div
+            className="w-14 h-14 rounded-full border border-dashed border-blue-400/40 animate-spin"
+            style={{ animationDuration: '10s' }}
+          />
+        </div>
+      ) : (
+        <canvas
+          ref={canvasRef}
+          className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] block"
+          style={{ background: 'transparent' }}
+          width={140}
+          height={140}
+          aria-label="Full Stack 3D Nucleus Core"
+        />
+      )}
+      <span
+        className="font-mono text-[9px] tracking-[0.22em] uppercase font-bold text-center mt-[-4px] opacity-80"
+        style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+      >
+        FULL STACK
+      </span>
+    </div>
+  );
+}
+
+// ─── 7. SKILL DETAIL SPECS & PREMIUM VERTICAL FOCUS CARD ────────────────────
+const SKILL_DETAILS = {
+  JavaScript: {
+    category: 'Frontend & Backend',
+    level: 'Advanced',
+    description: 'Core web programming language for reactive UI rendering, event loops, and full-stack logic.',
+    tags: ['ESNext', 'Async/Await', 'DOM APIs', 'Event Loop', 'Closures'],
+  },
+  TypeScript: {
+    category: 'Full-Stack Type System',
+    level: 'Advanced',
+    description: 'Enterprise typed JavaScript ensuring compile-time contracts, strict types, and robust refactoring.',
+    tags: ['Type Safety', 'Generics', 'Interfaces', 'Strict Mode', 'AST'],
+  },
+  React: {
+    category: 'Frontend UI Library',
+    level: 'Advanced',
+    description: 'Building interactive, scalable user interfaces using component-driven architecture.',
+    tags: ['React 19', 'Hooks', 'SPA', 'Vite', 'Component UI'],
+  },
+  'Next.js': {
+    category: 'Full-Stack React Framework',
+    level: 'Advanced',
+    description: 'Production React framework for high-performance SSR, Server Components, and edge rendering.',
+    tags: ['App Router', 'SSR', 'Server Actions', 'Edge API', 'SEO'],
+  },
+  'Tailwind CSS': {
+    category: 'Design Systems & UI',
+    level: 'Advanced',
+    description: 'Utility-first CSS framework for building ultra-fast, responsive, and custom design systems.',
+    tags: ['Utility CSS', 'Design Tokens', 'Dark Mode', 'Responsive', 'Flexbox'],
+  },
+  'Node.js': {
+    category: 'Backend Architecture',
+    level: 'Advanced',
+    description: 'High-throughput asynchronous runtime powering distributed backends and event streams.',
+    tags: ['Event Loop', 'Streams', 'Async I/O', 'V8 Engine', 'Microservices'],
+  },
+  Express: {
+    category: 'Backend Framework',
+    level: 'Advanced',
+    description: 'Fast, minimalist server framework for scalable REST APIs, authentication, and middleware.',
+    tags: ['REST APIs', 'Middleware', 'JWT Auth', 'CORS', 'Routing'],
+  },
+  NestJS: {
+    category: 'Enterprise Microservices',
+    level: 'Intermediate',
+    description: 'Structured enterprise TypeScript backend framework built on dependency injection and modules.',
+    tags: ['Dependency Injection', 'Decorators', 'Microservices', 'DTOs', 'Guards'],
+  },
+  Redis: {
+    category: 'In-Memory Data Store',
+    level: 'Intermediate',
+    description: 'Ultra-fast in-memory data cache for high-speed session storage, rate limiting, and pub/sub queues.',
+    tags: ['In-Memory', 'Pub/Sub', 'TTL Caching', 'Session Store', 'Key-Value'],
+  },
+  RabbitMQ: {
+    category: 'Message Broker Systems',
+    level: 'Active Learner',
+    description: 'Distributed message broker orchestrating decoupled asynchronous queues and event architectures.',
+    tags: ['AMQP', 'Queues', 'Exchanges', 'Event-Driven', 'Consumers'],
+  },
+  MongoDB: {
+    category: 'NoSQL Database',
+    level: 'Advanced',
+    description: 'Scalable document database for dynamic JSON-like data, aggregations, and high-throughput MERN apps.',
+    tags: ['Mongoose', 'Aggregation', 'Indexing', 'NoSQL', 'Transactions'],
+  },
+  PostgreSQL: {
+    category: 'Relational Database',
+    level: 'Advanced',
+    description: 'Enterprise ACID relational database for complex relational modeling and indexed query pipelines.',
+    tags: ['ACID', 'Complex Joins', 'Prisma', 'Indexing', 'Relational'],
+  },
+  Docker: {
+    category: 'DevOps & Containers',
+    level: 'Intermediate',
+    description: 'Containerization engine providing reproducible build environments across dev and production clouds.',
+    tags: ['Containers', 'Dockerfile', 'Compose', 'Multi-stage', 'CI/CD'],
+  },
+  Microservices: {
+    category: 'Distributed Systems',
+    level: 'Advanced',
+    description: 'Decoupled service mesh architecture communicating via lightweight API gateways and event buses.',
+    tags: ['Service Mesh', 'API Gateway', 'Decoupled', 'RPC', 'Resilience'],
+  },
+  Flutter: {
+    category: 'Cross-Platform Mobile',
+    level: 'Intermediate',
+    description: 'Multi-platform UI framework compiling native iOS, Android, and web applications from a single codebase.',
+    tags: ['Dart', 'Widgets', 'State Mgmt', 'Cross-Platform', 'Native APIs'],
+  },
+  Git: {
+    category: 'Version Control',
+    level: 'Advanced',
+    description: 'Industry-standard distributed version control for GitFlow workflows, branching, and team CI/CD.',
+    tags: ['Branching', 'Rebase', 'GitFlow', 'CI/CD Hooks', 'Version History'],
+  },
+  Postman: {
+    category: 'API Testing & QA',
+    level: 'Advanced',
+    description: 'Complete API lifecycle suite for automated endpoint testing, mock servers, and integration tests.',
+    tags: ['API Testing', 'Newman CLI', 'Env Variables', 'Automated QA', 'Collections'],
+  },
+  Swagger: {
+    category: 'API Documentation',
+    level: 'Advanced',
+    description: 'OpenAPI specification toolkit for creating standardized, interactive, and machine-readable API contracts.',
+    tags: ['OpenAPI 3.0', 'Schema Specs', 'API Contracts', 'Interactive Docs', 'Mocking'],
+  },
+};
+
+function SkillFocusCard({
+  skill,
+  orbitLabel,
+  brandColor,
+  meta,
+  isDark,
+  isMobile,
+}) {
+  if (!skill) return null;
+  const slug = SLUG_MAP[skill] || 'javascript';
+  const orbitBadge = `${orbitLabel || SKILL_TO_ORBIT[skill] || 'Core'} Orbit`;
+  const isMicroservices = skill === 'Microservices';
+  const isProduction = meta?.status === 'production';
+  const color = brandColor || BRAND_MAP[skill] || '#38BDF8';
+  const details = SKILL_DETAILS[skill] || {
+    category: 'Full-Stack',
+    level: 'Advanced',
+    description: 'Production-ready technology utilized across modern web and software stacks.',
+    tags: ['Production', 'Full-Stack', 'Modern Web'],
+  };
+
+  const expFormatted = (meta?.exp || '3+ yrs')
+    .replace('yrs', 'Years')
+    .replace('yr', 'Year');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.92, y: isMobile ? 30 : 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : 10 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className={`absolute z-50 pointer-events-none select-none ${
+        isMobile
+          ? 'bottom-4 left-4 right-4 w-auto rounded-[20px]'
+          : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px]'
+      }`}
+      style={{
+        backgroundColor: isDark ? 'rgba(12, 16, 24, 0.78)' : 'rgba(255, 255, 255, 0.92)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
+        boxShadow: isDark
+          ? '0 24px 60px rgba(0, 0, 0, 0.75), 0 0 32px rgba(59, 130, 246, 0.18)'
+          : '0 20px 50px rgba(15, 23, 42, 0.12)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        padding: '20px',
+      }}
+    >
+      {/* ── TOP ROW: Icon + Tech Name + Orbit Badge ── */}
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{
+              backgroundColor: isDark ? `${color}18` : `${color}12`,
+              border: `1px solid ${color}35`,
+            }}
+          >
+            {isMicroservices ? (
+              <MicroservicesIcon size={24} color={color} />
+            ) : (
+              <img
+                src={getIconUrl(slug, color, isDark)}
+                alt={skill}
+                width={24}
+                height={24}
+                style={{ objectFit: 'contain', width: 24, height: 24, display: 'block' }}
+              />
+            )}
+          </div>
+          <div className="min-w-0">
+            <h3
+              className="font-sans font-extrabold text-base tracking-tight truncate leading-snug"
+              style={{ color: isDark ? '#F0F2F5' : '#0D1117' }}
+            >
+              {skill}
+            </h3>
+          </div>
+        </div>
+
+        <span
+          className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold shrink-0"
+          style={{
+            backgroundColor: `${color}18`,
+            border: `1px solid ${color}35`,
+            color: color,
+          }}
+        >
+          {orbitBadge}
+        </span>
+      </div>
+
+      {/* ── SHORT PROFESSIONAL DESCRIPTION ── */}
+      <p
+        className="font-sans text-xs leading-relaxed mb-3.5 text-left"
+        style={{ color: isDark ? '#8B939E' : '#52596A' }}
+      >
+        {details.description}
+      </p>
+
+      {/* ── DIVIDER ── */}
+      <div
+        className="w-full mb-3"
+        style={{
+          height: 1,
+          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)',
+        }}
+      />
+
+      {/* ── 2-COLUMN INFORMATION GRID ── */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3.5 text-left">
+        {/* Experience */}
+        <div>
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider block"
+            style={{ color: isDark ? '#8B939E' : '#9CA3AF' }}
+          >
+            Experience
+          </span>
+          <span
+            className="font-sans text-xs font-bold"
+            style={{ color: isDark ? '#F0F2F5' : '#0D1117' }}
+          >
+            {expFormatted}
+          </span>
+        </div>
+
+        {/* Status */}
+        <div>
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider block"
+            style={{ color: isDark ? '#8B939E' : '#9CA3AF' }}
+          >
+            Status
+          </span>
+          <span
+            className="font-sans text-xs font-semibold flex items-center gap-1.5"
+            style={{ color: isProduction ? '#10B981' : '#F59E0B' }}
+          >
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: isProduction ? '#10B981' : '#F59E0B' }}
+            />
+            {isProduction ? 'Production' : 'Learning'}
+          </span>
+        </div>
+
+        {/* Category */}
+        <div>
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider block"
+            style={{ color: isDark ? '#8B939E' : '#9CA3AF' }}
+          >
+            Category
+          </span>
+          <span
+            className="font-sans text-xs font-medium truncate block"
+            style={{ color: isDark ? '#D1D5DB' : '#374151' }}
+            title={details.category}
+          >
+            {details.category}
+          </span>
+        </div>
+
+        {/* Level */}
+        <div>
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider block"
+            style={{ color: isDark ? '#8B939E' : '#9CA3AF' }}
+          >
+            Level
+          </span>
+          <span
+            className="font-mono text-xs font-bold"
+            style={{ color: color }}
+          >
+            {details.level}
+          </span>
+        </div>
+      </div>
+
+      {/* ── DIVIDER ── */}
+      <div
+        className="w-full mb-3"
+        style={{
+          height: 1,
+          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)',
+        }}
+      />
+
+      {/* ── TECHNOLOGY TAGS ── */}
+      <div className="flex flex-wrap gap-1.5 mb-3.5">
+        {details.tags.map((tag) => (
+          <span
+            key={tag}
+            className="font-mono text-[9px] px-2 py-0.5 rounded-sm"
+            style={{
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid rgba(0, 0, 0, 0.06)',
+              color: isDark ? '#D1D5DB' : '#4B5563',
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      {/* ── BOTTOM SECTION: Progress Bar + Label + Footer Hint ── */}
+      <div className="space-y-1.5 text-left">
+        <div
+          className="h-1.5 w-full rounded-full overflow-hidden"
+          style={{
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: '100%',
+              background: `linear-gradient(90deg, ${color}, #3b82f6, #60a5fa)`,
+            }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between pt-0.5">
+          <span
+            className="font-sans text-[10px] font-medium"
+            style={{ color: isDark ? '#8B939E' : '#6B7280' }}
+          >
+            Used across multiple production projects
+          </span>
+        </div>
+
+        <div
+          className="font-mono text-[9px] uppercase tracking-wider text-center pt-2"
+          style={{
+            color: isDark ? '#8B939E' : '#9CA3AF',
+            opacity: 0.75,
+          }}
+        >
+          Hover another node to inspect • Move cursor away to resume orbit
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── 8. SKILL NODE (SINGLE ORBITING ELEMENT) ────────────────────────────────
+function SkillNode({
+  skill,
+  initialAngle,
+  radius,
+  duration,
+  isDark,
+  isActive,
+  hasActiveSkill,
+  onHover,
+  onLeave,
+  onClick,
+}) {
+  const [imgError, setImgError] = useState(false);
+  const brandColor = BRAND_MAP[skill] || '#38BDF8';
+  const slug = SLUG_MAP[skill] || 'javascript';
+  const isMicroservices = skill === 'Microservices';
+
+  return (
+    <div
       style={{
         position: 'absolute',
         top: '50%',
         left: '50%',
         width: 1,
         height: 1,
-        // Rotate to the node's initial angle offset, then animate the whole orbit
-        transform: `rotate(${angle}deg) translateX(${orbitRadius}px)`,
+        transform: `rotate(${initialAngle}deg) translateX(${radius}px)`,
+        transformStyle: 'preserve-3d',
+        pointerEvents: 'none',
       }}
     >
-      {/* Counter-rotate so icon stays upright */}
+      {/* Counter-rotation keeps icon and label perfectly upright */}
       <div
+        className="orbit-counter"
         style={{
-          transform: `rotate(-${angle}deg)`,
-          position: 'relative',
-          width: 1,
-          height: 1,
+          '--orbit-duration': `${duration}s`,
+          animationPlayState: isActive ? 'paused' : 'running',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          transformStyle: 'preserve-3d',
+          pointerEvents: 'none',
         }}
       >
-        {/* Orbit counter-animation to keep icon upright as it goes around */}
-        <div
-          className="orbit-counter"
+        {/* Visual circular button */}
+        <button
+          type="button"
+          onClick={onClick}
+          onMouseEnter={onHover}
+          onMouseLeave={onLeave}
+          onFocus={onHover}
+          onBlur={onLeave}
+          aria-label={`Skill ${skill}`}
           style={{
-            '--orbit-duration': `${orbitDuration}s`,
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            position: 'relative',
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            backgroundColor: isDark
+              ? 'rgba(14, 16, 23, 0.92)'
+              : 'rgba(255, 255, 255, 0.95)',
+            border: isActive
+              ? `1.5px solid ${brandColor}`
+              : isDark
+              ? '1.5px solid rgba(255, 255, 255, 0.1)'
+              : '1.5px solid rgba(0, 0, 0, 0.08)',
+            boxShadow: isActive
+              ? `0 0 25px ${brandColor}60, 0 0 50px ${brandColor}30`
+              : isDark
+              ? '0 2px 10px rgba(0, 0, 0, 0.5)'
+              : '0 2px 8px rgba(0, 0, 0, 0.08)',
+            opacity: isActive ? 1 : hasActiveSkill ? 0.6 : 1,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: isActive ? 'scale(1.18)' : hasActiveSkill ? 'scale(0.96)' : 'scale(1)',
+            zIndex: isActive ? 40 : 10,
+            pointerEvents: 'auto',
           }}
         >
-          {/* Node pill */}
-          <button
-            aria-label={`${skill} — hover for details`}
-            onMouseEnter={() => onHover(skill)}
-            onMouseLeave={onLeave}
-            onFocus={() => onHover(skill)}
-            onBlur={onLeave}
-            style={{
-              position: 'relative',
-              width: 46,
-              height: 46,
-              borderRadius: '50%',
-              background: isActive
-                ? `radial-gradient(circle at 38% 38%, ${color}28, ${color}10)`
-                : `rgba(26,23,18,0.92)`,
-              border: `1.5px solid ${isActive ? color : 'rgba(242,237,230,0.1)'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              outline: 'none',
-              transition: 'border-color 0.3s, box-shadow 0.3s, transform 0.3s, background 0.3s',
-              boxShadow: isActive
-                ? `0 0 22px ${color}50, 0 0 44px ${color}20, inset 0 0 12px ${color}10`
-                : '0 2px 12px rgba(0,0,0,0.5)',
-              transform: isActive ? 'scale(1.25)' : 'scale(1)',
-              zIndex: isActive ? 20 : 1,
-            }}
-          >
-            {icon ? (
-              <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {icon.svg}
-              </div>
-            ) : (
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color, fontWeight: 700, letterSpacing: '0.04em' }}>
-                {skill.slice(0, 3).toUpperCase()}
-              </span>
-            )}
+          {/* Active pulse ring */}
+          {isActive && (
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                border: `1.5px solid ${brandColor}`,
+                animation: 'nodeRingPulse 1.6s cubic-bezier(0, 0.2, 0.8, 1) infinite',
+              }}
+            />
+          )}
 
-            {/* Pulse ring on active */}
-            {isActive && (
-              <span style={{
-                position: 'absolute',
-                inset: -6,
-                borderRadius: '50%',
-                border: `1px solid ${color}`,
-                opacity: 0.4,
-                animation: 'nodeRingPulse 1.4s ease-out infinite',
-                pointerEvents: 'none',
-              }} />
-            )}
-          </button>
+          {/* Node Icon */}
+          {isMicroservices ? (
+            <MicroservicesIcon size={20} color={brandColor} />
+          ) : imgError ? (
+            <span
+              className="font-mono text-[9px] font-bold tracking-tight select-none"
+              style={{ color: brandColor }}
+            >
+              {getInitials(skill)}
+            </span>
+          ) : (
+            <img
+              src={getIconUrl(slug, brandColor, isDark)}
+              alt={skill}
+              width={20}
+              height={20}
+              loading="lazy"
+              decoding="async"
+              style={{ objectFit: 'contain', width: 20, height: 20, display: 'block' }}
+              onError={() => setImgError(true)}
+            />
+          )}
+        </button>
 
-          {/* Label below node */}
-          <div style={{
+        {/* Node Label — always visible below the node */}
+        <div
+          style={{
             position: 'absolute',
             top: 52,
             left: '50%',
             transform: 'translateX(-50%)',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 9,
-            letterSpacing: '0.1em',
-            color: isActive ? color : T.muted,
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
             pointerEvents: 'none',
-            transition: 'color 0.3s',
-          }}>
+            whiteSpace: 'nowrap',
+            zIndex: isActive ? 35 : 5,
+            opacity: isActive ? 1 : hasActiveSkill ? 0.6 : 1,
+            transition: 'opacity 0.25s ease',
+          }}
+        >
+          <span
+            className="font-mono text-[9px] tracking-widest uppercase transition-colors duration-200 select-none block text-center"
+            style={{
+              color: isActive
+                ? brandColor
+                : isDark
+                ? '#8B939E'
+                : '#52596A',
+              fontWeight: isActive ? 700 : 500,
+            }}
+          >
             {skill}
-          </div>
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── ORBIT RING + NODES ───────────────────────────────────────────────────
-function OrbitRing({ config, activeSkill, onHover, onLeave }) {
-  const { id, radius, tiltX, tiltZ, duration, color, skills } = config;
-  const nodeCount = skills.length;
-  const angleStep = 360 / nodeCount;
-
+// ─── 9. ORBIT RING (INCLUDES RING BORDER & SPINNER WRAPPER) ─────────────────
+function OrbitRing({
+  orbit,
+  isPaused,
+  isDark,
+  activeSkill,
+  onHoverSkill,
+  onLeaveSkill,
+  onClickSkill,
+}) {
   return (
     <div
-      className="orbit-ring"
       style={{
-        '--orbit-duration': `${duration}s`,
         position: 'absolute',
         top: '50%',
         left: '50%',
-        width: radius * 2,
-        height: radius * 2,
-        marginLeft: -radius,
-        marginTop: -radius,
+        width: `${orbit.radius * 2}px`,
+        height: `${orbit.radius * 2}px`,
+        marginLeft: `-${orbit.radius}px`,
+        marginTop: `-${orbit.radius}px`,
         borderRadius: '50%',
-        border: `1px solid ${color}`,
-        // 3D tilt via CSS perspective transform
-        transform: `rotateX(${tiltX}deg) rotateZ(${tiltZ}deg)`,
+        border: `1px solid ${isDark ? orbit.darkBorder : orbit.lightBorder}`,
+        transform: `rotateX(${orbit.tiltX}deg) rotateZ(${orbit.tiltZ}deg)`,
         transformStyle: 'preserve-3d',
+        pointerEvents: 'none',
+        overflow: 'visible',
       }}
     >
-      {/* The ring rotates; nodes counter-rotate to stay upright */}
+      {/* Orbit Spinner with Layer 2 inline animationPlayState */}
       <div
         className="orbit-spinner"
         style={{
-          '--orbit-duration': `${duration}s`,
+          '--orbit-duration': `${orbit.duration}s`,
           position: 'absolute',
           inset: 0,
           borderRadius: '50%',
+          transformStyle: 'preserve-3d',
+          pointerEvents: 'none',
+          animationPlayState: isPaused ? 'paused' : 'running',
         }}
       >
-        {skills.map((skill, i) => (
+        {orbit.skills.map((skillName, idx) => (
           <SkillNode
-            key={skill}
-            skill={skill}
-            angle={i * angleStep}
-            orbitRadius={radius}
-            orbitDuration={duration}
-            orbitTiltX={tiltX}
-            orbitTiltZ={tiltZ}
-            orbitColor={color}
-            isActive={activeSkill === skill}
-            onHover={onHover}
-            onLeave={onLeave}
+            key={skillName}
+            skill={skillName}
+            initialAngle={orbit.angles[idx]}
+            radius={orbit.radius}
+            duration={orbit.duration}
+            isDark={isDark}
+            isActive={activeSkill === skillName}
+            hasActiveSkill={Boolean(activeSkill)}
+            onHover={() => onHoverSkill(skillName)}
+            onLeave={onLeaveSkill}
+            onClick={() => onClickSkill(skillName)}
           />
         ))}
       </div>
@@ -459,249 +938,228 @@ function OrbitRing({ config, activeSkill, onHover, onLeave }) {
   );
 }
 
-// ─── CENTRAL NUCLEUS ──────────────────────────────────────────────────────
-function Nucleus() {
-  const canvasRef = useRef(null);
-  const rafRef = useRef(null);
-  const visibleRef = useRef(true);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    let THREE, renderer, scene, camera, geo, mat, mesh, clock;
-
-    const init = async () => {
-      try {
-        THREE = await import('three');
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-        renderer.setSize(140, 140);
-        renderer.setClearColor(0x000000, 0);
-
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
-        camera.position.z = 3;
-        clock = new THREE.Clock();
-
-        // Icosahedron wireframe
-        geo = new THREE.IcosahedronGeometry(1.1, 1);
-        mat = new THREE.MeshBasicMaterial({
-          color: 0xD4860A,
-          wireframe: true,
-          opacity: 0.35,
-          transparent: true,
-        });
-        mesh = new THREE.Mesh(geo, mat);
-        scene.add(mesh);
-
-        // Inner sphere
-        const inner = new THREE.Mesh(
-          new THREE.SphereGeometry(0.55, 16, 16),
-          new THREE.MeshBasicMaterial({ color: 0x111009, transparent: true, opacity: 0.95 })
-        );
-        scene.add(inner);
-
-        // Outer glow ring
-        const ringGeo = new THREE.TorusGeometry(1.3, 0.008, 8, 80);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0xD4860A, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending });
-        scene.add(new THREE.Mesh(ringGeo, ringMat));
-
-        const animate = () => {
-          rafRef.current = requestAnimationFrame(animate);
-          if (!visibleRef.current) return;
-          const t = clock.getElapsedTime();
-          mesh.rotation.x = t * 0.18;
-          mesh.rotation.y = t * 0.28;
-          renderer.render(scene, camera);
-        };
-        animate();
-      } catch (e) {
-        // Three.js unavailable — canvas stays blank, static CSS fallback shows
-      }
-    };
-
-    init();
-
-    const io = new IntersectionObserver(([e]) => { visibleRef.current = e.isIntersecting; });
-    io.observe(canvas);
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      io.disconnect();
-      try { renderer?.dispose(); } catch { }
-    };
-  }, []);
+// ─── 10. RIGHT SIDE PANEL (DESKTOP ONLY) ────────────────────────────────────
+function SkillsList({
+  activeSkill,
+  setActiveSkill,
+  skillMeta,
+  isDark,
+}) {
+  const activeMeta = activeSkill ? skillMeta[activeSkill] : null;
+  const activeBrand = activeSkill ? BRAND_MAP[activeSkill] || '#38BDF8' : '#38BDF8';
+  const activeSlug = activeSkill ? SLUG_MAP[activeSkill] || 'javascript' : null;
+  const activeOrbit = activeSkill ? SKILL_TO_ORBIT[activeSkill] : null;
 
   return (
-    <div style={{ position: 'relative', width: 140, height: 140 }}>
-      {/* Three.js canvas */}
-      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
-      {/* Fallback label */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'none',
-      }}>
-        <span style={{
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: 9,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: T.accent,
-          opacity: 0.85,
-          marginTop: 4,
-        }}>
-          FULL STACK
-        </span>
+    <div className="hidden lg:flex flex-col w-[280px] shrink-0 gap-4 select-none">
+      {/* Top: Active Skill Detail Card */}
+      <div
+        className="rounded-md p-4 min-h-[96px] flex flex-col justify-center transition-all duration-200"
+        style={{
+          backgroundColor: isDark ? '#141921' : '#EDEDE8',
+          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.07)',
+          borderLeft: activeSkill
+            ? `3px solid ${activeBrand}`
+            : isDark
+              ? '3px solid rgba(255,255,255,0.1)'
+              : '3px solid rgba(0,0,0,0.1)',
+        }}
+      >
+        <AnimatePresence mode="wait">
+          {activeSkill ? (
+            <motion.div
+              key={activeSkill}
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-1"
+            >
+              <div className="flex items-center gap-2">
+                {activeSkill === 'Microservices' ? (
+                  <MicroservicesIcon size={18} color={activeBrand} />
+                ) : (
+                  <img
+                    src={getIconUrl(activeSlug, activeBrand, isDark)}
+                    alt={activeSkill}
+                    width={18}
+                    height={18}
+                    style={{ objectFit: 'contain' }}
+                  />
+                )}
+                <span
+                  className="font-sans font-bold text-sm"
+                  style={{ color: isDark ? '#F0F2F5' : '#0D1117' }}
+                >
+                  {activeSkill}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <span className="font-mono text-[9px] uppercase font-bold" style={{ color: activeBrand }}>
+                  {activeOrbit}
+                </span>
+                <span
+                  className="font-mono text-[10px]"
+                  style={{ color: isDark ? '#8B939E' : '#52596A' }}
+                >
+                  {activeMeta?.exp} · {activeMeta?.status === 'production' ? 'Prod' : 'Active'}
+                </span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.p
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="font-mono text-[10px] text-center"
+              style={{ color: isDark ? '#8B939E' : '#9CA3AF' }}
+            >
+              Hover any node to inspect
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Middle: Full Skill List organized by orbit */}
+      <div
+        className="rounded-md p-4 space-y-4"
+        style={{
+          backgroundColor: isDark ? 'rgba(14, 16, 23, 0.65)' : 'rgba(255, 255, 255, 0.7)',
+          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        {ORBIT_CONFIGS.map((orbit) => (
+          <div key={orbit.id}>
+            <div
+              className="font-mono text-[9px] uppercase tracking-[0.16em] mb-2 font-semibold"
+              style={{ color: orbit.accentColor }}
+            >
+              {orbit.name}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {orbit.skills.map((skill) => {
+                const isActive = activeSkill === skill;
+                const brand = BRAND_MAP[skill] || '#38BDF8';
+                const slug = SLUG_MAP[skill] || 'javascript';
+                return (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => setActiveSkill(isActive ? null : skill)}
+                    onMouseEnter={() => setActiveSkill(skill)}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-sm border font-mono text-[10px] transition-all duration-150 cursor-pointer text-left"
+                    style={{
+                      backgroundColor: isActive
+                        ? `${brand}15`
+                        : isDark
+                          ? '#080A0E'
+                          : '#FFFFFF',
+                      borderColor: isActive
+                        ? brand
+                        : isDark
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'rgba(0,0,0,0.08)',
+                      color: isActive
+                        ? brand
+                        : isDark
+                          ? '#8B939E'
+                          : '#52596A',
+                    }}
+                  >
+                    {skill === 'Microservices' ? (
+                      <MicroservicesIcon size={12} color={isActive ? brand : isDark ? '#8B939E' : '#52596A'} />
+                    ) : (
+                      <img
+                        src={getIconUrl(slug, brand, isDark)}
+                        alt=""
+                        width={12}
+                        height={12}
+                        style={{ objectFit: 'contain' }}
+                      />
+                    )}
+                    <span>{skill}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom: CMS Admin note card */}
+      <div
+        className="rounded-sm p-3 font-mono text-[9px] leading-relaxed"
+        style={{
+          backgroundColor: isDark ? '#141921' : '#EDEDE8',
+          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+          color: isDark ? '#8B939E' : '#9CA3AF',
+        }}
+      >
+        ↑ Orbit assignment follows skills.categories order in Admin → Skills Editor
       </div>
     </div>
   );
 }
 
-// ─── TOOLTIP CARD ─────────────────────────────────────────────────────────
-function TooltipCard({ skill }) {
-  const icon = ICONS[skill];
-  const color = icon?.color || T.accent;
-
-  // Find which orbit this skill belongs to
-  const orbitInfo = ORBIT_CONFIGS.find(o => o.skills.includes(skill));
-
-  const META = {
-    JavaScript: { exp: '3+ yrs', use: 'Production · All projects', note: 'Primary scripting language' },
-    TypeScript: { exp: '2+ yrs', use: 'Production · MERN & NestJS', note: 'Typed development standard' },
-    React: { exp: '3+ yrs', use: 'Production · Portfolio · Internship', note: 'Primary UI framework' },
-    'Next.js': { exp: '1+ yr', use: 'Production · Full-stack apps', note: 'SSR & static generation' },
-    Tailwind: { exp: '2+ yrs', use: 'Production · All frontends', note: 'Utility-first CSS' },
-    'Node.js': { exp: '3+ yrs', use: 'Production · All backends', note: 'Primary runtime' },
-    Express: { exp: '3+ yrs', use: 'Production · REST APIs', note: 'Lightweight server framework' },
-    NestJS: { exp: '1+ yr', use: 'Production · Microservices', note: 'Enterprise Node framework' },
-    Redis: { exp: '1+ yr', use: 'Production · Caching layer', note: 'In-memory data store' },
-    RabbitMQ: { exp: '< 1 yr', use: 'Learning · Message queues', note: 'Async event messaging' },
-    MongoDB: { exp: '3+ yrs', use: 'Production · MERN stack', note: 'Primary NoSQL database' },
-    PostgreSQL: { exp: '2+ yrs', use: 'Production · PERN stack', note: 'Primary relational DB' },
-    Docker: { exp: '1+ yr', use: 'Production · Deployment', note: 'Containerization' },
-    Microservices: { exp: '1+ yr', use: 'Production · Architecture', note: 'Distributed system design' },
-    Flutter: { exp: '1+ yr', use: 'Production · Mobile apps', note: 'Cross-platform mobile' },
-    Git: { exp: '3+ yrs', use: 'Daily · All projects', note: 'Version control' },
-    Postman: { exp: '3+ yrs', use: 'Daily · API testing', note: 'API development tool' },
-    Swagger: { exp: '2+ yrs', use: 'Production · API docs', note: 'OpenAPI documentation' },
-  };
-
-  const meta = META[skill] || { exp: '—', use: 'Used in projects', note: '' };
-
+// ─── 11. MOBILE FLAT SKILL GRID (< 640px) ───────────────────────────────────
+function MobileSkillGrid({
+  activeSkill,
+  setActiveSkill,
+  isDark,
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        position: 'absolute',
-        bottom: '100%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        marginBottom: 16,
-        width: 240,
-        background: T.inkFloat,
-        border: `1px solid ${color}30`,
-        borderRadius: 6,
-        padding: '1rem 1.25rem',
-        boxShadow: `0 16px 48px rgba(0,0,0,0.7), 0 0 24px ${color}18`,
-        zIndex: 100,
-        pointerEvents: 'none',
-      }}
-    >
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
-          {icon?.svg}
-        </div>
-        <div>
-          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 14, color: T.primary, margin: 0 }}>
-            {skill}
-          </p>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.1em', color, textTransform: 'uppercase', margin: 0 }}>
-            {orbitInfo?.label || 'Core skill'}
-          </p>
-        </div>
-      </div>
-
-      {/* Meta rows */}
-      {[
-        { label: 'EXP', value: meta.exp },
-        { label: 'USED', value: meta.use },
-        { label: 'NOTE', value: meta.note },
-      ].map(row => (
-        <div key={row.label} style={{ display: 'flex', gap: 8, marginBottom: 5, alignItems: 'flex-start' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: T.muted, letterSpacing: '0.1em', flexShrink: 0, width: 32, paddingTop: 1 }}>
-            {row.label}
-          </span>
-          <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: 12, color: T.secondary, lineHeight: 1.4 }}>
-            {row.value}
-          </span>
-        </div>
-      ))}
-
-      {/* Color accent line at bottom */}
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${color}, transparent)`, borderRadius: 1, marginTop: 10 }} />
-    </motion.div>
-  );
-}
-
-// ─── LEGEND ───────────────────────────────────────────────────────────────
-function OrbitLegend() {
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-      {ORBIT_CONFIGS.map(o => (
-        <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 20, height: 1, background: o.color.replace('0.1', '0.6').replace('0.12', '0.6').replace('0.08', '0.6').replace('0.15', '0.6') }} />
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: T.muted, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Orbit {ORBIT_CONFIGS.indexOf(o) + 1} — {o.label}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── SKILLS LIST (mobile fallback + side panel) ────────────────────────────
-function SkillsList({ activeSkill }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 420, overflowY: 'auto' }}>
-      {ORBIT_CONFIGS.map(orbit => (
+    <div className="block lg:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
+      {ORBIT_CONFIGS.map((orbit) => (
         <div key={orbit.id}>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.accent, marginBottom: 8, marginTop: 12 }}>
-            {orbit.label}
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {orbit.skills.map(skill => {
-              const icon = ICONS[skill];
-              const color = icon?.color || T.accent;
-              const isAct = activeSkill === skill;
+          <div
+            className="font-mono text-[9px] uppercase tracking-[0.16em] mb-2 font-bold"
+            style={{ color: orbit.accentColor }}
+          >
+            {orbit.name}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {orbit.skills.map((skill) => {
+              const isActive = activeSkill === skill;
+              const brand = BRAND_MAP[skill] || '#38BDF8';
+              const slug = SLUG_MAP[skill] || 'javascript';
               return (
-                <div
+                <button
                   key={skill}
+                  type="button"
+                  onClick={() => setActiveSkill(isActive ? null : skill)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm border font-mono text-[10px] transition-colors cursor-pointer"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '5px 10px',
-                    borderRadius: 3,
-                    background: isAct ? `${color}18` : 'transparent',
-                    border: `1px solid ${isAct ? color : T.border}`,
-                    transition: 'all 0.2s',
+                    backgroundColor: isActive
+                      ? `${brand}20`
+                      : isDark
+                        ? 'rgba(14, 16, 23, 0.9)'
+                        : '#FFFFFF',
+                    borderColor: isActive
+                      ? brand
+                      : isDark
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(0,0,0,0.08)',
+                    color: isActive
+                      ? brand
+                      : isDark
+                        ? '#F0F2F5'
+                        : '#0D1117',
                   }}
                 >
-                  {icon && <div style={{ width: 14, height: 14, flexShrink: 0 }}>{icon.svg}</div>}
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: isAct ? color : T.secondary, letterSpacing: '0.06em' }}>
-                    {skill}
-                  </span>
-                </div>
+                  {skill === 'Microservices' ? (
+                    <MicroservicesIcon size={14} color={isActive ? brand : isDark ? '#8B939E' : '#52596A'} />
+                  ) : (
+                    <img
+                      src={getIconUrl(slug, brand, isDark)}
+                      alt=""
+                      width={14}
+                      height={14}
+                      style={{ objectFit: 'contain' }}
+                    />
+                  )}
+                  <span>{skill}</span>
+                </button>
               );
             })}
           </div>
@@ -711,317 +1169,282 @@ function SkillsList({ activeSkill }) {
   );
 }
 
-// ─── MAIN SECTION ─────────────────────────────────────────────────────────
-export const OrbitalSkillsSection = () => {
-  const [activeSkill, setActiveSkill] = useState(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: '-120px' });
+// ─── 12. MAIN EXPORTED COMPONENT ────────────────────────────────────────────
+export const SkillsSection = () => {
+  const { content, loading } = useContentStore();
+  const themeContext = useTheme();
 
+  // Dark/Light mode detection
+  const [isDarkClass, setIsDarkClass] = useState(true);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 900);
-    check();
-    window.addEventListener('resize', check, { passive: true });
-    return () => window.removeEventListener('resize', check);
+    const updateDarkState = () => {
+      const hasLightClass = document.documentElement.classList.contains('light');
+      setIsDarkClass(!hasLightClass);
+    };
+    updateDarkState();
+    const observer = new MutationObserver(updateDarkState);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
   }, []);
 
-  const handleHover = useCallback((skill) => { setActiveSkill(skill); setIsPaused(true); }, []);
-  const handleLeave = useCallback(() => { setActiveSkill(null); setIsPaused(false); }, []);
+  const isDarkMode = themeContext?.isDarkMode ?? isDarkClass;
 
-  // All 18 skills count
-  const totalSkills = ORBIT_CONFIGS.reduce((s, o) => s + o.skills.length, 0);
+  // Orbit animation pause state
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Active skill for hover / inspect
+  const [activeSkill, setActiveSkill] = useState(null);
+
+  // Hover handlers: hovering node pauses entire orbital system; leaving resumes
+  const handleHover = (skill) => {
+    setActiveSkill(skill);
+    setIsPaused(true);
+  };
+
+  const handleLeave = () => {
+    setActiveSkill(null);
+    setIsPaused(false);
+  };
+
+  // Mobile viewport detection for responsive orbit scaling
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Merge CMS skills with hardcoded skills (override metadata where CMS has records)
+  const mergedSkillMeta = useMemo(() => {
+    const merged = { ...SKILL_META };
+    const categories = content?.skills?.categories;
+    if (Array.isArray(categories) && categories.length > 0) {
+      categories.forEach((cat) => {
+        if (Array.isArray(cat.items)) {
+          cat.items.forEach((item) => {
+            if (item && item.name && merged[item.name]) {
+              if (item.level) {
+                merged[item.name] = {
+                  ...merged[item.name],
+                  exp: item.level >= 80 ? '3+ yrs' : item.level >= 50 ? '2+ yrs' : '1+ yr',
+                  status: item.level >= 60 ? 'production' : 'learning',
+                };
+              }
+            }
+          });
+        }
+      });
+    }
+    return merged;
+  }, [content?.skills?.categories]);
+
+  // Loading skeleton state
+  if (loading && !content) {
+    return <SkillsSkeleton />;
+  }
 
   return (
     <section
       id="skills"
-      ref={sectionRef}
-      style={{ background: T.void, paddingTop: 'clamp(5rem,10vw,9rem)', paddingBottom: 'clamp(5rem,10vw,9rem)', overflow: 'hidden' }}
+      className="relative overflow-hidden transition-colors duration-300"
+      style={{
+        backgroundColor: isDarkMode ? '#07080b' : '#fafafc',
+        paddingTop: 'clamp(2.5rem, 5vw, 4rem)',
+        paddingBottom: 'clamp(2.5rem, 5vw, 4rem)',
+        overflow: 'hidden',
+      }}
     >
-      {/* ── CSS for orbit animations ── */}
-      <style>{`
-        @keyframes orbitSpin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @keyframes orbitSpinReverse {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(-360deg); }
-        }
-        @keyframes nodeRingPulse {
-          0%   { transform: scale(1);   opacity: 0.4; }
-          100% { transform: scale(1.8); opacity: 0; }
-        }
-        @keyframes coreGlow {
-          0%,100% { box-shadow: 0 0 30px rgba(212,134,10,0.15), 0 0 60px rgba(212,134,10,0.06); }
-          50%      { box-shadow: 0 0 50px rgba(212,134,10,0.25), 0 0 90px rgba(212,134,10,0.10); }
-        }
-        .orbit-spinner {
-          animation: orbitSpin var(--orbit-duration, 30s) linear infinite;
-        }
-        .orbit-counter {
-          animation: orbitSpinReverse var(--orbit-duration, 30s) linear infinite;
-        }
-        .orbits-paused .orbit-spinner,
-        .orbits-paused .orbit-counter {
-          animation-play-state: paused !important;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .orbit-spinner, .orbit-counter { animation: none !important; }
-        }
-      `}</style>
+      {/* Subtle radial space glow behind orbital canvas */}
+      {isDarkMode && (
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.04) 0%, transparent 70%)',
+          }}
+          aria-hidden="true"
+        />
+      )}
 
-      <div style={{ maxWidth: 1380, margin: '0 auto', padding: '0 clamp(1.25rem,4vw,4rem)' }}>
-
-        {/* ── Section header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: 'clamp(3rem,6vw,5rem)' }}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* ─── SECTION HEADER ─── */}
+        <div
+          className="flex flex-col items-center text-center"
+          style={{ marginBottom: 'clamp(1.5rem, 3vw, 2.5rem)' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.25rem' }}>
-            <div style={{ width: 28, height: 1, background: T.accent }} />
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.accent }}>
+          {/* Eyebrow Label with 28px horizontal line */}
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-7 h-[1px]"
+              style={{ backgroundColor: isDarkMode ? '#3b82f6' : '#2563eb' }}
+            />
+            <span
+              className="font-mono text-[11px] tracking-[0.18em] uppercase font-bold"
+              style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+            >
               Technical Arsenal
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(2rem,4vw,3.2rem)', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.05, margin: 0 }}>
-              <span style={{ color: T.primary }}>The stack I ship</span><br />
-              <span style={{ color: T.secondary }}>to production.</span>
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: T.muted, letterSpacing: '0.08em' }}>
-                {totalSkills} technologies · {ORBIT_CONFIGS.length} orbits
-              </span>
-              {/* Pause/resume toggle */}
-              <button
-                onClick={() => setIsPaused(p => !p)}
-                title={isPaused ? 'Resume orbits' : 'Pause orbits'}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 12px',
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 3,
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  color: T.muted,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  transition: 'border-color 0.2s, color 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted; }}
-              >
-                {isPaused ? '▶ Resume' : '⏸ Pause'}
-              </button>
-            </div>
+
+          {/* H2 Heading */}
+          <h2 className="font-sans font-extrabold text-4xl md:text-5xl tracking-tight leading-tight mb-4">
+            <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
+              The stack I ship{' '}
+            </span>
+            <span style={{ color: isDarkMode ? '#8B939E' : '#52596A' }}>
+              to production.
+            </span>
+          </h2>
+
+          {/* Stat row */}
+          <div className="flex items-center justify-center gap-6 sm:gap-8 font-mono text-xs mb-5">
+            <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
+              18 technologies
+            </span>
+            <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}>•</span>
+            <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
+              4 orbit layers
+            </span>
+            <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}>•</span>
+            <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
+              Production-grade
+            </span>
           </div>
-        </motion.div>
 
-        {/* ── Main layout: orbital canvas + side panel ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 280px',
-          gap: 'clamp(2rem,4vw,4rem)',
-          alignItems: 'center',
-        }}>
-
-          {/* ── Orbital canvas ── */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={inView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-            style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+          {/* Pause / Resume Button */}
+          <button
+            type="button"
+            onClick={() => setIsPaused((prev) => !prev)}
+            className="px-3 py-1.5 rounded-sm font-mono text-[10px] tracking-wider uppercase transition-colors cursor-pointer flex items-center gap-2"
+            style={{
+              border: isDarkMode
+                ? '1px solid rgba(255, 255, 255, 0.14)'
+                : '1px solid rgba(0, 0, 0, 0.12)',
+              color: isDarkMode ? '#8B939E' : '#52596A',
+              backgroundColor: isDarkMode ? 'rgba(14, 16, 23, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+            }}
           >
-            {/* 3D perspective container */}
-            <div
-              className={isPaused ? 'orbits-paused' : ''}
-              style={{
-                position: 'relative',
-                width: 640,
-                height: 640,
-                maxWidth: '100%',
-                perspective: '900px',
-                perspectiveOrigin: '50% 50%',
-              }}
-            >
-              {/* Deep space background radial glow */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse at 50% 50%, rgba(212,134,10,0.04) 0%, rgba(11,9,7,0) 70%)',
-                  pointerEvents: 'none',
-                }}
-              />
-
-              {/* Grid of faint star dots */}
-              <svg
-                aria-hidden="true"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.3 }}
-                viewBox="0 0 640 640"
-              >
-                {[...Array(60)].map((_, i) => {
-                  const x = (((i * 137.508) % 640));
-                  const y = (((i * 97.31) % 640));
-                  const r = i % 5 === 0 ? 1.2 : 0.6;
-                  return <circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r={r} fill={T.secondary} opacity={0.3 + (i % 4) * 0.12} />;
-                })}
-              </svg>
-
-              {/* Orbital rings + nodes — positioned from center */}
-              <div style={{ position: 'absolute', inset: 0, transformStyle: 'preserve-3d' }}>
-                {ORBIT_CONFIGS.map(config => (
-                  <OrbitRing
-                    key={config.id}
-                    config={config}
-                    activeSkill={activeSkill}
-                    onHover={handleHover}
-                    onLeave={handleLeave}
-                  />
-                ))}
-              </div>
-
-              {/* Central nucleus — absolutely centered */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                animation: 'coreGlow 3s ease-in-out infinite',
-                borderRadius: '50%',
-                zIndex: 10,
-              }}>
-                <Nucleus />
-              </div>
-
-              {/* Tooltip portal — positioned relative to canvas center */}
-              <AnimatePresence>
-                {activeSkill && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: 200,
-                  }}>
-                    <TooltipCard skill={activeSkill} />
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Orbit legend below canvas */}
-            <OrbitLegend />
-          </motion.div>
-
-          {/* ── Right panel: skill list + active detail ── */}
-          <motion.div
-            initial={{ opacity: 0, x: 32 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-            style={{ display: isMobile ? 'none' : 'block' }}
-          >
-            {/* Active skill detail */}
-            <AnimatePresence mode="wait">
-              {activeSkill ? (
-                <motion.div
-                  key={activeSkill}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ marginBottom: '1.5rem' }}
-                >
-                  <div style={{
-                    padding: '1.25rem',
-                    background: T.inkRaised,
-                    border: `1px solid ${ICONS[activeSkill]?.color || T.accent}30`,
-                    borderRadius: 4,
-                    borderLeft: `3px solid ${ICONS[activeSkill]?.color || T.accent}`,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <div style={{ width: 24, height: 24, flexShrink: 0 }}>{ICONS[activeSkill]?.svg}</div>
-                      <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 16, color: T.primary }}>{activeSkill}</span>
-                    </div>
-                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.08em', color: T.muted, margin: 0 }}>
-                      Hover any node on the orbital to explore
-                    </p>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="idle"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{ marginBottom: '1.5rem' }}
-                >
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.muted, marginBottom: 12 }}>
-                    Hover any node to inspect
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Full skill list */}
-            <SkillsList activeSkill={activeSkill} />
-
-            {/* CMS note */}
-            <div style={{
-              marginTop: '1.5rem',
-              padding: '10px 14px',
-              background: T.inkRaised,
-              border: `1px solid ${T.border}`,
-              borderRadius: 3,
-            }}>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.08em', color: T.muted, margin: 0 }}>
-                ↑ Skills are editable via the Admin Dashboard → Skills Editor. Category order controls orbit assignment.
-              </p>
-            </div>
-          </motion.div>
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: isPaused ? '#F59E0B' : '#10B981' }}
+            />
+            {isPaused ? 'Resume Orbit' : 'Pause Orbit'}
+          </button>
         </div>
 
-        {/* ── Mobile: flat skill grid fallback ── */}
-        {isMobile && (
-          <div style={{ marginTop: '2rem' }}>
-            <SkillsList activeSkill={activeSkill} />
+        {/* ─── MAIN CONTENT: ORBITAL CANVAS + RIGHT PANEL ─── */}
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-10">
+          {/* ORBITAL CANVAS CONTAINER */}
+          <div
+            className={`relative w-full max-w-[820px] mx-auto select-none ${isPaused ? 'orbits-paused' : ''
+              }`}
+            style={{
+              height: isMobile ? 400 : 820,
+              perspective: '1000px',
+              perspectiveOrigin: '50% 50%',
+            }}
+          >
+            {/* STARFIELD SVG BACKGROUND */}
+            <Starfield isDark={isDarkMode} />
+
+            {/* 3D PERSPECTIVE CONTAINER */}
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: isMobile ? 'scale(0.65)' : 'none',
+                transformOrigin: '50% 50%',
+              }}
+            >
+              {/* NUCLEUS CENTER CORE (Three.js wireframe icosahedron) */}
+              <Nucleus isDarkMode={isDarkMode} />
+
+              {/* 4 3D ORBIT RINGS */}
+              {ORBIT_CONFIGS.map((orbit) => (
+                <OrbitRing
+                  key={orbit.id}
+                  orbit={orbit}
+                  isPaused={isPaused}
+                  isDark={isDarkMode}
+                  activeSkill={activeSkill}
+                  onHoverSkill={handleHover}
+                  onLeaveSkill={handleLeave}
+                  onClickSkill={(skill) =>
+                    setActiveSkill((curr) => {
+                      if (curr === skill) {
+                        setIsPaused(false);
+                        return null;
+                      }
+                      setIsPaused(true);
+                      return skill;
+                    })
+                  }
+                />
+              ))}
+            </div>
+
+            {/* FIXED FOCUS CARD & SPOTLIGHT ON HOVER */}
+            <AnimatePresence>
+              {activeSkill && (
+                <>
+                  {/* Subtle radial spotlight behind card */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.08 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="absolute pointer-events-none select-none z-40 hidden sm:block"
+                    style={{
+                      width: 440,
+                      height: 440,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -20%)',
+                      background: `radial-gradient(circle, ${BRAND_MAP[activeSkill] || '#38BDF8'} 0%, #3b82f6 50%, transparent 70%)`,
+                      filter: 'blur(48px)',
+                    }}
+                    aria-hidden="true"
+                  />
+
+                  <SkillFocusCard
+                    skill={activeSkill}
+                    orbitLabel={SKILL_TO_ORBIT[activeSkill]}
+                    brandColor={BRAND_MAP[activeSkill]}
+                    meta={mergedSkillMeta[activeSkill]}
+                    isDark={isDarkMode}
+                    isMobile={isMobile}
+                  />
+                </>
+              )}
+            </AnimatePresence>
           </div>
-        )}
 
-        {/* ── Bottom strip ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          style={{
-            marginTop: 'clamp(3rem,5vw,4rem)',
-            padding: '1.25rem 1.5rem',
-            background: T.ink,
-            borderRadius: 4,
-            border: `1px solid ${T.border}`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
+          {/* RIGHT SIDE PANEL (Desktop only) */}
+          <SkillsList
+            activeSkill={activeSkill}
+            setActiveSkill={(skill) => {
+              setActiveSkill(skill);
+              setIsPaused(Boolean(skill));
+            }}
+            skillMeta={mergedSkillMeta}
+            isDark={isDarkMode}
+          />
+        </div>
+
+        {/* MOBILE FLAT SKILL GRID (< 640px) */}
+        <MobileSkillGrid
+          activeSkill={activeSkill}
+          setActiveSkill={(skill) => {
+            setActiveSkill(skill);
+            setIsPaused(Boolean(skill));
           }}
-        >
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2D6A4F', boxShadow: '0 0 8px #2D6A4F', flexShrink: 0, animation: 'nodeRingPulse 2s ease-out infinite' }} />
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.06em', color: T.muted, margin: 0 }}>
-            Every technology in this system has shipped to at least one production deployment.
-          </p>
-        </motion.div>
-
+          isDark={isDarkMode}
+        />
       </div>
     </section>
   );
 };
 
-export default OrbitalSkillsSection;
+export default SkillsSection;

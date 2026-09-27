@@ -248,3 +248,38 @@ body::before {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── 3D Orbital Skills Section ─── */
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes orbitSpinReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+@keyframes nodeRingPulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.2); opacity: 0;   }
+}
+@keyframes coreGlow {
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(59,130,246,0.18)); }
+  50%       { filter: drop-shadow(0 0 32px rgba(59,130,246,0.32)); }
+}
+
+.orbit-spinner {
+  animation: orbitSpin var(--orbit-duration, 30s) linear infinite;
+}
+.orbit-counter {
+  animation: orbitSpinReverse var(--orbit-duration, 30s) linear infinite;
+}
+.orbits-paused .orbit-spinner,
+.orbits-paused .orbit-counter {
+  animation-play-state: paused !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-spinner, .orbit-counter {
+    animation: none !important;
+  }
+}
+
