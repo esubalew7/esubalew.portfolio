@@ -54,10 +54,11 @@ class CanvasErrorBoundary extends React.Component {
 }
 
 // ─── R3F 3D Mesh Component ───────────────────────────────────────────────────
-function ProjectMesh({ project, isDarkMode, inView }) {
+function ProjectMesh({ project, isDarkMode, inView, liveUrl, hasLiveLink }) {
   const meshRef = useRef();
   const scanlineMatRef = useRef();
   const initialZRef = useRef(-2);
+  const [hovered, setHovered] = useState(false);
 
   const imageUrl =
     getCloudinaryUrl(project.image, { width: 800, fallback: FALLBACK_IMG }) ||
@@ -65,6 +66,15 @@ function ProjectMesh({ project, isDarkMode, inView }) {
     FALLBACK_IMG;
 
   const texture = useTexture(imageUrl);
+
+  useEffect(() => {
+    if (hasLiveLink) {
+      document.body.style.cursor = hovered ? 'pointer' : 'auto';
+    }
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, [hovered, hasLiveLink]);
 
   useFrame((state) => {
     if (!inView || !meshRef.current) return;
@@ -76,11 +86,12 @@ function ProjectMesh({ project, isDarkMode, inView }) {
       meshRef.current.position.z = initialZRef.current;
     }
 
-    // Mouse parallax — smooth lerp toward mouse position
+    // Mouse parallax — smooth lerp toward mouse position (amplified on hover)
+    const multiplier = hovered ? 1.3 : 1.0;
     meshRef.current.rotation.y +=
-      (state.mouse.x * 0.18 - meshRef.current.rotation.y) * 0.06;
+      (state.mouse.x * 0.18 * multiplier - meshRef.current.rotation.y) * 0.06;
     meshRef.current.rotation.x +=
-      (-state.mouse.y * 0.12 - meshRef.current.rotation.x) * 0.06;
+      (-state.mouse.y * 0.12 * multiplier - meshRef.current.rotation.x) * 0.06;
 
     // Update scanline time uniform
     if (scanlineMatRef.current?.uniforms?.uTime) {
@@ -88,20 +99,33 @@ function ProjectMesh({ project, isDarkMode, inView }) {
     }
   });
 
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    if (hasLiveLink) {
+      window.open(liveUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <Float
-      speed={1.2}
+      speed={hovered ? 0.7 : 1.2}
       rotationIntensity={0.08}
       floatIntensity={0.15}
       floatingRange={[-0.04, 0.04]}
     >
-      <group ref={meshRef} position={[0, 0, -2]}>
+      <group
+        ref={meshRef}
+        position={[0, 0, -2]}
+        onPointerOver={() => hasLiveLink && setHovered(true)}
+        onPointerOut={() => hasLiveLink && setHovered(false)}
+        onPointerDown={handlePointerDown}
+      >
         {/* Main Project Texture Plane */}
         <mesh>
           <planeGeometry args={[3.6, 2.2, 1, 1]} />
           <meshStandardMaterial
             map={texture}
-            roughness={0.35}
+            roughness={hovered ? 0.2 : 0.35}
             metalness={0.05}
             toneMapped={false}
           />
@@ -111,9 +135,9 @@ function ProjectMesh({ project, isDarkMode, inView }) {
         <mesh position={[0, 0, -0.015]}>
           <planeGeometry args={[3.68, 2.28]} />
           <meshBasicMaterial
-            color={isDarkMode ? '#1c202d' : '#e5e7eb'}
+            color={hovered ? 'var(--orange, #FF4D00)' : isDarkMode ? '#1c202d' : '#e5e7eb'}
             transparent
-            opacity={0.9}
+            opacity={hovered ? 0.95 : 0.85}
           />
         </mesh>
 
@@ -152,9 +176,16 @@ function ProjectMesh({ project, isDarkMode, inView }) {
 }
 
 // ─── Project Canvas Component (Desktop R3F) ──────────────────────────────────
-function ProjectCanvas({ project, index, isDarkMode, inView }) {
+function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLink }) {
   const fallbackStaticImage = (
-    <div className="w-full h-full relative aspect-video overflow-hidden rounded-md bg-surface-raised flex items-center justify-center">
+    <a
+      href={hasLiveLink ? liveUrl : undefined}
+      target={hasLiveLink ? '_blank' : undefined}
+      rel={hasLiveLink ? 'noopener noreferrer' : undefined}
+      className={`w-full h-full relative aspect-video overflow-hidden rounded-md bg-surface-raised flex items-center justify-center group ${
+        hasLiveLink ? 'cursor-pointer' : ''
+      }`}
+    >
       <img
         src={
           getCloudinaryUrl(project.image, { width: 800, fallback: FALLBACK_IMG }) ||
@@ -163,14 +194,46 @@ function ProjectCanvas({ project, index, isDarkMode, inView }) {
         }
         alt={project.title}
         loading="lazy"
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div className="scanline-overlay pointer-events-none" />
-    </div>
+      {hasLiveLink && (
+        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <span className="font-code text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-sm bg-black/80 text-white backdrop-blur-md border border-white/10 shadow-lg flex items-center gap-1.5">
+            Visit Live
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </span>
+        </div>
+      )}
+    </a>
   );
 
+  const handleClick = () => {
+    if (hasLiveLink) {
+      window.open(liveUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && hasLiveLink) {
+      e.preventDefault();
+      window.open(liveUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <div className="w-full h-[clamp(300px,45vw,520px)] relative">
+    <div
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role={hasLiveLink ? 'link' : undefined}
+      tabIndex={hasLiveLink ? 0 : undefined}
+      title={hasLiveLink ? `Open ${project.title} live demo` : project.title}
+      className={`w-full h-[clamp(300px,45vw,520px)] relative group select-none ${
+        hasLiveLink ? 'cursor-pointer' : ''
+      }`}
+    >
       <CanvasErrorBoundary fallback={fallbackStaticImage}>
         <Canvas
           camera={{ position: [0, 0, 3.5], fov: 45 }}
@@ -184,6 +247,8 @@ function ProjectCanvas({ project, index, isDarkMode, inView }) {
               index={index}
               isDarkMode={isDarkMode}
               inView={inView}
+              liveUrl={liveUrl}
+              hasLiveLink={hasLiveLink}
             />
             <ambientLight intensity={0.6} />
             <directionalLight position={[3, 3, 2]} intensity={0.8} />
@@ -195,6 +260,18 @@ function ProjectCanvas({ project, index, isDarkMode, inView }) {
           </Suspense>
         </Canvas>
       </CanvasErrorBoundary>
+
+      {/* Floating Visit Live Badge on Hover */}
+      {hasLiveLink && (
+        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <span className="font-code text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-sm bg-black/80 text-white backdrop-blur-md border border-white/10 shadow-lg flex items-center gap-1.5">
+            Visit Live
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -384,12 +461,21 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
               index={index}
               isDarkMode={isDarkMode}
               inView={stageInView}
+              liveUrl={liveUrl}
+              hasLiveLink={hasLiveLink}
             />
           </div>
 
-          {/* Mobile Static Image with Touch Tilt */}
+          {/* Mobile Static Image with Touch Tilt & Link */}
           <div className="block md:hidden">
-            <div className="w-full relative aspect-video overflow-hidden rounded-md bg-surface-raised">
+            <a
+              href={hasLiveLink ? liveUrl : undefined}
+              target={hasLiveLink ? '_blank' : undefined}
+              rel={hasLiveLink ? 'noopener noreferrer' : undefined}
+              className={`block w-full relative aspect-video overflow-hidden rounded-md bg-surface-raised group ${
+                hasLiveLink ? 'cursor-pointer' : ''
+              }`}
+            >
               <img
                 src={
                   getCloudinaryUrl(project.image, { width: 800, fallback: FALLBACK_IMG }) ||
@@ -400,7 +486,7 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
                 loading="lazy"
                 onTouchStart={() => setTouchTilt(true)}
                 onTouchEnd={() => setTouchTilt(false)}
-                className="w-full h-full object-cover transition-all duration-300"
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                 style={{
                   transform: touchTilt
                     ? 'perspective(600px) rotateX(3deg) rotateY(-6deg)'
@@ -413,7 +499,28 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
                 }}
               />
               <div className="scanline-overlay pointer-events-none" />
-            </div>
+
+              {hasLiveLink && (
+                <div className="absolute top-3 right-3 z-10 pointer-events-none">
+                  <span className="font-code text-[9px] uppercase tracking-wider px-2 py-1 rounded-sm bg-black/80 text-white/95 backdrop-blur-sm border border-white/10 flex items-center gap-1 shadow-sm">
+                    Live
+                    <svg
+                      className="w-2.5 h-2.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              )}
+            </a>
           </div>
         </div>
 
