@@ -72,10 +72,19 @@ app.use("/api/media", mediaRoutes);
 app.use("/api/auth/2fa", twoFactorRoutes);
 app.use("/api/metrics", systemMetricsRoutes);
 
-// Health check route
+// Health check routes
 app.get('/', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    service: 'portfolio-backend',
+    uptime: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
   });
 });

@@ -11,6 +11,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { SEOHead } from './components/SEOHead';
 import { Cursor } from './components/cursor/Cursor';
 import { Preloader } from './components/preloader/Preloader';
+import { PWAInstallPrompt } from './components/common/PWAInstallPrompt';
 
 const App = () => {
   const [showPreloader, setShowPreloader] = useState(true);
@@ -41,6 +42,7 @@ const App = () => {
                       </Route>
                     </Routes>
                     <ScrollToTop />
+                    <PWAInstallPrompt />
                   </BrowserRouter>
                 </Cursor>
               </motion.div>

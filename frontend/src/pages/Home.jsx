@@ -12,6 +12,9 @@ const SkillsSection = React.lazy(() =>
 const ProjectsSection = React.lazy(() =>
   import('../sections/ProjectsSection').then(m => ({ default: m.ProjectsSection || m.default }))
 );
+const TestimonialsSection = React.lazy(() =>
+  import('../sections/TestimonialsSection').then(m => ({ default: m.TestimonialsSection || m.default }))
+);
 const ExperienceSection = React.lazy(() =>
   import('../sections/ExperienceSection').then(m => ({ default: m.default || m.ExperienceSection }))
 );
@@ -56,11 +59,12 @@ export const Home = () => {
       {sections.hero !== false && <HeroSection />}
 
       {/* Content sections — conditional via CMS toggles */}
-      {sections.about      !== false && lazy(AboutSection)}
-      {sections.skills     !== false && lazy(SkillsSection)}
-      {sections.projects   !== false && lazy(ProjectsSection)}
-      {sections.experience !== false && lazy(ExperienceSection)}
-      {sections.contact    !== false && lazy(ContactSection)}
+      {sections.about        !== false && lazy(AboutSection)}
+      {sections.skills       !== false && lazy(SkillsSection)}
+      {sections.projects     !== false && lazy(ProjectsSection)}
+      {sections.testimonials !== false && lazy(TestimonialsSection)}
+      {sections.experience   !== false && lazy(ExperienceSection)}
+      {sections.contact      !== false && lazy(ContactSection)}
     </div>
   );
 };

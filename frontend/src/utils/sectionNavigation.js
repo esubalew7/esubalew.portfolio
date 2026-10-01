@@ -1,11 +1,12 @@
 /** Section IDs — keep in sync with section id= attributes */
 export const SECTION_IDS = {
-  HOME:       'home',
-  ABOUT:      'about',
-  SKILLS:     'skills',
-  PROJECTS:   'projects',
-  EXPERIENCE: 'experience',
-  CONTACT:    'contact',
+  HOME:         'home',
+  ABOUT:        'about',
+  SKILLS:       'skills',
+  PROJECTS:     'projects',
+  TESTIMONIALS: 'testimonials',
+  EXPERIENCE:   'experience',
+  CONTACT:      'contact',
 };
 
 export const SECTION_ID_LIST = Object.values(SECTION_IDS);

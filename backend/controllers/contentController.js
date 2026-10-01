@@ -19,7 +19,7 @@ const getDefaultContent = () => ({
     skills: true,
     projects: true,
     experience: true,
-    testimonials: false,
+    testimonials: true,
     terminal: false,
     contact: true,
   },

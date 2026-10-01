@@ -248,3 +248,121 @@ body::before {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── 3D Orbital Skills Section ─── */
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes orbitSpinReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+@keyframes nodeRingPulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.2); opacity: 0;   }
+}
+@keyframes coreGlow {
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(59,130,246,0.18)); }
+  50%       { filter: drop-shadow(0 0 32px rgba(59,130,246,0.32)); }
+}
+
+.orbit-spinner {
+  animation: orbitSpin var(--orbit-duration, 30s) linear infinite;
+}
+.orbit-counter {
+  animation: orbitSpinReverse var(--orbit-duration, 30s) linear infinite;
+}
+.orbits-paused .orbit-spinner,
+.orbits-paused .orbit-counter {
+  animation-play-state: paused !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-spinner, .orbit-counter {
+    animation: none !important;
+  }
+}
+
+/* ── Projects Section — Showcase Stage ──────────────── */
+@theme {
+  --color-canvas: var(--void);
+  --color-surface-base: var(--ink);
+  --color-surface-raised: var(--ink-raised);
+  --color-content-primary: var(--text-primary);
+  --color-content-secondary: var(--text-secondary);
+  --color-content-muted: var(--text-muted);
+  --color-accent: var(--orange);
+  --color-accent-hover: #e04400;
+  --color-accent-foreground: #ffffff;
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --font-code: 'JetBrains Mono', monospace;
+  --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+}
+
+.bg-canvas { background-color: var(--void); }
+.bg-surface-base { background-color: var(--ink); }
+.bg-surface-raised { background-color: var(--ink-raised); }
+.text-content-primary { color: var(--text-primary); }
+.text-content-secondary { color: var(--text-secondary); }
+.text-content-muted { color: var(--text-muted); }
+.border-border-default { border-color: var(--border-default); }
+.border-border-subtle { border-color: var(--border-subtle); }
+.text-accent-foreground { color: #ffffff; }
+.hover\:bg-accent-hover:hover { background-color: #e04400; }
+.font-code { font-family: 'JetBrains Mono', monospace; }
+
+@keyframes projectMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.project-marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: projectMarquee 28s linear infinite;
+}
+
+.project-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes stageEntry {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-stage-enter {
+  animation: stageEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scanline effect for 3D canvas overlay */
+.scanline-overlay {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-marquee-track {
+    animation: none;
+  }
+  .project-stage-enter {
+    animation: none;
+    opacity: 1;
+  }
+}
+

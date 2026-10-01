@@ -119,6 +119,77 @@ function MetricChip({ value, label, delay = 0 }) {
   );
 }
 
+// ─── Tech stack badge row ──────────────────────────────────────────────────
+const TECH_BADGES = [
+  { name: 'React', slug: 'react', color: '61DAFB' },
+  { name: 'Next.js', slug: 'nextdotjs', color: 'white' },
+  { name: 'Node.js', slug: 'nodedotjs', color: '5FA04E' },
+  { name: 'MongoDB', slug: 'mongodb', color: '47A248' },
+  { name: 'PostgreSQL', slug: 'postgresql', color: '4169E1' },
+  { name: 'MySQL', slug: 'mysql', color: '4479A1' },
+  { name: 'Flutter', slug: 'flutter', color: '02569B' },
+  { name: 'Docker', slug: 'docker', color: '2496ED' },
+  { name: 'TypeScript', slug: 'typescript', color: '3178C6' },
+  { name: 'Express', slug: 'express', color: 'white' },
+  { name: 'NestJS', slug: 'nestjs', color: 'E0234E' },
+];
+
+function TechBadgeRow() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        marginTop: '2.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'clamp(1rem, 2.5vw, 1.85rem)',
+        flexWrap: 'wrap',
+      }}
+      aria-label="Core Technology Stack"
+    >
+      {TECH_BADGES.map((badge) => (
+        <span
+          key={badge.slug}
+          title={badge.name}
+          aria-label={badge.name}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0.6,
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1';
+            e.currentTarget.style.transform = 'translateY(-2px) scale(1.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.6';
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          }}
+        >
+          <img
+            src={`https://cdn.simpleicons.org/${badge.slug}/${badge.color}`}
+            alt={badge.name}
+            width={24}
+            height={24}
+            loading="lazy"
+            decoding="async"
+            style={{
+              width: 24,
+              height: 24,
+              display: 'block',
+            }}
+          />
+        </span>
+      ))}
+    </motion.div>
+  );
+}
+
 // ─── CTA buttons ──────────────────────────────────────────────────────────
 function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
   const handlePrimaryClick = (e) => {
@@ -417,6 +488,9 @@ export const HeroSection = () => {
             <MetricChip value="3" label="Production stacks" delay={1.4} />
             <MetricChip value="2FA" label="Auth architecture" delay={1.5} />
           </motion.div>
+
+          {/* ── Official Tech Stack Badges ── */}
+          <TechBadgeRow />
         </div>
       </motion.div>
 
