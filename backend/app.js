@@ -12,6 +12,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js"; // Import dashboard r
 import notificationRoutes from "./routes/notificationRoutes.js"; // Import notification routes
 import analyticsRoutes from "./routes/analyticsRoutes.js"; // Import analytics routes
 import contentRoutes from "./routes/contentRoutes.js"; // Import content routes
+import experienceRoutes from "./routes/experienceRoutes.js"; // Import experience routes
 import mediaRoutes from "./routes/mediaRoutes.js"; // Import media routes
 import twoFactorRoutes from "./routes/twoFactorRoutes.js";
 import systemMetricsRoutes from "./routes/systemMetricsRoutes.js";
@@ -68,6 +69,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/content", contentRoutes);
+app.use("/api/experience", experienceRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/auth/2fa", twoFactorRoutes);
 app.use("/api/metrics", systemMetricsRoutes);

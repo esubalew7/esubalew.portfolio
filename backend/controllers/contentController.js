@@ -1,4 +1,5 @@
 import PortfolioContent from "../models/PortfolioContent.js";
+import jwt from "jsonwebtoken";
 import { emitContentSectionUpdated } from "../socket/emitters.js";
 import { createNotification } from "../services/notificationService.js";
 import { propagateHeroToDependents } from "../services/contentPropagationService.js";
@@ -120,62 +121,144 @@ const getDefaultContent = () => ({
     ],
   },
   experience: {
-    title: "Experience",
-    subtitle:
-      "A professional timeline highlighting internships, education, certifications, and freelance work — concise and recruiter-friendly.",
+    title: "Where I've built\nreal systems.",
+    subtitle: "A timeline of production systems, software engineering internships, and academic excellence.",
+    eyebrow: "Career Record",
+    resumeUrl: "/resume.pdf",
+    resumeText: "Resume",
     categories: [
       {
-        name: "Education",
+        id: "cat-1",
+        name: "Engineering Experience",
+        order: 1,
+        published: true,
         items: [
           {
-            role: "Computer Science Student",
-            company: "Bahir Dar University",
+            id: "exp-1",
+            role: "Frontend Developer Intern",
+            title: "Frontend Developer Intern",
+            company: "Askuala Link Software Company",
             duration: "2024 — Present",
+            startDate: "2024",
+            endDate: "Present",
+            current: true,
             location: "Bahir Dar, Ethiopia",
-            tags: ["Algorithms", "Data Structures", "Databases"],
+            tags: ["React", "Node.js", "MongoDB", "Socket.IO", "Express", "2FA"],
+            skills: ["React", "Node.js", "MongoDB", "Socket.IO", "Express", "2FA"],
             bullets: [
-              "Relevant coursework: Web Dev, Mobile Dev, Databases, Algorithms, Software Engineering",
-            ],
-            logo: "images/bdu.jpg",
-          },
-        ],
-      },
-      {
-        name: "Internship Experience",
-        items: [
-          {
-            role: "Full Stack Developer Intern",
-            company: "Askuala Link",
-            duration: "Jun 2026 — Aug 2026",
-            location: "Bahir Dar/ Ethiopia",
-            tags: [],
-            bullets: [
-              "as a Software Engineer Intern working on multiple web applications",
+              "Building enterprise-grade React + Node.js systems with real-time state synchronization.",
+              "Architecting microservice backends, WebSocket dashboard streaming, and TOTP 2FA authentication flows for production deployments.",
             ],
             logo: "images/askuala.jpg",
+            order: 1,
+            published: true,
+          },
+          {
+            id: "exp-2",
+            role: "Freelance Full Stack Developer",
+            title: "Freelance Full Stack Developer",
+            company: "Self-Employed / Freelance",
+            duration: "2023 — 2024",
+            startDate: "2023",
+            endDate: "2024",
+            current: false,
+            location: "Remote / Ethiopia",
+            tags: ["MERN", "REST API", "JWT", "Tailwind", "Flutter", "PostgreSQL"],
+            skills: ["MERN", "REST API", "JWT", "Tailwind", "Flutter", "PostgreSQL"],
+            bullets: [
+              "Delivered 8+ production MERN stack applications including real estate platforms, college management systems, and agricultural marketplaces.",
+              "Engineered resilient MongoDB and PostgreSQL schemas, role-based access control, and mobile clients with Flutter.",
+            ],
+            logo: "",
+            order: 2,
+            published: true,
           },
         ],
       },
       {
-        name: "Certifications",
+        id: "cat-2",
+        name: "Education",
+        order: 2,
+        published: true,
         items: [
           {
-            role: "Front-End Development Certification",
-            company: "Certification Provider",
-            duration: "2025",
-            location: "",
-            tags: ["React", "JavaScript", "CSS", "HTML"],
+            id: "edu-1",
+            role: "Computer Science (B.Sc.) - 3rd Year",
+            title: "Computer Science (B.Sc.) - 3rd Year",
+            company: "Bahir Dar University",
+            duration: "2022 — Present",
+            startDate: "2022",
+            endDate: "Present",
+            current: true,
+            location: "Bahir Dar, Ethiopia",
+            tags: ["Algorithms", "Data Structures", "Database Architecture", "System Design"],
+            skills: ["Algorithms", "Data Structures", "Database Architecture", "System Design"],
             bullets: [
-              "Web Development Certificate @ coddy.tech",
-              "Advanced Programming (React)  @ BiT Career Development Center",
-              "CCNA: Introduction to Networks @ Cisco Networking Academy",
+              "Third-year Computer Science student pursuing high-rigor engineering coursework.",
+              "Advanced study in distributed systems, network security, operating systems, and database optimization.",
             ],
-            logo: "",
+            logo: "images/bdu.jpg",
+            order: 1,
+            published: true,
           },
         ],
       },
     ],
   },
+  certificates: [
+    {
+      id: "cert-1",
+      name: "Meta Front-End Developer",
+      issuer: "Meta",
+      issuerColor: "#0081FB",
+      date: "2024",
+      image: "/certificates/meta-frontend.svg",
+      credentialUrl: "https://www.coursera.org/account/accomplishments/professional-cert/meta-front-end-developer",
+      url: "https://www.coursera.org/account/accomplishments/professional-cert/meta-front-end-developer",
+      skills: ["React", "JavaScript", "CSS"],
+      order: 1,
+      published: true,
+    },
+    {
+      id: "cert-2",
+      name: "MongoDB Node.js Developer Path",
+      issuer: "MongoDB University",
+      issuerColor: "#00ED64",
+      date: "2024",
+      image: "/certificates/mongodb-developer.svg",
+      credentialUrl: "https://learn.mongodb.com/",
+      url: "https://learn.mongodb.com/",
+      skills: ["MongoDB", "Node.js", "Aggregation"],
+      order: 2,
+      published: true,
+    },
+    {
+      id: "cert-3",
+      name: "Back End Development and APIs",
+      issuer: "freeCodeCamp",
+      issuerColor: "#FF4D00",
+      date: "2023",
+      image: "/certificates/fcc-backend.svg",
+      credentialUrl: "https://www.freecodecamp.org/certification/esubalew/back-end-development-and-apis",
+      url: "https://www.freecodecamp.org/certification/esubalew/back-end-development-and-apis",
+      skills: ["Node.js", "Express", "REST APIs"],
+      order: 3,
+      published: true,
+    },
+    {
+      id: "cert-4",
+      name: "Responsive Web Design",
+      issuer: "freeCodeCamp",
+      issuerColor: "#3b82f6",
+      date: "2023",
+      image: "/certificates/fcc-responsive.svg",
+      credentialUrl: "https://www.freecodecamp.org/certification/esubalew/responsive-web-design",
+      url: "https://www.freecodecamp.org/certification/esubalew/responsive-web-design",
+      skills: ["HTML", "CSS", "Flexbox"],
+      order: 4,
+      published: true,
+    },
+  ],
   testimonials: {
     title: "Client Feedback",
     subtitle: "What people say about working with me.",
@@ -276,6 +359,86 @@ const syncSocialLinks = async (content) => {
   }
 };
 
+const ensureExperienceAndCertificates = async (content) => {
+  let modified = false;
+
+  // 1. Ensure certificates exist
+  if (!content.certificates || content.certificates.length === 0) {
+    const defaults = getDefaultContent().certificates;
+    content.certificates = defaults;
+    modified = true;
+  } else {
+    content.certificates.forEach((cert, idx) => {
+      if (!cert.id && !cert._id) {
+        cert.id = `cert-${idx + 1}`;
+        modified = true;
+      }
+      if (cert.order === undefined) {
+        cert.order = idx + 1;
+        modified = true;
+      }
+      if (cert.published === undefined) {
+        cert.published = true;
+        modified = true;
+      }
+    });
+  }
+
+  // 2. Ensure experience metadata & items
+  if (content.experience) {
+    if (!content.experience.eyebrow) {
+      content.experience.eyebrow = "Career Record";
+      modified = true;
+    }
+    if (!content.experience.title) {
+      content.experience.title = "Where I've built\nreal systems.";
+      modified = true;
+    }
+    if (!content.experience.resumeUrl) {
+      content.experience.resumeUrl = content.resume?.url || "/resume.pdf";
+      modified = true;
+    }
+
+    if (Array.isArray(content.experience.categories)) {
+      content.experience.categories.forEach((cat, catIdx) => {
+        if (!cat.id && !cat._id) {
+          cat.id = `cat-${catIdx + 1}`;
+          modified = true;
+        }
+        if (cat.order === undefined) {
+          cat.order = catIdx + 1;
+          modified = true;
+        }
+        if (cat.published === undefined) {
+          cat.published = true;
+          modified = true;
+        }
+
+        if (Array.isArray(cat.items)) {
+          cat.items.forEach((item, itemIdx) => {
+            if (!item.id && !item._id) {
+              item.id = `exp-${catIdx + 1}-${itemIdx + 1}`;
+              modified = true;
+            }
+            if (item.order === undefined) {
+              item.order = itemIdx + 1;
+              modified = true;
+            }
+            if (item.published === undefined) {
+              item.published = true;
+              modified = true;
+            }
+          });
+        }
+      });
+    }
+  }
+
+  if (modified) {
+    await content.save();
+  }
+};
+
 export const getContent = async (req, res) => {
   try {
     let content = await PortfolioContent.findOne();
@@ -284,15 +447,104 @@ export const getContent = async (req, res) => {
       content = await PortfolioContent.create(getDefaultContent());
     } else {
       await migrateFooterSocials(content);
+      await ensureExperienceAndCertificates(content);
     }
 
-    res.status(200).json({ success: true, data: content });
+    let isAdmin = false;
+    const token = req.cookies?.token || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
+    if (token) {
+      try {
+        jwt.verify(token, process.env.JWT_SECRET);
+        isAdmin = true;
+      } catch (e) {
+        isAdmin = false;
+      }
+    }
+
+    if (isAdmin) {
+      return res.status(200).json({ success: true, data: content });
+    }
+
+    // Public visitor: filter out unpublished items & categories & certificates, and sort deterministically
+    const raw = content.toObject ? content.toObject() : JSON.parse(JSON.stringify(content));
+    
+    if (raw.experience?.categories) {
+      raw.experience.categories = raw.experience.categories
+        .filter(c => c.published !== false)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map(c => ({
+          ...c,
+          items: (c.items || [])
+            .filter(i => i.published !== false)
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        }));
+    }
+
+    if (raw.certificates) {
+      raw.certificates = raw.certificates
+        .filter(c => c.published !== false)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+
+    res.status(200).json({ success: true, data: raw });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Server Error",
       error: error.message,
     });
+  }
+};
+
+export const getExperience = async (req, res) => {
+  try {
+    let content = await PortfolioContent.findOne();
+    if (!content) {
+      content = await PortfolioContent.create(getDefaultContent());
+    } else {
+      await ensureExperienceAndCertificates(content);
+    }
+
+    let isAdmin = false;
+    const token = req.cookies?.token || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
+    if (token) {
+      try {
+        jwt.verify(token, process.env.JWT_SECRET);
+        isAdmin = true;
+      } catch (e) {
+        isAdmin = false;
+      }
+    }
+
+    const raw = content.toObject ? content.toObject() : JSON.parse(JSON.stringify(content));
+    let experience = raw.experience || {};
+    let certificates = raw.certificates || [];
+
+    if (!isAdmin) {
+      experience.categories = (experience.categories || [])
+        .filter(c => c.published !== false)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map(c => ({
+          ...c,
+          items: (c.items || [])
+            .filter(i => i.published !== false)
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        }));
+
+      certificates = certificates
+        .filter(c => c.published !== false)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        experience,
+        certificates,
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -306,7 +558,7 @@ export const updateContent = async (req, res) => {
 
     const allowedFields = [
       "sections", "navbar", "footer", "hero", "about", "skills", "experience",
-      "testimonials", "socialLinks", "resume", "contactInfo",
+      "certificates", "testimonials", "socialLinks", "resume", "contactInfo",
       "terminal", "seo",
     ];
 

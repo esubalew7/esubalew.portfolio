@@ -239,18 +239,28 @@ function mapExperienceItem(item) {
       ? item.tags
       : [];
 
+  const bullets = Array.isArray(item.bullets)
+    ? item.bullets
+    : description ? [description] : [];
+
   return {
     ...item,
+    id: item._id || item.id || '',
     title: item.title || item.role || '',
     role: item.role || item.title || '',
     company: item.company || item.institution || item.organization || '',
     location: item.location || '',
     description,
+    bullets,
     skills,
+    tags: Array.isArray(item.tags) && item.tags.length ? item.tags : skills,
+    logo: item.logo || '',
     period: item.period || duration || (startYear ? `${startYear} — ${endYear}` : ''),
     startDate: item.startDate || startYear,
     endDate: isCurrent ? 'Present' : item.endDate || endYear,
     current: isCurrent,
+    order: item.order ?? 0,
+    published: item.published !== false,
   };
 }
 
@@ -260,10 +270,43 @@ export function mapBackendContent(raw) {
   const data = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data) ? raw.data : raw;
 
   const rawExpCategories = data.experience?.categories || [];
-  const mappedExperienceCategories = rawExpCategories.map((cat) => ({
-    ...cat,
-    items: Array.isArray(cat.items) ? cat.items.map(mapExperienceItem) : [],
-  }));
+  const mappedExperienceCategories = rawExpCategories
+    .filter((cat) => cat.published !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((cat) => ({
+      ...cat,
+      id: cat._id || cat.id || '',
+      name: cat.name || '',
+      order: cat.order ?? 0,
+      published: cat.published !== false,
+      items: (Array.isArray(cat.items) ? cat.items : [])
+        .filter((item) => item.published !== false)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map(mapExperienceItem),
+    }));
+
+  const rawCertificates = Array.isArray(data.certificates)
+    ? data.certificates
+    : Array.isArray(data.experience?.certificates)
+    ? data.experience.certificates
+    : [];
+
+  const mappedCertificates = rawCertificates
+    .filter((cert) => cert.published !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((cert) => ({
+      id: cert._id || cert.id || '',
+      name: cert.name || '',
+      issuer: cert.issuer || '',
+      issuerColor: cert.issuerColor || cert.color || '#FF4D00',
+      date: cert.date || '',
+      image: cert.image || '',
+      credentialUrl: cert.credentialUrl || cert.url || '#',
+      url: cert.url || cert.credentialUrl || '#',
+      skills: Array.isArray(cert.skills) ? cert.skills : [],
+      order: cert.order ?? 0,
+      published: cert.published !== false,
+    }));
 
   const resolvedSocialLinks = Array.isArray(data.socialLinks) && data.socialLinks.length
     ? data.socialLinks
@@ -309,11 +352,14 @@ export function mapBackendContent(raw) {
     experience: {
       ...defaultContent.experience,
       ...data.experience,
+      title: data.experience?.title || defaultContent.experience.title,
+      subtitle: data.experience?.subtitle || defaultContent.experience.subtitle,
+      eyebrow: data.experience?.eyebrow || defaultContent.experience.eyebrow || 'Career Record',
+      resumeUrl: data.experience?.resumeUrl || data.resume?.url || defaultContent.resume.url,
+      resumeText: data.experience?.resumeText || 'Resume',
       categories: mappedExperienceCategories,
     },
-    certificates: Array.isArray(data.certificates) && data.certificates.length
-      ? data.certificates
-      : defaultContent.certificates,
+    certificates: mappedCertificates.length > 0 ? mappedCertificates : (data.certificates !== undefined ? [] : defaultContent.certificates),
     contactInfo: {
       ...defaultContent.contactInfo,
       ...data.contactInfo,

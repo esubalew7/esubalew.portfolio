@@ -6,53 +6,10 @@ import { Html } from '@react-three/drei';
 import { useContentStore, defaultContent } from '../store/contentStore';
 import { useTheme } from '../context/ThemeContext';
 
-// ─── Default Certificates Dataset with Real Images ────────────────────────────
-const DEFAULT_CERTIFICATES = [
-  {
-    id: 'c1',
-    name: 'Meta Front-End Developer',
-    issuer: 'Meta',
-    issuerColor: '#0081FB',
-    date: '2024',
-    image: '/certificates/meta-frontend.svg',
-    credentialUrl: 'https://www.coursera.org/account/accomplishments/professional-cert/meta-front-end-developer',
-    skills: ['React', 'JavaScript', 'CSS'],
-  },
-  {
-    id: 'c2',
-    name: 'MongoDB Node.js Developer Path',
-    issuer: 'MongoDB University',
-    issuerColor: '#00ED64',
-    date: '2024',
-    image: '/certificates/mongodb-developer.svg',
-    credentialUrl: 'https://learn.mongodb.com/',
-    skills: ['MongoDB', 'Node.js', 'Aggregation'],
-  },
-  {
-    id: 'c3',
-    name: 'Back End Development and APIs',
-    issuer: 'freeCodeCamp',
-    issuerColor: '#FF4D00',
-    date: '2023',
-    image: '/certificates/fcc-backend.svg',
-    credentialUrl: 'https://www.freecodecamp.org/certification/esubalew/back-end-development-and-apis',
-    skills: ['Node.js', 'Express', 'REST APIs'],
-  },
-  {
-    id: 'c4',
-    name: 'Responsive Web Design',
-    issuer: 'freeCodeCamp',
-    issuerColor: '#3b82f6',
-    date: '2023',
-    image: '/certificates/fcc-responsive.svg',
-    credentialUrl: 'https://www.freecodecamp.org/certification/esubalew/responsive-web-design',
-    skills: ['HTML', 'CSS', 'Flexbox'],
-  },
-];
-
 // ─── Station Data Builder ─────────────────────────────────────────────────────
 // Calculates deterministic world-space coordinates with connected, balanced spacing
-function buildStations(categories, certs = DEFAULT_CERTIFICATES) {
+// Consumes CMS-driven categories and verified certificates
+function buildStations(categories = [], certs = []) {
   const stations = [];
   let xOffset = 0;
   // Compact, connected spacing: cards feel like a cohesive career continuum
@@ -82,18 +39,20 @@ function buildStations(categories, certs = DEFAULT_CERTIFICATES) {
     });
   });
 
-  // Certificate station positioned after the last experience station
-  const certXPos = stations.length > 0
-    ? stations[stations.length - 1].xPos + CERT_SPACING
-    : 0;
+  // Certificate station positioned after the last experience station if certificates exist
+  if (Array.isArray(certs) && certs.length > 0) {
+    const certXPos = stations.length > 0
+      ? stations[stations.length - 1].xPos + CERT_SPACING
+      : 0;
 
-  stations.push({
-    id: 'certificates',
-    type: 'certificates',
-    index: stations.length,
-    xPos: certXPos,
-    certs: certs && certs.length ? certs : DEFAULT_CERTIFICATES,
-  });
+    stations.push({
+      id: 'certificates',
+      type: 'certificates',
+      index: stations.length,
+      xPos: certXPos,
+      certs: certs,
+    });
+  }
 
   return stations;
 }
@@ -120,7 +79,9 @@ class CanvasErrorBoundary extends React.Component {
 }
 
 // ─── Section Header (Positioned with Definite Clearance Below Navbar) ─────────
-function SectionHeader({ resumeUrl }) {
+function SectionHeader({ eyebrow = 'Career Record', title = "Where I've built\nreal systems.", resumeUrl = '/resume.pdf', resumeText = 'Resume' }) {
+  const titleLines = String(title).split('\n');
+
   return (
     <div
       className="absolute left-0 right-0 z-20 pointer-events-none"
@@ -136,13 +97,17 @@ function SectionHeader({ resumeUrl }) {
             <div className="flex items-center gap-3 mb-2">
               <div className="w-7 h-px bg-accent" />
               <span className="font-code text-[11px] tracking-[0.18em] uppercase text-accent font-semibold">
-                Career Record
+                {eyebrow}
               </span>
             </div>
             <h2 className="font-sans font-extrabold leading-[1.05] tracking-tight text-[clamp(1.75rem,3.8vw,2.75rem)] text-content-primary">
-              Where I've built
-              <br />
-              <span className="text-content-muted">real systems.</span>
+              {titleLines[0]}
+              {titleLines.length > 1 && (
+                <>
+                  <br />
+                  <span className="text-content-muted">{titleLines.slice(1).join(' ')}</span>
+                </>
+              )}
             </h2>
           </div>
 
@@ -153,7 +118,7 @@ function SectionHeader({ resumeUrl }) {
             rel="noopener noreferrer"
             className="pointer-events-auto flex items-center gap-2 font-code text-[11px] uppercase tracking-[0.12em] text-content-muted border border-border-default rounded-sm px-3.5 py-2 hover:border-accent hover:text-content-primary transition-colors duration-200 backdrop-blur-md bg-surface-base/80 no-underline cursor-pointer"
           >
-            <span>Resume</span>
+            <span>{resumeText || 'Resume'}</span>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
             </svg>
@@ -259,7 +224,7 @@ function CameraRig({ stations, scrollProgress, inView, isMobile, isTablet }) {
   return null;
 }
 
-// ─── ExperiencePanelContent (HTML with Large, High-Readability Typography) ────
+// ─── ExperiencePanelContent (HTML with Large, High-Readability Typography & Company Logo) ────
 function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
   const descriptionSnippet =
     station.description?.length > 140
@@ -268,19 +233,22 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
 
   // Viewport-aware font sizes for clear readability across all devices
   const stationLabelSize = isMobile ? 11 : isTablet ? 11.5 : 12;
-  const durationSize = isMobile ? 12 : isTablet ? 12.5 : 13;
-  const companySize = isMobile ? 24 : isTablet ? 27 : 30;
-  const roleSize = isMobile ? 14 : isTablet ? 15 : 16;
-  const descSize = isMobile ? 13 : isTablet ? 13.5 : 14;
-  const tagSize = isMobile ? 10 : isTablet ? 10.5 : 11;
+  const durationSize = isMobile ? 11.5 : isTablet ? 12 : 12.5;
+  const companySize = isMobile ? 22 : isTablet ? 25 : 27;
+  const roleSize = isMobile ? 13.5 : isTablet ? 14.5 : 15.5;
+  const descSize = isMobile ? 12.5 : isTablet ? 13 : 13.5;
+  const tagSize = isMobile ? 9.5 : isTablet ? 10 : 10.5;
   const hintSize = isMobile ? 10.5 : 11;
+
+  // Responsive logo container dimensions (48–60px)
+  const logoBoxSize = isMobile ? 48 : isTablet ? 54 : 60;
 
   return (
     <div
       style={{
         width: '100%',
         height: '100%',
-        padding: isMobile ? '20px' : '26px',
+        padding: isMobile ? '18px' : '24px',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
@@ -289,80 +257,151 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
         userSelect: 'none',
       }}
     >
-      {/* Station Index Number: 11–12px, JetBrains Mono */}
-      <div
-        style={{
-          fontSize: stationLabelSize,
-          letterSpacing: '0.16em',
-          color: '#FF4D00',
-          textTransform: 'uppercase',
-          marginBottom: 4,
-          fontFamily: 'JetBrains Mono, monospace',
-          fontWeight: 600,
-        }}
-      >
-        {`STATION ${String(station.index + 1).padStart(2, '0')}`}
-      </div>
-
-      {/* Duration Row: 12–13px with active green pulse indicator */}
+      {/* Top Header Row: Station Label + Duration Pill */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 7,
+          justifyContent: 'space-between',
           marginBottom: 10,
         }}
       >
-        {station.isCurrent && (
-          <span
-            className="station-pulse-dot"
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: '#10b981',
-              display: 'inline-block',
-              flexShrink: 0,
-            }}
-          />
-        )}
-        <span
+        <div
           style={{
-            fontSize: durationSize,
-            letterSpacing: '0.06em',
-            color: station.isCurrent
-              ? (isDarkMode ? '#10b981' : '#059669')
-              : (isDarkMode ? '#8B939E' : '#6b7280'),
+            fontSize: stationLabelSize,
+            letterSpacing: '0.16em',
+            color: '#FF4D00',
+            textTransform: 'uppercase',
             fontFamily: 'JetBrains Mono, monospace',
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
-          {station.duration || 'Past'}
-        </span>
+          {`STATION ${String(station.index + 1).padStart(2, '0')}`}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          {station.isCurrent && (
+            <span
+              className="station-pulse-dot"
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: '#10b981',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <span
+            style={{
+              fontSize: durationSize,
+              letterSpacing: '0.06em',
+              color: station.isCurrent
+                ? (isDarkMode ? '#10b981' : '#059669')
+                : (isDarkMode ? '#8B939E' : '#6b7280'),
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: 500,
+            }}
+          >
+            {station.duration || 'Past'}
+          </span>
+        </div>
       </div>
 
-      {/* Company Name: Dominates the card with 24–30px, bold, tight leading */}
+      {/* Organization Area: Optional Logo + Company Name */}
       <div
         style={{
-          fontSize: companySize,
-          fontWeight: 800,
-          letterSpacing: '-0.02em',
-          lineHeight: 1.05,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
           marginBottom: 6,
-          color: isDarkMode ? '#ffffff' : '#0D1117',
         }}
       >
-        {station.company}
+        {station.logo && (
+          <div
+            style={{
+              width: logoBoxSize,
+              height: logoBoxSize,
+              flexShrink: 0,
+              borderRadius: 8,
+              padding: 5,
+              backgroundColor: isDarkMode ? '#161B22' : '#ffffff',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)'}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+          >
+            <img
+              src={station.logo}
+              alt={`${station.company} logo`}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+              onError={(e) => {
+                e.currentTarget.parentElement.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: companySize,
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              color: isDarkMode ? '#ffffff' : '#0D1117',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {station.company}
+          </div>
+
+          {station.location && (
+            <div
+              style={{
+                fontSize: 11,
+                color: isDarkMode ? '#8B939E' : '#6b7280',
+                fontFamily: 'JetBrains Mono, monospace',
+                marginTop: 2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {station.location}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Role Title: 14–16px, readable subtitle */}
       <div
         style={{
           fontSize: roleSize,
-          fontWeight: 500,
-          color: isDarkMode ? '#8B939E' : '#52596A',
-          marginBottom: 12,
-          lineHeight: 1.4,
+          fontWeight: 600,
+          color: isDarkMode ? '#D0D7DE' : '#24292F',
+          marginBottom: 10,
+          lineHeight: 1.35,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}
       >
         {station.role}
@@ -373,7 +412,7 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
         style={{
           height: 1,
           background: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-          marginBottom: 12,
+          marginBottom: 10,
         }}
       />
 
@@ -382,9 +421,9 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
         <div
           style={{
             fontSize: descSize,
-            lineHeight: 1.6,
+            lineHeight: 1.55,
             color: isDarkMode ? '#8B939E' : '#52596A',
-            marginBottom: 12,
+            marginBottom: 10,
             overflow: 'hidden',
             display: '-webkit-box',
             WebkitLineClamp: 3,
@@ -402,7 +441,7 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
             display: 'flex',
             flexWrap: 'wrap',
             gap: 5,
-            marginBottom: 12,
+            marginBottom: 10,
           }}
         >
           {station.tags.slice(0, 4).map((tag) => (
@@ -433,7 +472,7 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
           alignItems: 'center',
           gap: 6,
           marginTop: 'auto',
-          paddingTop: 8,
+          paddingTop: 6,
           fontSize: hintSize,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -450,7 +489,7 @@ function ExperiencePanelContent({ station, isDarkMode, isMobile, isTablet }) {
 
 // ─── CertificatesPanelContent (HTML in R3F with Certificate Image Previews) ───
 function CertificatesPanelContent({ station, isDarkMode, isMobile }) {
-  const certs = station.certs || DEFAULT_CERTIFICATES;
+  const certs = station.certs || [];
 
   return (
     <div
@@ -492,14 +531,21 @@ function CertificatesPanelContent({ station, isDarkMode, isMobile }) {
       </div>
 
       {/* 2x2 Certificate Cards Grid with Image Previews */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, 1fr)',
-          gap: isMobile ? 8 : 12,
-          flex: 1,
-        }}
-      >
+      {certs.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
+          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, color: isDarkMode ? '#8B939E' : '#6b7280' }}>
+            Certifications will be added soon.
+          </p>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, 1fr)',
+            gap: isMobile ? 8 : 12,
+            flex: 1,
+          }}
+        >
         {certs.slice(0, 4).map((cert) => (
           <div
             key={cert.id || cert.name}
@@ -630,6 +676,7 @@ function CertificatesPanelContent({ station, isDarkMode, isMobile }) {
           </div>
         ))}
       </div>
+      )}
 
       <div
         style={{
@@ -1026,16 +1073,30 @@ function StationDetail({ station, onClose, isDarkMode }) {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-8 space-y-6">
-          {/* Company & Role */}
-          <div>
-            <h3 className="font-sans font-extrabold text-2xl sm:text-3xl tracking-tight text-content-primary leading-tight">
-              {station.company || (isCerts ? 'Credentials Record' : '')}
-            </h3>
-            {station.role && (
-              <div className="font-sans text-base text-content-secondary mt-1 font-medium">
-                {station.role}
+          {/* Company, Optional Logo & Role */}
+          <div className="flex items-start gap-4">
+            {station.logo && !isCerts && (
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border border-border-default bg-surface-base p-2 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
+                <img
+                  src={station.logo}
+                  alt={`${station.company} logo`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.parentElement.style.display = 'none';
+                  }}
+                />
               </div>
             )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-sans font-extrabold text-2xl sm:text-3xl tracking-tight text-content-primary leading-tight">
+                {station.company || (isCerts ? 'Credentials Record' : '')}
+              </h3>
+              {station.role && (
+                <div className="font-sans text-base text-content-secondary mt-1 font-medium">
+                  {station.role}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Duration + Location */}
@@ -1283,13 +1344,14 @@ function ScrollHint({ progress, total }) {
 }
 
 // ─── MobileExperienceList Component (Strictly Fallback for WebGL Failure) ─────
-function MobileExperienceList({ stations, resumeUrl, isDarkMode }) {
+function MobileExperienceList({ stations, eyebrow = 'Career Record', title = "Where I've built\nreal systems.", resumeUrl = '/resume.pdf', resumeText = 'Resume', isDarkMode }) {
   const [expandedId, setExpandedId] = useState(null);
 
   const toggleExpand = (id) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
+  const titleLines = String(title).split('\n');
   const workAndEduStations = stations.filter((s) => s.type !== 'certificates');
   const certStation = stations.find((s) => s.type === 'certificates');
 
@@ -1301,13 +1363,17 @@ function MobileExperienceList({ stations, resumeUrl, isDarkMode }) {
           <div className="flex items-center gap-3 mb-2">
             <div className="w-7 h-px bg-accent" />
             <span className="font-code text-[11px] tracking-[0.18em] uppercase text-accent font-semibold">
-              Career Record
+              {eyebrow}
             </span>
           </div>
           <h2 className="font-sans font-extrabold leading-[1.0] tracking-tight text-3xl text-content-primary">
-            Where I've built
-            <br />
-            <span className="text-content-muted">real systems.</span>
+            {titleLines[0]}
+            {titleLines.length > 1 && (
+              <>
+                <br />
+                <span className="text-content-muted">{titleLines.slice(1).join(' ')}</span>
+              </>
+            )}
           </h2>
         </div>
 
@@ -1317,7 +1383,7 @@ function MobileExperienceList({ stations, resumeUrl, isDarkMode }) {
           rel="noopener noreferrer"
           className="flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.12em] text-content-muted border border-border-default rounded-sm px-3 py-1.5 hover:border-accent hover:text-content-primary transition-colors duration-200 no-underline"
         >
-          <span>Resume</span>
+          <span>{resumeText || 'Resume'}</span>
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
           </svg>
@@ -1350,14 +1416,28 @@ function MobileExperienceList({ stations, resumeUrl, isDarkMode }) {
                   </span>
                 </div>
 
-                {/* Company & Role */}
+                {/* Company & Role with Optional Logo */}
                 <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <h3 className="font-sans font-bold text-xl text-content-primary leading-snug">
-                      {station.company}
-                    </h3>
-                    <div className="font-sans text-sm text-content-secondary mt-0.5 font-medium">
-                      {station.role}
+                  <div className="flex items-center gap-3">
+                    {station.logo && (
+                      <div className="w-11 h-11 rounded-lg border border-border-default bg-surface-base p-1.5 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
+                        <img
+                          src={station.logo}
+                          alt={`${station.company} logo`}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.parentElement.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-sans font-bold text-xl text-content-primary leading-snug">
+                        {station.company}
+                      </h3>
+                      <div className="font-sans text-sm text-content-secondary mt-0.5 font-medium">
+                        {station.role}
+                      </div>
                     </div>
                   </div>
 
@@ -1558,10 +1638,13 @@ export const ExperienceSection = () => {
   }, []);
 
   // Prepare stations data
-  const categories =
-    content?.experience?.categories || defaultContent.experience.categories;
-  const certs =
-    content?.certificates || defaultContent.certificates || DEFAULT_CERTIFICATES;
+  const categories = content?.experience?.categories || [];
+  const certs = content?.certificates || [];
+
+  const eyebrow = content?.experience?.eyebrow || 'Career Record';
+  const title = content?.experience?.title || "Where I've built\nreal systems.";
+  const resumeUrl = content?.experience?.resumeUrl || content?.resume?.url || '/resume.pdf';
+  const resumeText = content?.experience?.resumeText || 'Resume';
 
   const stations = useMemo(() => buildStations(categories, certs), [
     categories,
@@ -1587,7 +1670,28 @@ export const ExperienceSection = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [stationCount]);
 
-  const resumeUrl = content?.resume?.url || '/resume.pdf';
+  if (stationCount === 0) {
+    return (
+      <section
+        id="experience"
+        ref={sectionRef}
+        className="bg-canvas py-32 px-4 sm:px-6 relative"
+        style={{ isolation: 'isolate' }}
+      >
+        <div className="max-w-4xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border-default font-code text-[11px] uppercase tracking-wider text-accent">
+            <span>{eyebrow}</span>
+          </div>
+          <h2 className="font-sans font-extrabold text-3xl sm:text-4xl text-content-primary">
+            {title.replace('\n', ' ')}
+          </h2>
+          <p className="font-sans text-content-secondary text-sm max-w-md mx-auto">
+            Career record is currently being updated.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -1612,14 +1716,22 @@ export const ExperienceSection = () => {
           }}
         >
           {/* Section header with clearance below navbar */}
-          <SectionHeader resumeUrl={resumeUrl} />
+          <SectionHeader
+            eyebrow={eyebrow}
+            title={title}
+            resumeUrl={resumeUrl}
+            resumeText={resumeText}
+          />
 
           {/* Full-bleed R3F Canvas: UNIFORM across Desktop, Tablet, and Mobile */}
           <CanvasErrorBoundary
             fallback={
               <MobileExperienceList
                 stations={stations}
+                eyebrow={eyebrow}
+                title={title}
                 resumeUrl={resumeUrl}
+                resumeText={resumeText}
                 isDarkMode={isDarkMode}
               />
             }

@@ -52,6 +52,7 @@ const skillsSchema = new mongoose.Schema({
 }, { _id: false });
 
 const experienceItemSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   role: { type: String, required: true },
   title: { type: String, default: "" },
   company: { type: String, default: "" },
@@ -65,18 +66,42 @@ const experienceItemSchema = new mongoose.Schema({
   tags: [{ type: String }],
   bullets: [{ type: String }],
   logo: { type: String, default: "" },
+  order: { type: Number, default: 0 },
+  published: { type: Boolean, default: true },
 }, { _id: false, strict: false });
 
 const experienceCategorySchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   name: { type: String, required: true },
+  slug: { type: String, default: "" },
+  description: { type: String, default: "" },
+  order: { type: Number, default: 0 },
+  published: { type: Boolean, default: true },
   items: [experienceItemSchema],
-}, { _id: false });
+}, { _id: false, strict: false });
 
 const experienceSchema = new mongoose.Schema({
-  title: { type: String, default: "Experience" },
+  title: { type: String, default: "Where I've built\nreal systems." },
   subtitle: { type: String, default: "" },
+  eyebrow: { type: String, default: "Career Record" },
+  resumeUrl: { type: String, default: "/resume.pdf" },
+  resumeText: { type: String, default: "Resume" },
   categories: [experienceCategorySchema],
-}, { _id: false });
+}, { _id: false, strict: false });
+
+const certificateSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  name: { type: String, required: true },
+  issuer: { type: String, default: "" },
+  issuerColor: { type: String, default: "#FF4D00" },
+  date: { type: String, default: "" },
+  image: { type: String, default: "" },
+  credentialUrl: { type: String, default: "" },
+  url: { type: String, default: "" },
+  skills: [{ type: String }],
+  order: { type: Number, default: 0 },
+  published: { type: Boolean, default: true },
+}, { _id: false, strict: false });
 
 const testimonialItemSchema = new mongoose.Schema({
   name: { type: String, default: "Anonymous client" },
@@ -166,6 +191,7 @@ const portfolioContentSchema = new mongoose.Schema({
   about: { type: aboutSchema, default: () => ({}) },
   skills: { type: skillsSchema, default: () => ({}) },
   experience: { type: experienceSchema, default: () => ({}) },
+  certificates: [certificateSchema],
   testimonials: { type: testimonialsSchema, default: () => ({}) },
   socialLinks: [socialLinkSchema],
   resume: { type: resumeSchema, default: () => ({}) },
