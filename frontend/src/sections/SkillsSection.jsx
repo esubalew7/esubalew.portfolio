@@ -511,11 +511,10 @@ function SkillFocusCard({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : 10 }}
       transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className={`absolute z-50 pointer-events-none select-none ${
-        isMobile
+      className={`absolute z-50 pointer-events-none select-none ${isMobile
           ? 'bottom-4 left-4 right-4 w-auto rounded-[20px]'
           : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px]'
-      }`}
+        }`}
       style={{
         backgroundColor: isDark ? 'rgba(12, 16, 24, 0.78)' : 'rgba(255, 255, 255, 0.92)',
         border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
@@ -791,13 +790,13 @@ function SkillNode({
             border: isActive
               ? `1.5px solid ${brandColor}`
               : isDark
-              ? '1.5px solid rgba(255, 255, 255, 0.1)'
-              : '1.5px solid rgba(0, 0, 0, 0.08)',
+                ? '1.5px solid rgba(255, 255, 255, 0.1)'
+                : '1.5px solid rgba(0, 0, 0, 0.08)',
             boxShadow: isActive
               ? `0 0 25px ${brandColor}60, 0 0 50px ${brandColor}30`
               : isDark
-              ? '0 2px 10px rgba(0, 0, 0, 0.5)'
-              : '0 2px 8px rgba(0, 0, 0, 0.08)',
+                ? '0 2px 10px rgba(0, 0, 0, 0.5)'
+                : '0 2px 8px rgba(0, 0, 0, 0.08)',
             opacity: isActive ? 1 : hasActiveSkill ? 0.6 : 1,
             cursor: 'pointer',
             display: 'flex',
@@ -864,8 +863,8 @@ function SkillNode({
               color: isActive
                 ? brandColor
                 : isDark
-                ? '#8B939E'
-                : '#52596A',
+                  ? '#8B939E'
+                  : '#52596A',
               fontWeight: isActive ? 700 : 500,
             }}
           >

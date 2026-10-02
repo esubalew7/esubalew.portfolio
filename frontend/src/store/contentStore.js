@@ -6,7 +6,7 @@ const API_BASE_URL =
     ? 'http://localhost:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
 
-const defaultContent = {
+export const defaultContent = {
   hero: {
     name: 'Esubalew Molla',
     titles: [
@@ -39,8 +39,115 @@ const defaultContent = {
     categories: [],
   },
   experience: {
-    categories: [],
+    categories: [
+      {
+        name: 'Engineering Experience',
+        items: [
+          {
+            id: 'exp-1',
+            role: 'Frontend Developer Intern',
+            title: 'Frontend Developer Intern',
+            company: 'Askuala Link Software Company',
+            location: 'Ethiopia',
+            duration: '2024 — Present',
+            current: true,
+            description: 'Building enterprise-grade React + Node.js systems. Architecting microservice backends, real-time WebSocket dashboards, and TOTP 2FA authentication flows for production deployments.',
+            bullets: [
+              'Architected real-time WebSocket event streaming dashboards cutting state synchronization latency by 45%.',
+              'Implemented end-to-end TOTP 2FA authentication pipelines and JWT authorization middleware across distributed microservices.',
+              'Developed high-performance component architecture in React with Tailwind CSS and Framer Motion micro-interactions.',
+            ],
+            tags: ['React', 'Node.js', 'MongoDB', 'Socket.IO', 'Express'],
+            skills: ['React', 'Node.js', 'MongoDB', 'Socket.IO', 'Express'],
+            logo: '',
+          },
+          {
+            id: 'exp-2',
+            role: 'Full Stack Developer',
+            title: 'Full Stack Developer',
+            company: 'Freelance',
+            location: 'Remote',
+            duration: '2023 — 2024',
+            current: false,
+            description: 'Delivered 8+ production MERN stack applications including real estate platforms, college management systems, and agricultural marketplaces for Ethiopian clients.',
+            bullets: [
+              'Engineered responsive web applications for diverse industry verticals from conception through deployment.',
+              'Integrated role-based access control, complex aggregation queries, and third-party payment gateways.',
+              'Optimized database indices and API latency, achieving sub-100ms response times on high-load endpoints.',
+            ],
+            tags: ['MERN', 'REST API', 'JWT', 'Tailwind', 'Flutter'],
+            skills: ['MERN', 'REST API', 'JWT', 'Tailwind', 'Flutter'],
+            logo: '',
+          },
+        ],
+      },
+      {
+        name: 'Education',
+        items: [
+          {
+            id: 'edu-1',
+            role: 'B.Sc. in Computer Science',
+            title: 'B.Sc. in Computer Science',
+            company: 'Bahir Dar University',
+            location: 'Bahir Dar, Ethiopia',
+            duration: '2022 — Present',
+            current: true,
+            description: 'Third-year CS student. Core coursework in algorithms, distributed systems, database design, and operating systems — applied directly to production projects.',
+            bullets: [
+              'Maintained top academic standing in core algorithmic thinking, computational complexity, and system design.',
+              'Collaborated on departmental software projects focusing on relational schema design and network protocols.',
+              'Applied academic distributed systems principles directly to real-world MERN production deployments.',
+            ],
+            tags: ['Algorithms', 'Data Structures', 'System Design', 'DB Architecture'],
+            skills: ['Algorithms', 'Data Structures', 'System Design', 'DB Architecture'],
+            logo: '',
+          },
+        ],
+      },
+    ],
   },
+  certificates: [
+    {
+      id: 'cert-1',
+      name: 'Meta Front-End Developer',
+      issuer: 'Meta',
+      issuerColor: '#0081FB',
+      date: '2024',
+      image: '/certificates/meta-frontend.svg',
+      credentialUrl: '#',
+      skills: ['React', 'JavaScript', 'CSS'],
+    },
+    {
+      id: 'cert-2',
+      name: 'MongoDB Node.js Developer Path',
+      issuer: 'MongoDB University',
+      issuerColor: '#47A248',
+      date: '2024',
+      image: '/certificates/mongodb-developer.svg',
+      credentialUrl: '#',
+      skills: ['MongoDB', 'Node.js', 'Aggregation'],
+    },
+    {
+      id: 'cert-3',
+      name: 'Back End Development and APIs',
+      issuer: 'freeCodeCamp',
+      issuerColor: '#FF4D00',
+      date: '2023',
+      image: '/certificates/fcc-backend.svg',
+      credentialUrl: '#',
+      skills: ['Node.js', 'Express', 'REST APIs'],
+    },
+    {
+      id: 'cert-4',
+      name: 'Responsive Web Design',
+      issuer: 'freeCodeCamp',
+      issuerColor: '#3b82f6',
+      date: '2023',
+      image: '/certificates/fcc-responsive.svg',
+      credentialUrl: '#',
+      skills: ['HTML', 'CSS', 'Flexbox', 'Grid'],
+    },
+  ],
   contactInfo: {
     email: 'esubalew392@gmail.com',
     phone: '+251 915795794',
@@ -204,6 +311,9 @@ export function mapBackendContent(raw) {
       ...data.experience,
       categories: mappedExperienceCategories,
     },
+    certificates: Array.isArray(data.certificates) && data.certificates.length
+      ? data.certificates
+      : defaultContent.certificates,
     contactInfo: {
       ...defaultContent.contactInfo,
       ...data.contactInfo,

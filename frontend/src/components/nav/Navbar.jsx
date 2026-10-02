@@ -7,12 +7,12 @@ import { scrollToSectionById, getSectionHref, SECTION_IDS } from '../../utils/se
 import { AvailabilityTicker } from '../common/AvailabilityTicker';
 
 const NAV_LINKS = [
-  { id: SECTION_IDS.HOME,       label: 'Home' },
-  { id: SECTION_IDS.ABOUT,      label: 'About' },
-  { id: SECTION_IDS.SKILLS,     label: 'Skills' },
-  { id: SECTION_IDS.PROJECTS,   label: 'Work' },
+  { id: SECTION_IDS.HOME, label: 'Home' },
+  { id: SECTION_IDS.ABOUT, label: 'About' },
+  { id: SECTION_IDS.SKILLS, label: 'Skills' },
+  { id: SECTION_IDS.PROJECTS, label: 'Work' },
   { id: SECTION_IDS.EXPERIENCE, label: 'Timeline' },
-  { id: SECTION_IDS.CONTACT,    label: 'Contact' },
+  { id: SECTION_IDS.CONTACT, label: 'Contact' },
 ];
 
 // ─── Desktop link ──────────────────────────────────────────────────────────
@@ -53,15 +53,15 @@ const DesktopLink = memo(function DesktopLink({ link, isActive, pathname, onNavi
 
 // ─── NAVBAR ────────────────────────────────────────────────────────────────
 export const Navbar = () => {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [active,    setActive]    = useState('home');
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [active, setActive] = useState('home');
+  const [menuOpen, setMenuOpen] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const content  = useContentStore(s => s.content);
-  const hero     = content?.hero || {};
-  const isHome   = location.pathname === '/';
+  const content = useContentStore(s => s.content);
+  const hero = content?.hero || {};
+  const isHome = location.pathname === '/';
 
   useEffect(() => {
     const onScroll = () => {
@@ -219,7 +219,7 @@ export const Navbar = () => {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: [0.16,1,0.3,1] }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'absolute', top: '100%', left: 0, right: 0,
               background: isDarkMode ? 'rgba(13,17,23,0.97)' : 'rgba(250,250,248,0.97)',

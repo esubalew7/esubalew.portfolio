@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#120c0a"/>
+      <stop offset="100%" stop-color="#1f1410"/>
+    </linearGradient>
+    <linearGradient id="fccOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF4D00"/>
+      <stop offset="100%" stop-color="#d43f00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)" rx="8"/>
+  <rect x="20" y="20" width="760" height="460" fill="none" stroke="rgba(255, 77, 0, 0.25)" stroke-width="1.5" rx="6"/>
+  <rect x="28" y="28" width="744" height="444" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" rx="4"/>
+
+  <!-- Top Accent Bar -->
+  <rect x="20" y="20" width="760" height="6" fill="url(#fccOrange)" rx="3"/>
+
+  <!-- freeCodeCamp Header -->
+  <g transform="translate(60, 65)">
+    <!-- Flame Logo Representation -->
+    <path d="M18,52 C12,48 8,40 10,32 C12,24 20,18 20,12 C20,8 16,4 16,4 C16,4 28,12 28,26 C28,32 25,38 29,42 C33,46 38,44 40,36 C42,48 30,56 18,52 Z" fill="#FF4D00"/>
+    <text x="55" y="34" font-family="'Space Grotesk', system-ui, sans-serif" font-size="28" font-weight="800" fill="#ffffff" letter-spacing="-0.02em">freeCodeCamp</text>
+    <text x="55" y="52" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="500" fill="#FF4D00" letter-spacing="0.16em" text-transform="uppercase">Verified Curriculum Developer</text>
+  </g>
+
+  <!-- Certificate Body -->
+  <g transform="translate(60, 175)">
+    <text x="0" y="0" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="600" fill="rgba(255,255,255,0.4)" letter-spacing="0.14em" text-transform="uppercase">This is to certify that</text>
+    <text x="0" y="40" font-family="'Space Grotesk', system-ui, sans-serif" font-size="34" font-weight="800" fill="#ffffff" letter-spacing="-0.02em">Esubalew Molla</text>
+    <text x="0" y="70" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" fill="rgba(255,255,255,0.7)">has successfully fulfilled the 300 hours requirement for</text>
+    <text x="0" y="112" font-family="'Space Grotesk', system-ui, sans-serif" font-size="26" font-weight="800" fill="#FF4D00" letter-spacing="-0.01em">Back End Development and APIs</text>
+    <text x="0" y="142" font-family="'JetBrains Mono', monospace" font-size="12" fill="rgba(255,255,255,0.5)">Node.js · Express.js · REST APIs · Microservices · MongoDB</text>
+  </g>
+
+  <!-- Footer Seal & Verification -->
+  <g transform="translate(60, 395)">
+    <!-- Verified Badge -->
+    <circle cx="30" cy="30" r="28" fill="rgba(255, 77, 0, 0.12)" stroke="#FF4D00" stroke-width="1.5"/>
+    <path d="M22,30 L28,36 L39,23" fill="none" stroke="#FF4D00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <text x="75" y="24" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.08em">300 HOURS VERIFIED</text>
+    <text x="75" y="42" font-family="'JetBrains Mono', monospace" font-size="10" fill="rgba(255,255,255,0.4)">Issued: 2023 · ID: FCC-BEA-2023-9931</text>
+  </g>
+
+  <!-- Signature line -->
+  <g transform="translate(560, 415)">
+    <line x1="0" y1="0" x2="180" y2="0" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <text x="90" y="20" font-family="'Space Grotesk', sans-serif" font-size="11" fill="rgba(255,255,255,0.5)" text-anchor="middle">Quincy Larson, Executive Director</text>
+  </g>
+</svg>
