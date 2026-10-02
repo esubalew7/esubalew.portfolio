@@ -13,21 +13,21 @@ const FALLBACK_IMG =
   'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800';
 
 const CATEGORY_STYLES = {
-  mern:     { label: 'MERN',     bg: 'bg-blue-500/10',    border: 'border-blue-500/20',   text: 'text-blue-400' },
-  frontend: { label: 'Frontend', bg: 'bg-violet-500/10',  border: 'border-violet-500/20', text: 'text-violet-400' },
-  backend:  { label: 'Backend',  bg: 'bg-emerald-500/10', border: 'border-emerald-500/20',text: 'text-emerald-400' },
-  mobile:   { label: 'Mobile',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',  text: 'text-amber-400' },
+  mern: { label: 'MERN', bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400' },
+  frontend: { label: 'Frontend', bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400' },
+  backend: { label: 'Backend', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
+  mobile: { label: 'Mobile', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
 };
 
 const getCategoryStyle = (category) =>
   CATEGORY_STYLES[(category || '').toLowerCase().trim()] || CATEGORY_STYLES.frontend;
 
 const FILTERS = [
-  { label: 'All',      value: 'all'      },
-  { label: 'MERN',     value: 'mern'     },
+  { label: 'All', value: 'all' },
+  { label: 'MERN', value: 'mern' },
   { label: 'Frontend', value: 'frontend' },
-  { label: 'Backend',  value: 'backend'  },
-  { label: 'Mobile',   value: 'mobile'   },
+  { label: 'Backend', value: 'backend' },
+  { label: 'Mobile', value: 'mobile' },
 ];
 
 // ─── Canvas Error Boundary ───────────────────────────────────────────────────
@@ -182,9 +182,8 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
       href={hasLiveLink ? liveUrl : undefined}
       target={hasLiveLink ? '_blank' : undefined}
       rel={hasLiveLink ? 'noopener noreferrer' : undefined}
-      className={`w-full h-full relative aspect-video overflow-hidden rounded-md bg-surface-raised flex items-center justify-center group ${
-        hasLiveLink ? 'cursor-pointer' : ''
-      }`}
+      className={`w-full h-full relative aspect-video overflow-hidden rounded-md bg-surface-raised flex items-center justify-center group ${hasLiveLink ? 'cursor-pointer' : ''
+        }`}
     >
       <img
         src={
@@ -230,9 +229,8 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
       role={hasLiveLink ? 'link' : undefined}
       tabIndex={hasLiveLink ? 0 : undefined}
       title={hasLiveLink ? `Open ${project.title} live demo` : project.title}
-      className={`w-full h-[clamp(300px,45vw,520px)] relative group select-none ${
-        hasLiveLink ? 'cursor-pointer' : ''
-      }`}
+      className={`w-full h-[clamp(300px,45vw,520px)] relative group select-none ${hasLiveLink ? 'cursor-pointer' : ''
+        }`}
     >
       <CanvasErrorBoundary fallback={fallbackStaticImage}>
         <Canvas
@@ -378,9 +376,8 @@ function ProgressRail({ count, activeIndex, isVisible }) {
         transform: 'translateY(-50%)',
         zIndex: 50,
       }}
-      className={`hidden md:flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
+      className={`hidden md:flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
       aria-hidden="true"
     >
       {Array.from({ length: count }).map((_, i) => {
@@ -388,11 +385,10 @@ function ProgressRail({ count, activeIndex, isVisible }) {
         return (
           <div
             key={i}
-            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-              isActive
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isActive
                 ? 'bg-accent scale-150 shadow-[0_0_8px_var(--orange-glow)]'
                 : 'bg-border-default'
-            }`}
+              }`}
           />
         );
       })}
@@ -430,10 +426,10 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
   const techStack = Array.isArray(project.technologies)
     ? project.technologies
     : typeof project.technologies === 'string'
-    ? project.technologies.split(',').map((t) => t.trim()).filter(Boolean)
-    : Array.isArray(project.techStack)
-    ? project.techStack
-    : [];
+      ? project.technologies.split(',').map((t) => t.trim()).filter(Boolean)
+      : Array.isArray(project.techStack)
+        ? project.techStack
+        : [];
 
   return (
     <section
@@ -443,9 +439,8 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
       {/* ── WATERMARK INDEX NUMBER ── */}
       <span
         aria-hidden="true"
-        className={`absolute right-[clamp(1rem,4vw,4rem)] top-1/2 -translate-y-1/2 font-sans font-extrabold text-[clamp(5rem,15vw,10rem)] md:text-[clamp(8rem,18vw,16rem)] leading-none select-none pointer-events-none -z-0 transition-opacity duration-700 ${
-          stageInView ? 'opacity-100' : 'opacity-0'
-        } ${isDarkMode ? 'text-white/[0.018]' : 'text-black/[0.04]'}`}
+        className={`absolute right-[clamp(1rem,4vw,4rem)] top-1/2 -translate-y-1/2 font-sans font-extrabold text-[clamp(5rem,15vw,10rem)] md:text-[clamp(8rem,18vw,16rem)] leading-none select-none pointer-events-none -z-0 transition-opacity duration-700 ${stageInView ? 'opacity-100' : 'opacity-0'
+          } ${isDarkMode ? 'text-white/[0.018]' : 'text-black/[0.04]'}`}
       >
         {String(index + 1).padStart(2, '0')}
       </span>
@@ -472,9 +467,8 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
               href={hasLiveLink ? liveUrl : undefined}
               target={hasLiveLink ? '_blank' : undefined}
               rel={hasLiveLink ? 'noopener noreferrer' : undefined}
-              className={`block w-full relative aspect-video overflow-hidden rounded-md bg-surface-raised group ${
-                hasLiveLink ? 'cursor-pointer' : ''
-              }`}
+              className={`block w-full relative aspect-video overflow-hidden rounded-md bg-surface-raised group ${hasLiveLink ? 'cursor-pointer' : ''
+                }`}
             >
               <img
                 src={

@@ -366,3 +366,32 @@ body::before {
   }
 }
 
+/* ── Experience Section — Control Room ──────────────── */
+.bg-surface-elevated {
+  background-color: var(--ink-float);
+}
+
+@keyframes tabIndicatorSlide {
+  from { opacity: 0; transform: scaleX(0.6); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
+.cert-card {
+  transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+}
+
+.cert-card:hover .cert-accent-line {
+  opacity: 1;
+}
+
+/* ── Experience Section — The Observatory ───────────── */
+@keyframes stationPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.5); }
+}
+.station-pulse-dot {
+  animation: stationPulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .station-pulse-dot { animation: none; }
+}

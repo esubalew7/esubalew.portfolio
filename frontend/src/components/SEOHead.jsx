@@ -50,13 +50,13 @@ export function SEOHead() {
     const sameAs =
       Array.isArray(content.socialLinks) && content.socialLinks.length > 0
         ? content.socialLinks
-            .filter((s) => s.enabled !== false && s.url)
-            .map((s) => s.url)
+          .filter((s) => s.enabled !== false && s.url)
+          .map((s) => s.url)
         : [
-            'https://github.com/esubalew7',
-            'https://linkedin.com/in/esubalew-molla-7a584739b',
-            'https://t.me/Esuman7',
-          ];
+          'https://github.com/esubalew7',
+          'https://linkedin.com/in/esubalew-molla-7a584739b',
+          'https://t.me/Esuman7',
+        ];
 
     const jobTitle =
       content.hero?.titles?.[0]?.replace(/\.$/, '') ||
