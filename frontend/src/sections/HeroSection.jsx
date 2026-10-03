@@ -2,14 +2,14 @@ import React, { Suspense, useEffect, useRef, useState, useCallback, lazy } from 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useContentStore } from '../store/contentStore';
 import { useTypewriter } from '../hooks/useTypewriter';
-import { useVisitorCount } from '../hooks/useVisitorCount';
+import { useTheme } from '../context/ThemeContext';
 import { scrollToSectionById } from '../utils/sectionNavigation';
 
 // Lazy-load the WebGL canvas so critical text renders in <100ms
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
 
 // ─── Availability pill ─────────────────────────────────────────────────────
-function StatusPill({ available = true }) {
+function StatusPill({ available = true, isDarkMode = true }) {
   const isAvailable = available !== false;
   return (
     <motion.div
@@ -18,9 +18,14 @@ function StatusPill({ available = true }) {
       transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       className="inline-flex items-center gap-2 px-3 py-1.5"
       style={{
-        background: isAvailable ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)',
-        border: isAvailable ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(245,158,11,0.25)',
+        background: isAvailable
+          ? (isDarkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.12)')
+          : (isDarkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.12)'),
+        border: isAvailable
+          ? (isDarkMode ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(16,185,129,0.35)')
+          : (isDarkMode ? '1px solid rgba(245,158,11,0.25)' : '1px solid rgba(245,158,11,0.35)'),
         borderRadius: 100,
+        transition: 'background 0.3s ease, border-color 0.3s ease',
       }}
     >
       <span className="relative flex" style={{ width: 6, height: 6, flexShrink: 0 }}>
@@ -38,9 +43,10 @@ function StatusPill({ available = true }) {
         style={{
           fontSize: 11,
           letterSpacing: '0.12em',
-          color: isAvailable ? '#10b981' : '#f59e0b',
+          color: isAvailable ? (isDarkMode ? '#10b981' : '#047857') : (isDarkMode ? '#f59e0b' : '#b45309'),
           textTransform: 'uppercase',
           fontWeight: 600,
+          transition: 'color 0.3s ease',
         }}
       >
         {isAvailable ? 'Available for freelance' : 'Taking Q4 Inquiries'}
@@ -49,70 +55,43 @@ function StatusPill({ available = true }) {
   );
 }
 
-// ─── Live visitor telemetry pill ──────────────────────────────────────────
-function VisitorPill({ count = 1 }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="inline-flex items-center gap-2 px-3 py-1.5"
-      style={{
-        background: 'rgba(255,77,0,0.06)',
-        border: '1px solid rgba(255,77,0,0.2)',
-        borderRadius: 100,
-      }}
-    >
-      <span className="relative flex" style={{ width: 6, height: 6, flexShrink: 0 }}>
-        <span className="animate-ping absolute inline-flex rounded-full bg-orange-400 opacity-75" style={{ width: '100%', height: '100%' }} />
-        <span className="relative inline-flex rounded-full bg-orange-400" style={{ width: 6, height: 6 }} />
-      </span>
-      <span
-        className="font-mono"
-        style={{ fontSize: 11, letterSpacing: '0.08em', color: 'var(--text-secondary)' }}
-      >
-        <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{count}</strong>{' '}
-        {count === 1 ? 'engineer' : 'engineers'} viewed this today
-      </span>
-    </motion.div>
-  );
-}
-
-// ─── Index number (editorial device) ──────────────────────────────────────
-function IndexMark({ n = '01' }) {
-  return (
-    <span
-      className="font-mono absolute"
-      style={{
-        fontSize: 10,
-        letterSpacing: '0.15em',
-        color: 'var(--text-muted)',
-        top: 6,
-        right: 0,
-      }}
-    >
-      {n}
-    </span>
-  );
-}
-
 // ─── Metric chip ──────────────────────────────────────────────────────────
-function MetricChip({ value, label, delay = 0 }) {
+function MetricChip({ value, label, delay = 0, isDarkMode = true }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="flex flex-col gap-0.5"
-      style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: 16 }}
+      style={{
+        borderLeft: isDarkMode ? '1px solid var(--border-subtle)' : '1px solid rgba(0,0,0,0.1)',
+        paddingLeft: 16,
+        transition: 'border-color 0.3s ease',
+      }}
     >
       <span
         className="font-display"
-        style={{ fontSize: 'clamp(1.4rem,2.5vw,2rem)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}
+        style={{
+          fontSize: 'clamp(1.4rem,2.5vw,2rem)',
+          fontWeight: 700,
+          color: isDarkMode ? 'var(--text-primary)' : '#0D1117',
+          lineHeight: 1,
+          transition: 'color 0.3s ease',
+        }}
       >
         {value}
       </span>
-      <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: isDarkMode ? 'var(--text-muted)' : '#6B7280',
+          fontWeight: 500,
+          transition: 'color 0.3s ease',
+        }}
+      >
         {label}
       </span>
     </motion.div>
@@ -122,7 +101,7 @@ function MetricChip({ value, label, delay = 0 }) {
 // ─── Tech stack badge row ──────────────────────────────────────────────────
 const TECH_BADGES = [
   { name: 'React', slug: 'react', color: '61DAFB' },
-  { name: 'Next.js', slug: 'nextdotjs', color: 'white' },
+  { name: 'Next.js', slug: 'nextdotjs', colorDark: 'white', colorLight: '000000' },
   { name: 'Node.js', slug: 'nodedotjs', color: '5FA04E' },
   { name: 'MongoDB', slug: 'mongodb', color: '47A248' },
   { name: 'PostgreSQL', slug: 'postgresql', color: '4169E1' },
@@ -130,11 +109,11 @@ const TECH_BADGES = [
   { name: 'Flutter', slug: 'flutter', color: '02569B' },
   { name: 'Docker', slug: 'docker', color: '2496ED' },
   { name: 'TypeScript', slug: 'typescript', color: '3178C6' },
-  { name: 'Express', slug: 'express', color: 'white' },
+  { name: 'Express', slug: 'express', colorDark: 'white', colorLight: '000000' },
   { name: 'NestJS', slug: 'nestjs', color: 'E0234E' },
 ];
 
-function TechBadgeRow() {
+function TechBadgeRow({ isDarkMode = true }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -149,49 +128,55 @@ function TechBadgeRow() {
       }}
       aria-label="Core Technology Stack"
     >
-      {TECH_BADGES.map((badge) => (
-        <span
-          key={badge.slug}
-          title={badge.name}
-          aria-label={badge.name}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: 0.6,
-            transition: 'opacity 0.25s ease, transform 0.25s ease',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-            e.currentTarget.style.transform = 'translateY(-2px) scale(1.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0.6';
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          }}
-        >
-          <img
-            src={`https://cdn.simpleicons.org/${badge.slug}/${badge.color}`}
-            alt={badge.name}
-            width={24}
-            height={24}
-            loading="lazy"
-            decoding="async"
+      {TECH_BADGES.map((badge) => {
+        const iconColor = isDarkMode
+          ? (badge.colorDark || badge.color)
+          : (badge.colorLight || badge.color);
+
+        return (
+          <span
+            key={badge.slug}
+            title={badge.name}
+            aria-label={badge.name}
             style={{
-              width: 24,
-              height: 24,
-              display: 'block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: isDarkMode ? 0.6 : 0.75,
+              transition: 'opacity 0.25s ease, transform 0.25s ease',
+              cursor: 'pointer',
             }}
-          />
-        </span>
-      ))}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = isDarkMode ? '0.6' : '0.75';
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            }}
+          >
+            <img
+              src={`https://cdn.simpleicons.org/${badge.slug}/${iconColor}`}
+              alt={badge.name}
+              width={24}
+              height={24}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: 24,
+                height: 24,
+                display: 'block',
+              }}
+            />
+          </span>
+        );
+      })}
     </motion.div>
   );
 }
 
 // ─── CTA buttons ──────────────────────────────────────────────────────────
-function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
+function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMode = true }) {
   const handlePrimaryClick = (e) => {
     if (!primaryLink || primaryLink === '#projects' || primaryLink.startsWith('#')) {
       e.preventDefault();
@@ -277,14 +262,14 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
           fontSize: 13,
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: isDarkMode ? 'var(--text-secondary)' : '#374151',
           textDecoration: 'none',
           padding: '12px 4px',
           cursor: 'pointer',
           transition: 'color 0.2s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        onMouseEnter={e => { e.currentTarget.style.color = isDarkMode ? 'var(--text-primary)' : '#0D1117'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = isDarkMode ? 'var(--text-secondary)' : '#374151'; }}
       >
         <svg
           width="16"
@@ -304,7 +289,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf' }) {
 }
 
 // ─── Scroll indicator ─────────────────────────────────────────────────────
-function ScrollCue() {
+function ScrollCue({ isDarkMode = true }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -312,10 +297,19 @@ function ScrollCue() {
       transition={{ delay: 2, duration: 1 }}
       className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 select-none pointer-events-none"
     >
-      <span className="font-mono" style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: isDarkMode ? 'var(--text-muted)' : '#6B7280',
+          transition: 'color 0.3s ease',
+        }}
+      >
         Scroll
       </span>
-      {/* Vertical tick — no floating, just a static line that 'grows' once */}
+      {/* Vertical tick */}
       <motion.div
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
@@ -338,7 +332,8 @@ const TYPEWRITER_ROLES = [
 export const HeroSection = () => {
   const { content } = useContentStore();
   const { hero, resume } = content || {};
-  const { count: visitorCount } = useVisitorCount();
+  const themeContext = useTheme();
+  const isDarkMode = themeContext?.isDarkMode ?? true;
   const [canvasReady, setCanvasReady] = useState(false);
   const sectionRef = useRef(null);
 
@@ -348,7 +343,7 @@ export const HeroSection = () => {
 
   const name = hero?.name || 'Esubalew Molla';
   const desc = hero?.description ||
-    'Building production-grade distributed systems, MERN platforms, and real-time web architecture from API design to deployment pipeline.';
+    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
   const role = useTypewriter(TYPEWRITER_ROLES, 70, 35, 2400);
@@ -363,13 +358,19 @@ export const HeroSection = () => {
     <section
       id="home"
       ref={sectionRef}
-      style={{ position: 'relative', minHeight: '100svh', overflow: 'hidden', background: 'var(--void)' }}
+      style={{
+        position: 'relative',
+        minHeight: '100svh',
+        overflow: 'hidden',
+        background: isDarkMode ? '#080A0E' : '#F5F5F0',
+        transition: 'background-color 0.3s ease',
+      }}
     >
       {/* ── Full-bleed WebGL circuit canvas ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         {canvasReady && (
           <Suspense fallback={null}>
-            <CircuitCanvas />
+            <CircuitCanvas isDarkMode={isDarkMode} />
           </Suspense>
         )}
       </div>
@@ -378,8 +379,14 @@ export const HeroSection = () => {
       <div
         aria-hidden="true"
         style={{
-          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 120% 80% at 30% 50%, transparent 20%, rgba(8,10,14,0.7) 65%, rgba(8,10,14,0.97) 100%)',
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+          background: isDarkMode
+            ? 'radial-gradient(ellipse 120% 80% at 30% 50%, transparent 20%, rgba(8,10,14,0.7) 65%, rgba(8,10,14,0.97) 100%)'
+            : 'radial-gradient(ellipse 120% 80% at 30% 50%, transparent 25%, rgba(245,245,240,0.65) 65%, rgba(245,245,240,0.97) 100%)',
+          transition: 'background 0.3s ease',
         }}
       />
 
@@ -389,8 +396,14 @@ export const HeroSection = () => {
         animate={{ scaleY: 1 }}
         transition={{ delay: 0.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          position: 'absolute', left: 0, top: '10%', bottom: '10%',
-          width: 3, background: 'var(--orange)', zIndex: 10, transformOrigin: 'top',
+          position: 'absolute',
+          left: 0,
+          top: '10%',
+          bottom: '10%',
+          width: 3,
+          background: 'var(--orange)',
+          zIndex: 10,
+          transformOrigin: 'top',
         }}
         aria-hidden="true"
       />
@@ -413,10 +426,9 @@ export const HeroSection = () => {
             maxWidth: 780,
           }}
         >
-          {/* Status & Visitor Telemetry Row */}
+          {/* Status Availability Pill (Visitor Pill removed) */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-            <StatusPill available={hero?.available} />
-            <VisitorPill count={visitorCount} />
+            <StatusPill available={hero?.available} isDarkMode={isDarkMode} />
           </div>
 
           {/* ── Name — display-scale ── */}
@@ -425,11 +437,27 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="font-display text-display"
-            style={{ color: 'var(--text-primary)', marginTop: '1.5rem', marginBottom: 0 }}
+            style={{
+              color: isDarkMode ? '#F0F2F5' : '#0D1117',
+              marginTop: '1.5rem',
+              marginBottom: 0,
+              transition: 'color 0.3s ease',
+            }}
           >
             {name.split(' ')[0]}
             <br />
-            <span style={{ color: 'var(--text-secondary)', WebkitTextStroke: '1px rgba(240,242,245,0.25)', WebkitTextFillColor: 'transparent' }}>
+            <span
+              style={{
+                color: isDarkMode ? 'var(--text-secondary)' : '#0D1117',
+                WebkitTextStroke: isDarkMode
+                  ? '1px rgba(240,242,245,0.25)'
+                  : '1.5px rgba(13,17,23,0.35)',
+                WebkitTextFillColor: isDarkMode
+                  ? 'transparent'
+                  : 'rgba(13,17,23,0.03)',
+                transition: 'all 0.3s ease',
+              }}
+            >
               {name.split(' ').slice(1).join(' ')}
             </span>
           </motion.h1>
@@ -443,11 +471,23 @@ export const HeroSection = () => {
           >
             <span
               className="font-mono"
-              style={{ fontSize: 'clamp(1rem,1.8vw,1.3rem)', color: 'var(--orange)', letterSpacing: '-0.01em' }}
+              style={{
+                fontSize: 'clamp(1rem,1.8vw,1.3rem)',
+                color: 'var(--orange)',
+                letterSpacing: '-0.01em',
+                fontWeight: isDarkMode ? 400 : 500,
+              }}
             >
               {role}
               <span
-                style={{ display: 'inline-block', width: 2, height: '1em', background: 'var(--orange)', marginLeft: 3, verticalAlign: 'middle' }}
+                style={{
+                  display: 'inline-block',
+                  width: 2,
+                  height: '1em',
+                  background: 'var(--orange)',
+                  marginLeft: 3,
+                  verticalAlign: 'middle',
+                }}
                 className="animate-pulse"
               />
             </span>
@@ -459,14 +499,24 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-body-lg"
-            style={{ color: 'var(--text-secondary)', marginTop: '1.75rem', maxWidth: 600, lineHeight: 1.75 }}
+            style={{
+              color: isDarkMode ? 'var(--text-secondary)' : '#374151',
+              marginTop: '1.75rem',
+              maxWidth: 600,
+              lineHeight: 1.75,
+              transition: 'color 0.3s ease',
+            }}
           >
             {desc}
           </motion.p>
 
           {/* ── CTAs ── */}
           <div style={{ marginTop: '2.5rem' }}>
-            <CTARow primaryLink={hero?.cta?.primary?.link || '#projects'} resumeUrl={resumeUrl} />
+            <CTARow
+              primaryLink={hero?.cta?.primary?.link || '#projects'}
+              resumeUrl={resumeUrl}
+              isDarkMode={isDarkMode}
+            />
           </div>
 
           {/* ── Metrics strip ── */}
@@ -480,21 +530,22 @@ export const HeroSection = () => {
               gap: 40,
               flexWrap: 'wrap',
               paddingTop: '2rem',
-              borderTop: '1px solid var(--border-faint)',
+              borderTop: isDarkMode ? '1px solid var(--border-faint)' : '1px solid rgba(0,0,0,0.08)',
+              transition: 'border-color 0.3s ease',
             }}
           >
-            <MetricChip value="3+" label="Years building" delay={1.2} />
-            <MetricChip value="15+" label="Systems shipped" delay={1.3} />
-            <MetricChip value="3" label="Production stacks" delay={1.4} />
-            <MetricChip value="2FA" label="Auth architecture" delay={1.5} />
+            <MetricChip value="3+" label="Years building" delay={1.2} isDarkMode={isDarkMode} />
+            <MetricChip value="15+" label="Systems shipped" delay={1.3} isDarkMode={isDarkMode} />
+            <MetricChip value="3" label="Production stacks" delay={1.4} isDarkMode={isDarkMode} />
+            <MetricChip value="2FA" label="Auth architecture" delay={1.5} isDarkMode={isDarkMode} />
           </motion.div>
 
           {/* ── Official Tech Stack Badges ── */}
-          <TechBadgeRow />
+          <TechBadgeRow isDarkMode={isDarkMode} />
         </div>
       </motion.div>
 
-      <ScrollCue />
+      <ScrollCue isDarkMode={isDarkMode} />
     </section>
   );
 };

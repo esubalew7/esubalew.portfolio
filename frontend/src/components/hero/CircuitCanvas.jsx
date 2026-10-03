@@ -5,8 +5,9 @@
  * What it renders:
  *   1. A sparse grid of circuit-board-like line segments (LineSegments, GLSL shader)
  *   2. Signal pulses that travel along those lines (animated via shader uniform)
- *   3. Node dot at each intersection (Points geometry, additive blending)
- *   4. Scroll-velocity reactive intensity — faster scroll = brighter pulse bursts
+ *   3. Node dot at each intersection (Points geometry)
+ *   4. Dynamic Dark / Light mode adaptation with reactive uniform colors and blending
+ *   5. Scroll-velocity reactive intensity — faster scroll = brighter pulse bursts
  *
  * Performance:
  *   - Single draw call for lines (LineSegments), single for nodes (Points)
@@ -25,14 +26,14 @@ const ROWS        = 14;
 const JITTER      = 0.35;   // how much nodes deviate from perfect grid
 const DENSITY     = 0.48;   // fraction of possible edges that get drawn
 const ACCENT      = new THREE.Color(0xFF4D00);
-const DIM         = new THREE.Color(0x1A2030);
-const BG          = 0x080A0E;
+const DIM_DARK    = new THREE.Color(0x1A2030);
+const DIM_LIGHT   = new THREE.Color(0xCBD5E1);
+const BG_DARK     = 0x080A0E;
+const BG_LIGHT    = 0xF5F5F0;
 
 // ─── Shaders ───────────────────────────────────────────────────────────────
 const LINE_VERT = /* glsl */`
   attribute float aPulse;     // per-vertex pulse phase (0–1 along edge)
-  attribute vec3  aColor0;    // dim color
-  attribute vec3  aColor1;    // accent color
   varying   float vBrightness;
 
   uniform float uTime;
@@ -52,12 +53,18 @@ const LINE_VERT = /* glsl */`
 
 const LINE_FRAG = /* glsl */`
   varying float vBrightness;
-  uniform vec3 uAccent;
-  uniform vec3 uDim;
+  uniform vec3  uAccent;
+  uniform vec3  uDim;
+  uniform float uIsDark;
 
   void main() {
-    vec3 col   = mix(uDim, uAccent, vBrightness);
-    gl_FragColor = vec4(col, vBrightness * 0.85 + 0.06);
+    vec3 col = mix(uDim, uAccent, vBrightness);
+    // In dark mode: lower alpha + additive blending
+    // In light mode: crisp subtle trace with high-visibility accent pulse
+    float alpha = uIsDark > 0.5
+      ? (vBrightness * 0.85 + 0.06)
+      : clamp(vBrightness * 1.1 + 0.32, 0.0, 1.0);
+    gl_FragColor = vec4(col, alpha);
   }
 `;
 
@@ -78,18 +85,22 @@ const NODE_VERT = /* glsl */`
 const NODE_FRAG = /* glsl */`
   varying float vAlpha;
   uniform vec3  uAccent;
+  uniform float uIsDark;
 
   void main() {
     vec2  uv  = gl_PointCoord - 0.5;
     float d   = length(uv);
     if (d > 0.5) discard;
     float a   = (1.0 - smoothstep(0.2, 0.5, d)) * vAlpha;
+    if (uIsDark < 0.5) {
+      a = clamp(a * 1.35, 0.0, 1.0);
+    }
     gl_FragColor = vec4(uAccent, a);
   }
 `;
 
 // ─── Build scene geometry ──────────────────────────────────────────────────
-function buildScene(scene, w, h) {
+function buildScene(scene, w, h, isDark = true) {
   const aspect  = w / h;
   const scaleX  = aspect * 10;
   const scaleY  = 10;
@@ -139,12 +150,13 @@ function buildScene(scene, w, h) {
       uTime:      { value: 0 },
       uIntensity: { value: 0 },
       uAccent:    { value: new THREE.Color(ACCENT) },
-      uDim:       { value: new THREE.Color(DIM) },
+      uDim:       { value: new THREE.Color(isDark ? DIM_DARK : DIM_LIGHT) },
+      uIsDark:    { value: isDark ? 1.0 : 0.0 },
     },
     vertexShader:   LINE_VERT,
     fragmentShader: LINE_FRAG,
     transparent:    true,
-    blending:       THREE.AdditiveBlending,
+    blending:       isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     depthWrite:     false,
   });
 
@@ -153,7 +165,7 @@ function buildScene(scene, w, h) {
   // Node dots
   const nodePos   = [];
   const nodePhase = [];
-  nodes.forEach((n, i) => {
+  nodes.forEach((n) => {
     nodePos.push(n.x, n.y, 0);
     nodePhase.push(Math.random() * Math.PI * 2);
   });
@@ -167,11 +179,12 @@ function buildScene(scene, w, h) {
       uTime:      { value: 0 },
       uIntensity: { value: 0 },
       uAccent:    { value: new THREE.Color(ACCENT) },
+      uIsDark:    { value: isDark ? 1.0 : 0.0 },
     },
     vertexShader:   NODE_VERT,
     fragmentShader: NODE_FRAG,
     transparent:    true,
-    blending:       THREE.AdditiveBlending,
+    blending:       isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     depthWrite:     false,
   });
 
@@ -181,10 +194,13 @@ function buildScene(scene, w, h) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────
-export default function CircuitCanvas() {
+export default function CircuitCanvas({ isDarkMode = true }) {
   const mountRef    = useRef(null);
   const rafRef      = useRef(null);
   const stateRef    = useRef({});
+  const isDarkRef   = useRef(isDarkMode);
+  isDarkRef.current = isDarkMode;
+
   const scrollRef   = useRef({ lastY: 0, velocity: 0, intensity: 0 });
   const reducedMotion = typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -202,7 +218,7 @@ export default function CircuitCanvas() {
     const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     renderer.setPixelRatio(DPR);
     renderer.setSize(W, H);
-    renderer.setClearColor(BG, 1);
+    renderer.setClearColor(isDarkRef.current ? BG_DARK : BG_LIGHT, 1);
     el.appendChild(renderer.domElement);
 
     // ── Scene & Camera ──
@@ -214,7 +230,7 @@ export default function CircuitCanvas() {
     camera.position.z = 5;
 
     // ── Geometry ──
-    const { lineMat, nodeMat } = buildScene(scene, W, H);
+    const { lineMat, nodeMat } = buildScene(scene, W, H, isDarkRef.current);
     stateRef.current = { renderer, scene, camera, lineMat, nodeMat, clock: new THREE.Clock() };
 
     // ── Scroll intensity ──
@@ -272,7 +288,26 @@ export default function CircuitCanvas() {
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
-  }, []);
+  }, [reducedMotion]);
+
+  // ── Dynamic Theme Switching ──
+  useEffect(() => {
+    const { renderer, lineMat, nodeMat } = stateRef.current;
+    if (renderer) {
+      renderer.setClearColor(isDarkMode ? BG_DARK : BG_LIGHT, 1);
+    }
+    if (lineMat) {
+      lineMat.uniforms.uDim.value.copy(isDarkMode ? DIM_DARK : DIM_LIGHT);
+      lineMat.uniforms.uIsDark.value = isDarkMode ? 1.0 : 0.0;
+      lineMat.blending = isDarkMode ? THREE.AdditiveBlending : THREE.NormalBlending;
+      lineMat.needsUpdate = true;
+    }
+    if (nodeMat) {
+      nodeMat.uniforms.uIsDark.value = isDarkMode ? 1.0 : 0.0;
+      nodeMat.blending = isDarkMode ? THREE.AdditiveBlending : THREE.NormalBlending;
+      nodeMat.needsUpdate = true;
+    }
+  }, [isDarkMode]);
 
   return (
     <div

@@ -3,6 +3,7 @@ export const EASINGS = {
   easeInOutCubic: [0.65, 0, 0.35, 1],
   easeOutExpo: [0.16, 1, 0.3, 1],
   easeOutQuart: [0.25, 1, 0.5, 1],
+  editorial: [0.16, 1, 0.3, 1],
 };
 
 export const SPRINGS = {

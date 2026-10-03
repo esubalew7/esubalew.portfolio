@@ -395,3 +395,112 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .station-pulse-dot { animation: none; }
 }
+
+/* ── Contact Section — Signal Transmission ──────── */
+:root {
+  --success: #10b981;
+}
+
+.light {
+  --success: #059669;
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.bg-success {
+  background-color: var(--success);
+}
+
+.border-success {
+  border-color: var(--success);
+}
+
+/* Custom placeholder color using CSS vars */
+.dispatch-input::placeholder {
+  color: var(--content-muted);
+  opacity: 0.6;
+}
+
+.dispatch-input:focus {
+  outline: none;
+}
+
+/* Transmitting text scan animation */
+@keyframes transmitScan {
+  0%   { content: "Transmitting."; }
+  33%  { content: "Transmitting.."; }
+  66%  { content: "Transmitting..."; }
+  100% { content: "Transmitting."; }
+}
+
+/* Noise overlay for contact section */
+.contact-noise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dispatch-input { transition: none; }
+}
+
+/* ── Contact Section — The Briefing Room ───────── */
+:root {
+  --accent-subtle: rgba(255, 77, 0, 0.15);
+}
+.light {
+  --accent-subtle: rgba(255, 77, 0, 0.1);
+}
+
+/* Large input placeholder */
+.brief-input::placeholder {
+  color: var(--content-muted);
+  opacity: 0.35;
+  font-weight: 400;
+}
+.brief-input:focus { outline: none; }
+
+/* Description/message textarea placeholder */
+.brief-textarea::placeholder {
+  color: var(--content-muted);
+  opacity: 0.5;
+}
+.brief-textarea:focus { outline: none; }
+
+/* Checkmark draw-on animation for success state */
+@keyframes drawCheck {
+  from {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+.check-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1)
+             0.2s forwards;
+}
+
+/* Tile selection glow */
+.briefing-tile-selected {
+  box-shadow: 0 0 0 1px var(--accent),
+              0 0 20px var(--accent-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+
