@@ -166,11 +166,9 @@ svg {
 .w-1\.5 { width: 6px !important; }
 .h-1\.5 { height: 6px !important; }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+/* Native scrollbar hidden — replaced by CarScrollbar component */
+::-webkit-scrollbar { width: 0px; }
+* { scrollbar-width: none; }   /* Firefox */
 
 /* ─── Selection ─── */
 ::selection { background: var(--orange-dim); color: var(--orange); }
@@ -502,5 +500,32 @@ body::before {
     opacity: 1;
   }
 }
+
+/* ── Car Scrollbar — exhaust puff animation ──────── */
+@keyframes exhaustPuff {
+  0%   { opacity: 0.7; transform: scale(0.4) translateY(0px);    }
+  60%  { opacity: 0.3; transform: scale(0.9) translateY(-8px);   }
+  100% { opacity: 0.0; transform: scale(1.3) translateY(-16px);  }
+}
+
+.exhaust-puff {
+  animation: exhaustPuff 0.45s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exhaust-puff {
+    animation: none;
+    display: none;
+  }
+  /* Restore native scrollbar for reduced-motion users */
+  ::-webkit-scrollbar { width: 6px; }
+  * { scrollbar-width: thin; }
+}
+
+/* Hide car scrollbar on touch / mobile devices */
+@media (pointer: coarse) {
+  ::-webkit-scrollbar { width: 0px; }
+}
+
 
 

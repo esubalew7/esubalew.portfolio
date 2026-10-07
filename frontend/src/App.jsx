@@ -8,6 +8,7 @@ import { ContentProvider } from './context/ContentContext';
 import { MainLayout } from './layouts/MainLayout';
 import { Home } from './pages/Home';
 import { ScrollToTop } from './components/ScrollToTop';
+import { CarScrollbar } from './components/CarScrollbar';
 import { SEOHead } from './components/SEOHead';
 import { Cursor } from './components/cursor/Cursor';
 import { Preloader } from './components/preloader/Preloader';
@@ -41,6 +42,7 @@ const App = () => {
                         <Route path="/" element={<Home />} />
                       </Route>
                     </Routes>
+                    <CarScrollbar />
                     <ScrollToTop />
                     <PWAInstallPrompt />
                   </BrowserRouter>
