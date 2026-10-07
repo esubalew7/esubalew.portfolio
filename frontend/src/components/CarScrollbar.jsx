@@ -190,22 +190,41 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
 
 /**
  * CarScrollbar Component
- * Interactive top-down vehicle scrollbar fixed to the right screen edge.
+ * High-performance top-down vehicle scrollbar fixed to the right screen edge.
+ * Uses a RAF lerp loop with direct DOM updates to eliminate jitter and dropped frames.
  */
 export const CarScrollbar = () => {
   const { isDarkMode } = useTheme();
 
-  const [scrollProgress, setScrollProgress] = useState(0);
+  // State (only triggers re-renders on meaningful UI updates)
   const [isScrolling, setIsScrolling]       = useState(false);
-  const [scrollDir, setScrollDir]           = useState(0); // 1 = down, -1 = up, 0 = idle
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [_isDragging, _setIsDragging]       = useState(false);
   const [trackHeight, setTrackHeight]       = useState(0);
-  const [isDragging, setIsDragging]         = useState(false);
   const [isTouch, setIsTouch]               = useState(false);
 
-  const scrollTimeoutRef = useRef(null);
-  const lastScrollY      = useRef(0);
-  const dragStartY       = useRef(0);
-  const dragStartProg    = useRef(0);
+  // Synchronized ref for drag state to prevent race conditions during pointer events
+  const isDraggingRef = useRef(false);
+  const isDragging = _isDragging;
+  const setIsDragging = (val) => {
+    isDraggingRef.current = val;
+    _setIsDragging(val);
+  };
+
+  // High-frequency animation and tracking refs (zero re-render overhead)
+  const targetProgressRef   = useRef(0);
+  const renderedProgressRef = useRef(0);
+  const trackHeightRef      = useRef(0);
+  const scrollDirRef        = useRef(0);
+  const lastScrollY         = useRef(0);
+  const dragStartY          = useRef(0);
+  const dragStartProg       = useRef(0);
+  const scrollTimeoutRef    = useRef(null);
+  const rafRef              = useRef(null);
+  const carRef              = useRef(null);
+  const glowRef             = useRef(null);
+  const exhaustRef          = useRef(null);
+  const lastLabelUpdate     = useRef(0);
 
   // Hide on touch/mobile devices
   useEffect(() => {
@@ -224,40 +243,55 @@ export const CarScrollbar = () => {
     return Math.max(0, Math.min(1, window.scrollY / scrollable));
   }, []);
 
-  // Listen to scroll events
+  // Scroll listener (updates targetProgressRef directly; throttles % state to 100ms)
   useEffect(() => {
+    if (isTouch) return;
+
     const onScroll = () => {
       const prog = computeProgress();
       const dir  = window.scrollY >= lastScrollY.current ? 1 : -1;
       lastScrollY.current = window.scrollY;
 
-      setScrollProgress(prog);
-      setScrollDir(dir);
+      targetProgressRef.current = prog;
+      scrollDirRef.current = dir;
       setIsScrolling(true);
+
+      const now = Date.now();
+      if (now - lastLabelUpdate.current > 100) {
+        setScrollProgress(prog);
+        lastLabelUpdate.current = now;
+      }
 
       clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         setIsScrolling(false);
-        setScrollDir(0);
+        scrollDirRef.current = 0;
+        setScrollProgress(computeProgress());
       }, 150);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    setScrollProgress(computeProgress());
+    const initialProg = computeProgress();
+    targetProgressRef.current   = initialProg;
+    renderedProgressRef.current = initialProg;
+    setScrollProgress(initialProg);
 
     return () => {
       window.removeEventListener('scroll', onScroll);
       clearTimeout(scrollTimeoutRef.current);
     };
-  }, [computeProgress]);
+  }, [computeProgress, isTouch]);
 
-  // Measure track height on mount and resize
+  // Track height measurement
   useEffect(() => {
     const measure = () => {
       if (typeof window !== 'undefined') {
-        setTrackHeight(
-          Math.max(100, window.innerHeight - TRACK_PADDING_TOP - TRACK_PADDING_BTM)
+        const height = Math.max(
+          100,
+          window.innerHeight - TRACK_PADDING_TOP - TRACK_PADDING_BTM
         );
+        trackHeightRef.current = height;
+        setTrackHeight(height);
       }
     };
     measure();
@@ -265,63 +299,104 @@ export const CarScrollbar = () => {
     return () => window.removeEventListener('resize', measure);
   }, []);
 
-  // Click on track to jump scroll
+  // RAF Lerp Animation Loop (runs continuously, GPU-composited direct DOM updates)
+  useEffect(() => {
+    if (isTouch) return;
+
+    const animate = () => {
+      const target  = targetProgressRef.current;
+      const current = renderedProgressRef.current;
+      const delta   = target - current;
+
+      if (Math.abs(delta) < 0.0001) {
+        renderedProgressRef.current = target;
+      } else {
+        renderedProgressRef.current = current + delta * 0.18;
+      }
+
+      if (carRef.current && trackHeightRef.current > 0) {
+        const carY =
+          TRACK_PADDING_TOP +
+          renderedProgressRef.current * trackHeightRef.current -
+          CAR_HEIGHT / 2;
+        const clampedY = Math.max(
+          TRACK_PADDING_TOP,
+          Math.min(
+            TRACK_PADDING_TOP + trackHeightRef.current - CAR_HEIGHT,
+            carY
+          )
+        );
+
+        carRef.current.style.top = `${clampedY}px`;
+
+        if (glowRef.current) {
+          const glowDir = scrollDirRef.current;
+          glowRef.current.style.top =
+            glowDir === -1
+              ? `${clampedY - 36}px`
+              : `${clampedY + CAR_HEIGHT}px`;
+        }
+
+        if (exhaustRef.current) {
+          const glowDir = scrollDirRef.current;
+          exhaustRef.current.style.top =
+            glowDir === 1
+              ? `${clampedY - 14}px`
+              : `${clampedY + CAR_HEIGHT + 2}px`;
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [isTouch]);
+
+  // Track click handler
   const handleTrackClick = (e) => {
+    if (trackHeightRef.current <= 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY     = e.clientY - rect.top - TRACK_PADDING_TOP;
-    const targetProg = Math.max(0, Math.min(1, clickY / trackHeight));
+    const targetProg = Math.max(0, Math.min(1, clickY / trackHeightRef.current));
     const scrollable =
       document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo({ top: targetProg * scrollable, behavior: 'smooth' });
   };
 
-  // Drag car thumb
-  const handleCarMouseDown = (e) => {
+  // Pointer drag handlers with OS-level Pointer Capture
+  const handleCarPointerDown = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    dragStartY.current = e.clientY;
-    dragStartProg.current = scrollProgress;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragStartY.current    = e.clientY;
+    dragStartProg.current = targetProgressRef.current;
     setIsDragging(true);
   };
 
-  useEffect(() => {
-    if (!isDragging) return;
+  const handleCarPointerMove = (e) => {
+    if (!isDraggingRef.current || trackHeightRef.current <= 0) return;
+    e.preventDefault();
+    const deltaY    = e.clientY - dragStartY.current;
+    const deltaProg = deltaY / trackHeightRef.current;
+    const targetProg = Math.max(
+      0,
+      Math.min(1, dragStartProg.current + deltaProg)
+    );
+    targetProgressRef.current = targetProg;
+    const scrollable =
+      document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: targetProg * scrollable, behavior: 'auto' });
+  };
 
-    const onMouseMove = (e) => {
-      if (!trackHeight) return;
-      const deltaY = e.clientY - dragStartY.current;
-      const deltaProg = deltaY / trackHeight;
-      const targetProg = Math.max(
-        0,
-        Math.min(1, dragStartProg.current + deltaProg)
-      );
-      const scrollable =
-        document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo({ top: targetProg * scrollable, behavior: 'auto' });
-    };
-
-    const onMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, [isDragging, trackHeight]);
+  const handleCarPointerUp = (e) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+    setIsDragging(false);
+  };
 
   if (isTouch) return null;
-
-  // Car position along the vertical track
-  const carY =
-    TRACK_PADDING_TOP + scrollProgress * trackHeight - CAR_HEIGHT / 2;
-  const clampedCarY = Math.max(
-    TRACK_PADDING_TOP,
-    Math.min(TRACK_PADDING_TOP + trackHeight - CAR_HEIGHT, carY)
-  );
 
   // Road Lane Center Dashes Style
   const laneDashStyle = {
@@ -380,11 +455,8 @@ export const CarScrollbar = () => {
     transform: 'translateX(-50%)',
     width: 20,
     height: 36,
-    top: scrollDir === -1 ? clampedCarY - 36 : clampedCarY + CAR_HEIGHT,
     background:
-      scrollDir === -1
-        ? 'radial-gradient(ellipse at bottom, rgba(254,240,138,0.15) 0%, transparent 100%)'
-        : 'radial-gradient(ellipse at top, rgba(254,240,138,0.15) 0%, transparent 100%)',
+      'radial-gradient(ellipse at top, rgba(254,240,138,0.15) 0%, transparent 100%)',
     pointerEvents: 'none',
   };
 
@@ -442,70 +514,71 @@ export const CarScrollbar = () => {
       <div style={bottomCapStyle} aria-hidden="true" />
 
       {/* Headlight glow cone (dark mode only) */}
-      {isDarkMode && <div style={headlightGlowStyle} aria-hidden="true" />}
+      {isDarkMode && (
+        <div
+          ref={glowRef}
+          style={headlightGlowStyle}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Exhaust puffs container */}
       <div
+        ref={exhaustRef}
         aria-hidden="true"
         style={{
           position: 'absolute',
           left: '50%',
           transform: 'translateX(-50%)',
-          top:
-            scrollDir === 1
-              ? clampedCarY - 14
-              : clampedCarY + CAR_HEIGHT + 2,
           width: CAR_WIDTH,
           height: 20,
           pointerEvents: 'none',
         }}
       >
-        {isScrolling &&
-          [0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="exhaust-puff"
-              style={{
-                position: 'absolute',
-                left: 4 + i * 6,
-                top: 0,
-                width: 5 + i * 1.5,
-                height: 5 + i * 1.5,
-                borderRadius: '50%',
-                background: isDarkMode
-                  ? 'rgba(148, 163, 184, 0.5)'
-                  : 'rgba(100, 116, 139, 0.3)',
-                animationDelay: `${i * 0.08}s`,
-              }}
-            />
-          ))}
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className={isScrolling ? 'exhaust-puff' : 'exhaust-puff-hidden'}
+            style={{
+              position: 'absolute',
+              left: 4 + i * 6,
+              top: 0,
+              width: 5 + i * 1.5,
+              height: 5 + i * 1.5,
+              borderRadius: '50%',
+              background: isDarkMode
+                ? 'rgba(148, 163, 184, 0.5)'
+                : 'rgba(100, 116, 139, 0.3)',
+              animationDelay: `${i * 0.08}s`,
+            }}
+          />
+        ))}
       </div>
 
-      {/* The CAR — positioned along track */}
+      {/* The CAR — positioned along track via direct RAF DOM updates */}
       <div
+        ref={carRef}
         style={{
           position: 'absolute',
           left: '50%',
-          top: clampedCarY,
-          transform: `translateX(-50%) ${
-            scrollDir === -1 ? 'scaleY(-1)' : 'scaleY(1)'
-          }`,
-          transition: isDragging
-            ? 'none'
-            : 'top 0.08s linear, transform 0.2s ease',
+          transform: 'translateX(-50%)',
           cursor: isDragging ? 'grabbing' : 'grab',
           width: CAR_WIDTH,
           height: CAR_HEIGHT,
           userSelect: 'none',
+          touchAction: 'none',
         }}
-        onMouseDown={handleCarMouseDown}
+        onPointerDown={handleCarPointerDown}
+        onPointerMove={handleCarPointerMove}
+        onPointerUp={handleCarPointerUp}
+        onPointerCancel={handleCarPointerUp}
         onClick={(e) => e.stopPropagation()}
         aria-hidden="true"
       >
         <CarSVG
           isDarkMode={isDarkMode}
           isScrolling={isScrolling}
-          scrollDir={scrollDir}
+          scrollDir={scrollDirRef.current}
         />
       </div>
 
