@@ -1,25 +1,33 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-const TRACK_WIDTH       = 28;    // px — width of the right edge track
-const CAR_WIDTH         = 22;    // px — SVG car width
-const CAR_HEIGHT        = 38;    // px — SVG car height (top-down view)
-const TRACK_PADDING_TOP = 80;    // px — space at top (below fixed navbar)
-const TRACK_PADDING_BTM = 40;    // px — space at bottom
+// Compact dimensions — sleek, lightweight, matches native scrollbar proportions
+const TRACK_WIDTH       = 12;    // px — slim track width (native scrollbar standard)
+const CAR_WIDTH         = 10;    // px — miniature SVG car width
+const CAR_HEIGHT        = 18;    // px — miniature SVG car height
+const TRACK_PADDING_TOP = 4;     // px — starts at the very top (0 dead-zone)
+const TRACK_PADDING_BTM = 4;     // px — reaches the very bottom (0 dead-zone)
 
 /**
- * Top-down view SVG of the car driving along the road track
+ * Helper to compute available travel distance for the car thumb
+ */
+const getAvailableTravel = (height) => {
+  return Math.max(1, height - TRACK_PADDING_TOP - TRACK_PADDING_BTM - CAR_HEIGHT);
+};
+
+/**
+ * Top-down miniature vector SVG of the car driving along the road track
  */
 function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
   const accentColor = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
   const bodyFill = isDarkMode ? '#1e293b' : '#334155';
   const bodyStroke = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
   const windowFill = isDarkMode
-    ? 'rgba(147, 197, 253, 0.25)'
-    : 'rgba(186, 230, 253, 0.4)';
+    ? 'rgba(147, 197, 253, 0.3)'
+    : 'rgba(186, 230, 253, 0.45)';
   const rearWindowFill = isDarkMode
-    ? 'rgba(147, 197, 253, 0.15)'
-    : 'rgba(186, 230, 253, 0.3)';
+    ? 'rgba(147, 197, 253, 0.2)'
+    : 'rgba(186, 230, 253, 0.35)';
 
   return (
     <svg
@@ -30,7 +38,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
     >
       <defs>
         <filter id="headlightConeGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feGaussianBlur stdDeviation="1" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -38,7 +46,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         </filter>
       </defs>
 
-      {/* 4 Wheels (corners): width 3, height 5, rx 1 */}
+      {/* 4 Wheels (corners) */}
       <rect
         x="0"
         y="5"
@@ -46,7 +54,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         height="5"
         rx="1"
         fill={isDarkMode ? '#0f172a' : '#1e293b'}
-        stroke={isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}
+        stroke={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}
         strokeWidth="0.5"
       />
       <rect
@@ -56,7 +64,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         height="5"
         rx="1"
         fill={isDarkMode ? '#0f172a' : '#1e293b'}
-        stroke={isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}
+        stroke={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}
         strokeWidth="0.5"
       />
       <rect
@@ -66,7 +74,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         height="5"
         rx="1"
         fill={isDarkMode ? '#0f172a' : '#1e293b'}
-        stroke={isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}
+        stroke={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}
         strokeWidth="0.5"
       />
       <rect
@@ -76,7 +84,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         height="5"
         rx="1"
         fill={isDarkMode ? '#0f172a' : '#1e293b'}
-        stroke={isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}
+        stroke={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}
         strokeWidth="0.5"
       />
 
@@ -129,7 +137,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         y1="6"
         x2="11"
         y2="31"
-        stroke={isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'}
+        stroke={isDarkMode ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)'}
         strokeWidth="0.5"
         strokeDasharray="2 2"
       />
@@ -143,7 +151,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
           y2="30"
           stroke={accentColor}
           strokeWidth="0.6"
-          opacity="0.5"
+          opacity="0.6"
         />
       )}
 
@@ -154,7 +162,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         rx="1.5"
         ry="1"
         fill="#ef4444"
-        opacity={isDarkMode ? 0.9 : 0.7}
+        opacity={isDarkMode ? 0.95 : 0.75}
         filter={isDarkMode ? 'drop-shadow(0 0 2px #dc2626)' : 'none'}
       />
       <ellipse
@@ -163,7 +171,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         rx="1.5"
         ry="1"
         fill="#ef4444"
-        opacity={isDarkMode ? 0.9 : 0.7}
+        opacity={isDarkMode ? 0.95 : 0.75}
         filter={isDarkMode ? 'drop-shadow(0 0 2px #dc2626)' : 'none'}
       />
 
@@ -174,7 +182,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         rx="1.5"
         ry="1"
         fill={isDarkMode ? '#fef08a' : '#e2e8f0'}
-        filter={isDarkMode ? 'drop-shadow(0 0 3px #fde047)' : 'none'}
+        filter={isDarkMode ? 'drop-shadow(0 0 2px #fde047)' : 'none'}
       />
       <ellipse
         cx="17.5"
@@ -182,7 +190,7 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
         rx="1.5"
         ry="1"
         fill={isDarkMode ? '#fef08a' : '#e2e8f0'}
-        filter={isDarkMode ? 'drop-shadow(0 0 3px #fde047)' : 'none'}
+        filter={isDarkMode ? 'drop-shadow(0 0 2px #fde047)' : 'none'}
       />
     </svg>
   );
@@ -190,8 +198,11 @@ function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
 
 /**
  * CarScrollbar Component
- * High-performance top-down vehicle scrollbar fixed to the right screen edge.
- * Uses a RAF lerp loop with direct DOM updates to eliminate jitter and dropped frames.
+ * Compact, high-precision miniature car scrollbar that behaves exactly like the native scrollbar:
+ * - 0 dead zones at top and bottom of the page
+ * - Proportional 1:1 mouse tracking when dragging
+ * - Instant jump-to-scroll on track click
+ * - Slim 12px profile matching native browser scrollbars
  */
 export const CarScrollbar = () => {
   const { isDarkMode } = useTheme();
@@ -202,6 +213,7 @@ export const CarScrollbar = () => {
   const [_isDragging, _setIsDragging]       = useState(false);
   const [trackHeight, setTrackHeight]       = useState(0);
   const [isTouch, setIsTouch]               = useState(false);
+  const [isHovered, setIsHovered]           = useState(false);
 
   // Synchronized ref for drag state to prevent race conditions during pointer events
   const isDraggingRef = useRef(false);
@@ -224,9 +236,10 @@ export const CarScrollbar = () => {
   const carRef              = useRef(null);
   const glowRef             = useRef(null);
   const exhaustRef          = useRef(null);
+  const badgeRef            = useRef(null);
   const lastLabelUpdate     = useRef(0);
 
-  // Hide on touch/mobile devices
+  // Hide on touch/mobile devices to preserve native momentum touch scrolling
   useEffect(() => {
     setIsTouch(
       typeof window !== 'undefined' &&
@@ -234,7 +247,7 @@ export const CarScrollbar = () => {
     );
   }, []);
 
-  // Compute scroll progress
+  // Compute scroll progress strictly between 0 and 1
   const computeProgress = useCallback(() => {
     if (typeof window === 'undefined') return 0;
     const scrollable =
@@ -243,7 +256,7 @@ export const CarScrollbar = () => {
     return Math.max(0, Math.min(1, window.scrollY / scrollable));
   }, []);
 
-  // Scroll listener (updates targetProgressRef directly; throttles % state to 100ms)
+  // Scroll listener (updates targetProgressRef directly; throttles % label state to 100ms)
   useEffect(() => {
     if (isTouch) return;
 
@@ -282,14 +295,11 @@ export const CarScrollbar = () => {
     };
   }, [computeProgress, isTouch]);
 
-  // Track height measurement
+  // Track height measurement (spans full viewport window.innerHeight)
   useEffect(() => {
     const measure = () => {
       if (typeof window !== 'undefined') {
-        const height = Math.max(
-          100,
-          window.innerHeight - TRACK_PADDING_TOP - TRACK_PADDING_BTM
-        );
+        const height = window.innerHeight;
         trackHeightRef.current = height;
         setTrackHeight(height);
       }
@@ -299,50 +309,53 @@ export const CarScrollbar = () => {
     return () => window.removeEventListener('resize', measure);
   }, []);
 
-  // RAF Lerp Animation Loop (runs continuously, GPU-composited direct DOM updates)
+  // RAF Lerp Animation Loop (runs smoothly at 60/120fps with direct DOM positioning)
   useEffect(() => {
     if (isTouch) return;
 
     const animate = () => {
-      const target  = targetProgressRef.current;
-      const current = renderedProgressRef.current;
-      const delta   = target - current;
+      // When dragging, pointer move updates DOM directly for instantaneous 0-lag cursor lock
+      if (!isDraggingRef.current) {
+        const target  = targetProgressRef.current;
+        const current = renderedProgressRef.current;
+        const delta   = target - current;
 
-      if (Math.abs(delta) < 0.0001) {
-        renderedProgressRef.current = target;
-      } else {
-        renderedProgressRef.current = current + delta * 0.18;
-      }
-
-      if (carRef.current && trackHeightRef.current > 0) {
-        const carY =
-          TRACK_PADDING_TOP +
-          renderedProgressRef.current * trackHeightRef.current -
-          CAR_HEIGHT / 2;
-        const clampedY = Math.max(
-          TRACK_PADDING_TOP,
-          Math.min(
-            TRACK_PADDING_TOP + trackHeightRef.current - CAR_HEIGHT,
-            carY
-          )
-        );
-
-        carRef.current.style.top = `${clampedY}px`;
-
-        if (glowRef.current) {
-          const glowDir = scrollDirRef.current;
-          glowRef.current.style.top =
-            glowDir === -1
-              ? `${clampedY - 36}px`
-              : `${clampedY + CAR_HEIGHT}px`;
+        if (Math.abs(delta) < 0.0001) {
+          renderedProgressRef.current = target;
+        } else {
+          // Snappy 0.25 lerp factor for instant responsive response without jitter
+          renderedProgressRef.current = current + delta * 0.25;
         }
 
-        if (exhaustRef.current) {
-          const glowDir = scrollDirRef.current;
-          exhaustRef.current.style.top =
-            glowDir === 1
-              ? `${clampedY - 14}px`
-              : `${clampedY + CAR_HEIGHT + 2}px`;
+        const travel = getAvailableTravel(trackHeightRef.current);
+        if (carRef.current && travel > 0) {
+          const carY = TRACK_PADDING_TOP + renderedProgressRef.current * travel;
+          const clampedY = Math.max(
+            TRACK_PADDING_TOP,
+            Math.min(TRACK_PADDING_TOP + travel, carY)
+          );
+
+          carRef.current.style.top = `${clampedY}px`;
+
+          if (glowRef.current) {
+            const glowDir = scrollDirRef.current;
+            glowRef.current.style.top =
+              glowDir === -1
+                ? `${clampedY - 14}px`
+                : `${clampedY + CAR_HEIGHT}px`;
+          }
+
+          if (exhaustRef.current) {
+            const glowDir = scrollDirRef.current;
+            exhaustRef.current.style.top =
+              glowDir === 1
+                ? `${clampedY - 8}px`
+                : `${clampedY + CAR_HEIGHT + 2}px`;
+          }
+
+          if (badgeRef.current) {
+            badgeRef.current.style.top = `${clampedY}px`;
+          }
         }
       }
 
@@ -353,18 +366,23 @@ export const CarScrollbar = () => {
     return () => cancelAnimationFrame(rafRef.current);
   }, [isTouch]);
 
-  // Track click handler
+  // Click on track to jump directly to target position (like native scrollbar)
   const handleTrackClick = (e) => {
     if (trackHeightRef.current <= 0) return;
+    const travel = getAvailableTravel(trackHeightRef.current);
+    if (travel <= 0) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
-    const clickY     = e.clientY - rect.top - TRACK_PADDING_TOP;
-    const targetProg = Math.max(0, Math.min(1, clickY / trackHeightRef.current));
+    const clickY = e.clientY - rect.top - TRACK_PADDING_TOP - CAR_HEIGHT / 2;
+    const targetProg = Math.max(0, Math.min(1, clickY / travel));
+
+    targetProgressRef.current = targetProg;
     const scrollable =
       document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo({ top: targetProg * scrollable, behavior: 'smooth' });
   };
 
-  // Pointer drag handlers with OS-level Pointer Capture
+  // Drag thumb with Pointer Capture API (locks directly 1:1 to mouse pointer)
   const handleCarPointerDown = (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -377,13 +395,34 @@ export const CarScrollbar = () => {
   const handleCarPointerMove = (e) => {
     if (!isDraggingRef.current || trackHeightRef.current <= 0) return;
     e.preventDefault();
+    const travel = getAvailableTravel(trackHeightRef.current);
+    if (travel <= 0) return;
+
     const deltaY    = e.clientY - dragStartY.current;
-    const deltaProg = deltaY / trackHeightRef.current;
+    const deltaProg = deltaY / travel;
     const targetProg = Math.max(
       0,
       Math.min(1, dragStartProg.current + deltaProg)
     );
-    targetProgressRef.current = targetProg;
+
+    targetProgressRef.current   = targetProg;
+    renderedProgressRef.current = targetProg; // zero lag during direct drag
+
+    // Direct synchronous DOM update for true 0ms cursor alignment
+    if (carRef.current) {
+      const clampedY = TRACK_PADDING_TOP + targetProg * travel;
+      carRef.current.style.top = `${clampedY}px`;
+      if (glowRef.current) {
+        glowRef.current.style.top = `${clampedY + CAR_HEIGHT}px`;
+      }
+      if (exhaustRef.current) {
+        exhaustRef.current.style.top = `${clampedY - 8}px`;
+      }
+      if (badgeRef.current) {
+        badgeRef.current.style.top = `${clampedY}px`;
+      }
+    }
+
     const scrollable =
       document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo({ top: targetProg * scrollable, behavior: 'auto' });
@@ -398,195 +437,213 @@ export const CarScrollbar = () => {
 
   if (isTouch) return null;
 
-  // Road Lane Center Dashes Style
+  // Road Lane Center Dashes Style (slender 1px line down the center)
   const laneDashStyle = {
     position: 'absolute',
     left: '50%',
     top: TRACK_PADDING_TOP,
-    width: 2,
-    height: trackHeight,
-    background: `repeating-linear-gradient(to bottom, transparent 0px, transparent 8px, ${
-      isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'
-    } 8px, ${
-      isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'
-    } 16px)`,
+    width: 1,
+    height: Math.max(0, trackHeight - TRACK_PADDING_TOP - TRACK_PADDING_BTM),
+    background: `repeating-linear-gradient(to bottom, transparent 0px, transparent 6px, ${
+      isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
+    } 6px, ${
+      isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
+    } 12px)`,
     transform: 'translateX(-50%)',
     pointerEvents: 'none',
   };
 
-  // KM Marker Dots Style
+  // Subtle road edge marker dots (spaced evenly)
   const dotStyle = (i) => ({
     position: 'absolute',
-    left: 2,
-    top: TRACK_PADDING_TOP + (i / 5) * trackHeight,
-    width: 2,
-    height: 2,
+    left: 1,
+    top: TRACK_PADDING_TOP + (i / 5) * (trackHeight - TRACK_PADDING_TOP - TRACK_PADDING_BTM - 10),
+    width: 1.5,
+    height: 1.5,
     borderRadius: '50%',
-    background: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)',
+    background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
     pointerEvents: 'none',
   });
 
   // Top Cap
   const topCapStyle = {
     position: 'absolute',
-    top: TRACK_PADDING_TOP - 8,
+    top: TRACK_PADDING_TOP - 2,
     left: 0,
     width: '100%',
     height: 1,
-    background: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)',
+    background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     pointerEvents: 'none',
   };
 
   // Bottom Cap
   const bottomCapStyle = {
     position: 'absolute',
-    top: TRACK_PADDING_TOP + trackHeight,
+    bottom: TRACK_PADDING_BTM - 2,
     left: 0,
     width: '100%',
     height: 1,
-    background: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)',
+    background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     pointerEvents: 'none',
   };
 
-  // Headlight Glow Cone (Dark mode only)
+  // Headlight Glow Cone (Dark mode only, scaled for miniature car)
   const headlightGlowStyle = {
     position: 'absolute',
     left: '50%',
     transform: 'translateX(-50%)',
-    width: 20,
-    height: 36,
+    width: 12,
+    height: 16,
     background:
-      'radial-gradient(ellipse at top, rgba(254,240,138,0.15) 0%, transparent 100%)',
-    pointerEvents: 'none',
-  };
-
-  // Progress Percentage Label Style
-  const progressLabelStyle = {
-    position: 'absolute',
-    bottom: Math.max(8, TRACK_PADDING_BTM - 24),
-    left: '50%',
-    transform: 'translateX(-50%)',
-    textAlign: 'center',
-    fontFamily: "'JetBrains Mono', monospace",
-    fontSize: 7,
-    letterSpacing: '0.1em',
-    color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)',
-    userSelect: 'none',
+      'radial-gradient(ellipse at top, rgba(254,240,138,0.2) 0%, transparent 100%)',
     pointerEvents: 'none',
   };
 
   return (
-    <div
-      role="scrollbar"
-      aria-valuenow={Math.round(scrollProgress * 100)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label="Page scroll position"
-      style={{
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        width: TRACK_WIDTH,
-        height: '100vh',
-        zIndex: 9997,
-        cursor: 'pointer',
-        background: isDarkMode
-          ? 'rgba(15, 20, 30, 0.88)'
-          : 'rgba(240, 244, 250, 0.92)',
-        borderLeft: isDarkMode
-          ? '1px solid rgba(255, 255, 255, 0.06)'
-          : '1px solid rgba(0, 0, 0, 0.08)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-      }}
-      onClick={handleTrackClick}
-    >
-      {/* Lane markings */}
-      <div style={laneDashStyle} aria-hidden="true" />
-
-      {/* Road edge dots */}
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} style={dotStyle(i)} aria-hidden="true" />
-      ))}
-
-      {/* Top and bottom road caps */}
-      <div style={topCapStyle} aria-hidden="true" />
-      <div style={bottomCapStyle} aria-hidden="true" />
-
-      {/* Headlight glow cone (dark mode only) */}
-      {isDarkMode && (
-        <div
-          ref={glowRef}
-          style={headlightGlowStyle}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Exhaust puffs container */}
+    <>
+      {/* Floating miniature percentage tooltip (glides alongside car when scrolling/dragging) */}
       <div
-        ref={exhaustRef}
+        ref={badgeRef}
         aria-hidden="true"
         style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: CAR_WIDTH,
-          height: 20,
+          position: 'fixed',
+          right: TRACK_WIDTH + 6,
+          top: TRACK_PADDING_TOP,
+          transform: 'translateY(-15%)',
+          padding: '2px 5px',
+          borderRadius: 3,
+          background: isDarkMode ? 'rgba(15, 20, 30, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 8,
+          lineHeight: 1,
+          letterSpacing: '0.04em',
+          color: isDarkMode ? 'rgba(240, 242, 245, 0.85)' : 'rgba(13, 17, 23, 0.85)',
           pointerEvents: 'none',
-        }}
-      >
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className={isScrolling ? 'exhaust-puff' : 'exhaust-puff-hidden'}
-            style={{
-              position: 'absolute',
-              left: 4 + i * 6,
-              top: 0,
-              width: 5 + i * 1.5,
-              height: 5 + i * 1.5,
-              borderRadius: '50%',
-              background: isDarkMode
-                ? 'rgba(148, 163, 184, 0.5)'
-                : 'rgba(100, 116, 139, 0.3)',
-              animationDelay: `${i * 0.08}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* The CAR — positioned along track via direct RAF DOM updates */}
-      <div
-        ref={carRef}
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          cursor: isDragging ? 'grabbing' : 'grab',
-          width: CAR_WIDTH,
-          height: CAR_HEIGHT,
           userSelect: 'none',
-          touchAction: 'none',
+          opacity: isScrolling || isDragging || isHovered ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          whiteSpace: 'nowrap',
+          zIndex: 9998,
         }}
-        onPointerDown={handleCarPointerDown}
-        onPointerMove={handleCarPointerMove}
-        onPointerUp={handleCarPointerUp}
-        onPointerCancel={handleCarPointerUp}
-        onClick={(e) => e.stopPropagation()}
-        aria-hidden="true"
       >
-        <CarSVG
-          isDarkMode={isDarkMode}
-          isScrolling={isScrolling}
-          scrollDir={scrollDirRef.current}
-        />
-      </div>
-
-      {/* Scroll progress percentage */}
-      <div style={progressLabelStyle} aria-hidden="true">
         {Math.round(scrollProgress * 100)}%
       </div>
-    </div>
+
+      {/* Main Right-Edge Scrollbar Track */}
+      <div
+        role="scrollbar"
+        aria-valuenow={Math.round(scrollProgress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Page scroll position"
+        style={{
+          position: 'fixed',
+          right: 0,
+          top: 0,
+          width: TRACK_WIDTH,
+          height: '100vh',
+          zIndex: 9997,
+          cursor: 'pointer',
+          background: isDarkMode
+            ? (isHovered || isDragging ? 'rgba(255, 255, 255, 0.04)' : 'rgba(13, 17, 23, 0.45)')
+            : (isHovered || isDragging ? 'rgba(0, 0, 0, 0.04)' : 'rgba(245, 245, 240, 0.55)'),
+          borderLeft: isDarkMode
+            ? '1px solid rgba(255, 255, 255, 0.05)'
+            : '1px solid rgba(0, 0, 0, 0.06)',
+          backdropFilter: 'blur(3px)',
+          WebkitBackdropFilter: 'blur(3px)',
+          transition: 'background 0.2s ease',
+        }}
+        onClick={handleTrackClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Slender lane centerline markings */}
+        <div style={laneDashStyle} aria-hidden="true" />
+
+        {/* Subtle marker dots */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} style={dotStyle(i)} aria-hidden="true" />
+        ))}
+
+        {/* Top and bottom road terminal caps */}
+        <div style={topCapStyle} aria-hidden="true" />
+        <div style={bottomCapStyle} aria-hidden="true" />
+
+        {/* Headlight glow cone (dark mode only) */}
+        {isDarkMode && (
+          <div
+            ref={glowRef}
+            style={headlightGlowStyle}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Directional exhaust puffs container */}
+        <div
+          ref={exhaustRef}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: CAR_WIDTH,
+            height: 12,
+            pointerEvents: 'none',
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={isScrolling ? 'exhaust-puff' : 'exhaust-puff-hidden'}
+              style={{
+                position: 'absolute',
+                left: 1 + i * 2.5,
+                top: 0,
+                width: 2.2 + i * 0.7,
+                height: 2.2 + i * 0.7,
+                borderRadius: '50%',
+                background: isDarkMode
+                  ? 'rgba(148, 163, 184, 0.5)'
+                  : 'rgba(100, 116, 139, 0.35)',
+                animationDelay: `${i * 0.08}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* The Miniature Car Thumb — positioned along track via direct RAF DOM updates */}
+        <div
+          ref={carRef}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: TRACK_PADDING_TOP,
+            transform: 'translateX(-50%)',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            width: CAR_WIDTH,
+            height: CAR_HEIGHT,
+            userSelect: 'none',
+            touchAction: 'none',
+            zIndex: 2,
+          }}
+          onPointerDown={handleCarPointerDown}
+          onPointerMove={handleCarPointerMove}
+          onPointerUp={handleCarPointerUp}
+          onPointerCancel={handleCarPointerUp}
+          onClick={(e) => e.stopPropagation()}
+          aria-hidden="true"
+        >
+          <CarSVG
+            isDarkMode={isDarkMode}
+            isScrolling={isScrolling}
+            scrollDir={scrollDirRef.current}
+          />
+        </div>
+      </div>
+    </>
   );
 };
 
