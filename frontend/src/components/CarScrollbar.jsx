@@ -209,7 +209,6 @@ export const CarScrollbar = () => {
 
   // State (only triggers re-renders on meaningful UI updates)
   const [isScrolling, setIsScrolling]       = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [_isDragging, _setIsDragging]       = useState(false);
   const [trackHeight, setTrackHeight]       = useState(0);
   const [isTouch, setIsTouch]               = useState(false);
@@ -236,8 +235,6 @@ export const CarScrollbar = () => {
   const carRef              = useRef(null);
   const glowRef             = useRef(null);
   const exhaustRef          = useRef(null);
-  const badgeRef            = useRef(null);
-  const lastLabelUpdate     = useRef(0);
 
   // Hide on touch/mobile devices to preserve native momentum touch scrolling
   useEffect(() => {
@@ -256,7 +253,7 @@ export const CarScrollbar = () => {
     return Math.max(0, Math.min(1, window.scrollY / scrollable));
   }, []);
 
-  // Scroll listener (updates targetProgressRef directly; throttles % label state to 100ms)
+  // Scroll listener (updates targetProgressRef directly with zero state re-renders)
   useEffect(() => {
     if (isTouch) return;
 
@@ -269,17 +266,10 @@ export const CarScrollbar = () => {
       scrollDirRef.current = dir;
       setIsScrolling(true);
 
-      const now = Date.now();
-      if (now - lastLabelUpdate.current > 100) {
-        setScrollProgress(prog);
-        lastLabelUpdate.current = now;
-      }
-
       clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         setIsScrolling(false);
         scrollDirRef.current = 0;
-        setScrollProgress(computeProgress());
       }, 150);
     };
 
@@ -287,7 +277,6 @@ export const CarScrollbar = () => {
     const initialProg = computeProgress();
     targetProgressRef.current   = initialProg;
     renderedProgressRef.current = initialProg;
-    setScrollProgress(initialProg);
 
     return () => {
       window.removeEventListener('scroll', onScroll);
@@ -353,9 +342,7 @@ export const CarScrollbar = () => {
                 : `${clampedY + CAR_HEIGHT + 2}px`;
           }
 
-          if (badgeRef.current) {
-            badgeRef.current.style.top = `${clampedY}px`;
-          }
+
         }
       }
 
@@ -418,9 +405,7 @@ export const CarScrollbar = () => {
       if (exhaustRef.current) {
         exhaustRef.current.style.top = `${clampedY - 8}px`;
       }
-      if (badgeRef.current) {
-        badgeRef.current.style.top = `${clampedY}px`;
-      }
+
     }
 
     const scrollable =
@@ -500,44 +485,13 @@ export const CarScrollbar = () => {
   };
 
   return (
-    <>
-      {/* Floating miniature percentage tooltip (glides alongside car when scrolling/dragging) */}
-      <div
-        ref={badgeRef}
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          right: TRACK_WIDTH + 6,
-          top: TRACK_PADDING_TOP,
-          transform: 'translateY(-15%)',
-          padding: '2px 5px',
-          borderRadius: 3,
-          background: isDarkMode ? 'rgba(15, 20, 30, 0.92)' : 'rgba(255, 255, 255, 0.95)',
-          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 8,
-          lineHeight: 1,
-          letterSpacing: '0.04em',
-          color: isDarkMode ? 'rgba(240, 242, 245, 0.85)' : 'rgba(13, 17, 23, 0.85)',
-          pointerEvents: 'none',
-          userSelect: 'none',
-          opacity: isScrolling || isDragging || isHovered ? 1 : 0,
-          transition: 'opacity 0.2s ease',
-          whiteSpace: 'nowrap',
-          zIndex: 9998,
-        }}
-      >
-        {Math.round(scrollProgress * 100)}%
-      </div>
-
-      {/* Main Right-Edge Scrollbar Track */}
-      <div
-        role="scrollbar"
-        aria-valuenow={Math.round(scrollProgress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Page scroll position"
+    /* Main Right-Edge Scrollbar Track */
+    <div
+      role="scrollbar"
+      aria-valuenow={Math.round(targetProgressRef.current * 100)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Page scroll position"
         style={{
           position: 'fixed',
           right: 0,
@@ -643,7 +597,6 @@ export const CarScrollbar = () => {
           />
         </div>
       </div>
-    </>
   );
 };
 
