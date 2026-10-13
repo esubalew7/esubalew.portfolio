@@ -532,6 +532,29 @@ body::before {
   pointer-events: none;
 }
 
+/* ── About Section — The Dossier ────────────────── */
+@keyframes aboutMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.about-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: aboutMarquee 24s linear infinite;
+}
+
+.about-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-ticker-track {
+    animation: none;
+  }
+}
+
+
 
 
 
