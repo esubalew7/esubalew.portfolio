@@ -6,14 +6,14 @@ const ProjectContext = createContext(null);
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000'
+    ? 'http://127.0.0.1:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
 
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ||
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000'
+    ? 'http://127.0.0.1:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
 
 // Fallback projects with all required fields matching the backend Project model
@@ -119,6 +119,7 @@ export function ProjectProvider({ children }) {
       setError(null);
     } catch (err) {
       console.warn('[ProjectContext] Using fallback projects:', err.message);
+      setProjects((prev) => (prev && prev.length > 0 ? prev : fallbackProjects.map(normalizeProject)));
       setError(err.message);
     } finally {
       setLoading(false);

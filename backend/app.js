@@ -30,6 +30,8 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:5173', // Frontend dev
   'http://localhost:5174', // Admin panel dev
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
   'https://portfolio-mern-one-rho.vercel.app',
@@ -39,7 +41,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, Postman, etc.)
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

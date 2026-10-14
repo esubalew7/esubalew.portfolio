@@ -14,6 +14,7 @@ export const ScrollToTop = () => {
     <AnimatePresence>
       {visible && (
         <motion.button
+          className="fixed bottom-6 left-6 md:bottom-10 md:left-10"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 12 }}
@@ -21,7 +22,7 @@ export const ScrollToTop = () => {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Scroll to top"
           style={{
-            position: 'fixed', bottom: '2rem', right: '2rem',
+            position: 'fixed', bottom: '1.5rem', left: '1.5rem',
             zIndex: 500,
             width: 44, height: 44,
             display: 'flex', alignItems: 'center', justifyContent: 'center',

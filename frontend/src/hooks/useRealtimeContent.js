@@ -6,7 +6,7 @@ const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ||
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000'
+    ? 'http://127.0.0.1:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
 
 /**

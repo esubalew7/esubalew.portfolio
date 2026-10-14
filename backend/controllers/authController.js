@@ -102,10 +102,11 @@ export const register = async (req, res) => {
 
 // ── Cookie helpers ──────────────────────────────────────────
 const TOKEN_COOKIE = 'token';
+const isProduction = process.env.NODE_ENV === 'production';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true, // secure: true ensures cookies are sent over HTTPS only
-  sameSite: 'none', // sameSite: 'none' used to allow cross-site cookies for Google OAuth in production
+  secure: isProduction, // secure over HTTPS in production; false in development (localhost)
+  sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain prod; 'lax' for local dev
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (matches JWT expiry)
 };
@@ -117,8 +118,8 @@ const setTokenCookie = (res, token) => {
 const clearTokenCookie = (res) => {
   res.cookie(TOKEN_COOKIE, '', {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/',
     maxAge: 0,
   });
@@ -207,6 +208,13 @@ export const login = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Login successful",
+            token,
+            data: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+            },
         });
 
     } catch (error) {
