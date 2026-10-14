@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000'
+    ? 'http://127.0.0.1:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
 
 const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes (keeps Render free tier awake)

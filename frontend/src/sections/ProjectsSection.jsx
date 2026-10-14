@@ -766,15 +766,15 @@ export const ProjectsSection = () => {
       {/* Loading State */}
       {loading && <LoadingStages />}
 
-      {/* Error State */}
-      {!loading && error && <ErrorState error={error} />}
+      {/* Error State: only show full blocking error if there are no projects to display */}
+      {!loading && error && filteredProjects.length === 0 && <ErrorState error={error} />}
 
       {/* Empty State */}
       {!loading && !error && filteredProjects.length === 0 && <EmptyState />}
 
       {/* Project Stages with Marquee Dividers */}
       {!loading &&
-        !error &&
+        filteredProjects.length > 0 &&
         filteredProjects.map((project, index) => (
           <React.Fragment key={project._id || project.id || index}>
             <ProjectStage

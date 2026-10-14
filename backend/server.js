@@ -12,7 +12,7 @@ const httpServer = http.createServer(app);
 setupSocket(httpServer);
 
 // Start HTTP server immediately to prevent "Network Error" (connection refused)
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
