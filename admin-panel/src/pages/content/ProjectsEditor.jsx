@@ -55,8 +55,9 @@ const DashboardProjects = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-      category: 'mern',
+    category: 'mern',
     technologies: '',
+    image: '',
     liveLink: '',
     githubLink: '',
   });
@@ -118,15 +119,16 @@ const DashboardProjects = () => {
       setFormData({
         title: project.title || '',
         description: project.description || '',
-        category: project.category || 'mern',
-        technologies: Array.isArray(project.technologies) ? project.technologies.join(', ') : '',
+        category: (project.category || 'mern').toLowerCase().trim(),
+        technologies: Array.isArray(project.technologies) ? project.technologies.join(', ') : (project.technologies || ''),
+        image: project.image || '',
         liveLink: project.liveLink || project.liveUrl || '',
         githubLink: project.githubLink || project.githubUrl || '',
       });
       setImagePreview(project.image || null);
     } else {
       setEditingProject(null);
-      setFormData({ title: '', description: '', category: 'mern', technologies: '', liveLink: '', githubLink: '' });
+      setFormData({ title: '', description: '', category: 'mern', technologies: '', image: '', liveLink: '', githubLink: '' });
       setImagePreview(null);
     }
     setShowModal(true);
@@ -153,16 +155,30 @@ const DashboardProjects = () => {
     }
   };
 
+  const handleImageUrlChange = (url) => {
+    setFormData(prev => ({ ...prev, image: url }));
+    if (url.trim()) {
+      setImagePreview(url.trim());
+      setFormErrors(prev => ({ ...prev, image: null }));
+    } else if (!imageFile) {
+      setImagePreview(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormErrors({});
 
     // Validation
     const errors = {};
-    if (!formData.title.trim()) errors.title = 'Title is required';
-    if (!formData.description.trim()) errors.description = 'Description is required';
-    if (!['mern', 'frontend', 'backend', 'mobile'].includes(formData.category)) errors.category = 'Valid category is required';
-    if (!editingProject && !imageFile) errors.image = 'A project image is required';
+    if (!formData.title?.trim()) errors.title = 'Title is required';
+    if (!formData.description?.trim()) errors.description = 'Description is required';
+    if (!formData.category?.trim()) errors.category = 'Valid category is required';
+
+    const hasImage = Boolean(imageFile || formData.image?.trim() || imagePreview || editingProject?.image);
+    if (!hasImage) {
+      errors.image = 'A project image file or image URL is required';
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -174,27 +190,27 @@ const DashboardProjects = () => {
       setSubmitting(true);
 
       // Step 1: Upload image to Cloudinary via /api/upload (if a new file was selected)
-      let imageUrl = editingProject?.image || '';
+      let imageUrl = formData.image?.trim() || editingProject?.image || '';
       let imagePublicId = editingProject?.imagePublicId || '';
       if (imageFile) {
         const imgFormData = new FormData();
         imgFormData.append('image', imageFile);
 
         const uploadRes = await api.post('/api/upload', imgFormData);
-        imageUrl = uploadRes.imageUrl;
-        imagePublicId = uploadRes.imagePublicId;
+        imageUrl = uploadRes.imageUrl || uploadRes.data?.imageUrl || imageUrl;
+        imagePublicId = uploadRes.imagePublicId || uploadRes.data?.imagePublicId || imagePublicId;
       }
 
-      // Step 2: Submit project as plain JSON with the Cloudinary URL + public_id
+      // Step 2: Submit project with the image URL + public_id
       const projectPayload = {
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category.toLowerCase().trim(),
         technologies: formData.technologies,
         image: imageUrl,
         imagePublicId,
-        liveLink: formData.liveLink,
-        githubLink: formData.githubLink,
+        liveLink: formData.liveLink?.trim() || '',
+        githubLink: formData.githubLink?.trim() || '',
       };
 
       if (editingProject) {
@@ -217,11 +233,12 @@ const DashboardProjects = () => {
       setSubmitting(true);
       await deleteProject(projectToDelete._id || projectToDelete.id);
       showToast('Project deleted successfully.');
+      setShowDeleteModal(false);
+      setProjectToDelete(null);
     } catch (err) {
       showToast(err.message || 'Failed to delete project.', 'error');
     } finally {
       setSubmitting(false);
-      setProjectToDelete(null);
     }
   };
 
@@ -391,7 +408,9 @@ const DashboardProjects = () => {
                     <option value="mern">MERN</option>
                     <option value="frontend">Frontend</option>
                     <option value="backend">Backend</option>
-                  <option value="mobile">Mobile App</option>
+                    <option value="mobile">Mobile App</option>
+                    <option value="fullstack">Full Stack</option>
+                    <option value="other">Other</option>
                 </select>
                 {formErrors.category && <p className="text-xs font-semibold text-red-500">{formErrors.category}</p>}
             </div>
@@ -399,7 +418,7 @@ const DashboardProjects = () => {
                 label="Description" 
                 id="description" 
                 textarea 
-                rows={3}
+                rows={3} 
                 required 
                 value={formData.description} 
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -413,42 +432,49 @@ const DashboardProjects = () => {
                 onChange={(e) => setFormData({...formData, technologies: e.target.value})}
                 placeholder="React, Tailwind, Node.js"
             />
-            {/* Quick tech additions removed per request */}
             
             {/* Image Upload Area */}
-            <div className="space-y-2">
+            <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Project Image
                 </label>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                     {imagePreview && (
-                        <div className="relative group w-full aspect-video rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div className="relative group w-full aspect-video rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <Button 
                                     variant="danger" 
                                     icon={CloseIcon} 
                                     className="p-2" 
-                                    onClick={() => { setImageFile(null); setImagePreview(editingProject?.image || null); }}
+                                    onClick={() => { setImageFile(null); handleImageUrlChange(''); }}
                                 >
-                                    Remove
+                                    Clear Image
                                 </Button>
                             </div>
                         </div>
                     )}
                     <label className={`
-                        flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all
+                        flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all
                         ${formErrors.image ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10'}
                     `}>
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className={`h-8 w-8 mb-2 ${formErrors.image ? 'text-red-500' : 'text-gray-400'}`} />
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                <span className="text-blue-600 dark:text-blue-400">Click to upload</span> or drag and drop
+                        <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                            <Upload className={`h-6 w-6 mb-1.5 ${formErrors.image ? 'text-red-500' : 'text-gray-400'}`} />
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <span className="text-blue-600 dark:text-blue-400">Click to upload image file</span> or drag & drop
                             </p>
-                            <p className="text-xs text-gray-400">PNG, JPG or WEBP (MAX. 5MB)</p>
+                            <p className="text-[10px] text-gray-400">PNG, JPG, WEBP (MAX. 5MB)</p>
                         </div>
                         <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                     </label>
+
+                    <FormInput 
+                        label="Or Direct Image URL" 
+                        id="imageUrl" 
+                        value={formData.image} 
+                        onChange={(e) => handleImageUrlChange(e.target.value)}
+                        placeholder="https://res.cloudinary.com/... or https://images.unsplash.com/..."
+                    />
                     {formErrors.image && <p className="text-xs font-semibold text-red-500">{formErrors.image}</p>}
                 </div>
             </div>

@@ -10,7 +10,7 @@ import { createNotification } from "../services/notificationService.js";
 // ===============================
 export const createProject = async (req, res) => {
     try {
-        const { title, description, category, technologies, image, imagePublicId, liveLink, githubLink } = req.body;
+        const { title, description, category, technologies, image, imagePublicId, liveLink, githubLink, caseStudy } = req.body;
 
         // VALIDATION
         if (!title || !description) {
@@ -20,18 +20,12 @@ export const createProject = async (req, res) => {
             });
         }
 
-        const normalizedCategory = category?.toLowerCase().trim();
-        if (!normalizedCategory) {
-            return res.status(400).json({
-                success: false,
-                message: "Project category is required",
-            });
-        }
+        const normalizedCategory = category?.toLowerCase().trim() || "mern";
 
         if (!image) {
             return res.status(400).json({
                 success: false,
-                message: "Project image is required. Upload an image first via /api/upload.",
+                message: "Project image is required. Upload an image or provide an image URL.",
             });
         }
 
@@ -42,14 +36,15 @@ export const createProject = async (req, res) => {
 
         // SAVE TO DATABASE
         const newProject = await Project.create({
-            title,
-            description,
+            title: title.trim(),
+            description: description.trim(),
             category: normalizedCategory,
             technologies: techArray,
-            image,
+            image: image.trim(),
             imagePublicId: imagePublicId || '',
-            liveLink,
-            githubLink,
+            liveLink: liveLink || '',
+            githubLink: githubLink || '',
+            caseStudy: caseStudy || undefined,
         });
 
         await createNotification({
@@ -125,7 +120,7 @@ export const getProject = async (req, res) => {
 // ===============================
 export const updateProject = async (req, res) => {
     try {
-        const { title, description, category, technologies, image, liveLink, githubLink } = req.body;
+        const { title, description, category, technologies, image, imagePublicId, liveLink, githubLink, caseStudy } = req.body;
 
         // -------------------------------
         // VALIDATION
@@ -138,13 +133,7 @@ export const updateProject = async (req, res) => {
             });
         }
 
-        const normalizedCategory = category?.toLowerCase().trim();
-        if (!normalizedCategory) {
-            return res.status(400).json({
-                success: false,
-                message: "Project category is required",
-            });
-        }
+        const normalizedCategory = category?.toLowerCase().trim() || "mern";
 
         // Normalize technologies to array
         const techArray = typeof technologies === "string"
@@ -160,24 +149,31 @@ export const updateProject = async (req, res) => {
             });
         }
 
-        // Use new Cloudinary URL if provided, otherwise keep the existing one
-        const imageUrl = image || existing.image;
+        // Use new image if provided, otherwise keep the existing one
+        const imageUrl = (image && image.trim()) || existing.image;
+        const publicId = imagePublicId !== undefined ? imagePublicId : existing.imagePublicId;
 
         // -------------------------------
         // UPDATE IN DATABASE
         // -------------------------------
+        const updateData = {
+            title: title.trim(),
+            description: description.trim(),
+            category: normalizedCategory,
+            technologies: techArray,
+            image: imageUrl,
+            imagePublicId: publicId,
+            liveLink: liveLink !== undefined ? liveLink : existing.liveLink,
+            githubLink: githubLink !== undefined ? githubLink : existing.githubLink,
+        };
+
+        if (caseStudy !== undefined) {
+            updateData.caseStudy = caseStudy;
+        }
 
         const updatedProject = await Project.findByIdAndUpdate(
             req.params.id,
-            {
-                title,
-                description,
-                category: normalizedCategory,
-                technologies: techArray,
-                image: imageUrl,
-                liveLink,
-                githubLink,
-            },
+            updateData,
             {
                 new: true,          // Return updated document
                 runValidators: true, // Run schema validators
