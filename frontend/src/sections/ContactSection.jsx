@@ -180,14 +180,17 @@ function BlueprintCanvas({ step, isDarkMode }) {
 /* ═══════════════════════════════════════════════════════════════
    LAYER 2 — PROGRESS RAIL (DOM)
    ═══════════════════════════════════════════════════════════════ */
-function ProgressRail({ step }) {
-  const steps = [
+function ProgressRail({ step, wizardConfig }) {
+  const steps = wizardConfig?.steps?.map((s, idx) => ({
+    num: String(idx + 1).padStart(2, '0'),
+    title: s.progressTitle || ['What', 'Who', 'When'][idx] || `Step ${idx + 1}`,
+  })) || [
     { num: '01', title: 'What' },
     { num: '02', title: 'Who' },
     { num: '03', title: 'When' },
   ];
 
-  const descriptions = [
+  const descriptions = wizardConfig?.steps?.map((s, idx) => s.progressDesc || ['Define Project', 'Your Details', 'Timeline & Send'][idx] || '') || [
     'Define Project',
     'Your Details',
     'Timeline & Send',
@@ -322,59 +325,78 @@ function TimelineTile({ value, number, title, desc, selected, onSelect }) {
 /* ═══════════════════════════════════════════════════════════════
    STEP 1 — "What are we building?"
    ═══════════════════════════════════════════════════════════════ */
-function Step1({ formData, setFormData, onNext }) {
+const DEFAULT_PROJECT_TYPES = [
+  {
+    id: 'web-app',
+    label: 'Web App',
+    description: 'React · Next.js · Full Stack',
+  },
+  {
+    id: 'mobile-app',
+    label: 'Mobile App',
+    description: 'Flutter · Cross Platform',
+  },
+  {
+    id: 'api-backend',
+    label: 'API / Backend',
+    description: 'Node · Express · NestJS',
+  },
+  {
+    id: 'full-system',
+    label: 'Full System',
+    description: 'End-to-End Architecture',
+  },
+];
+
+const PROJECT_TYPE_ICONS = {
+  'web-app': (
+    <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  ),
+  'mobile-app': (
+    <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  ),
+  'api-backend': (
+    <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="8" rx="2" />
+      <rect x="2" y="14" width="20" height="8" rx="2" />
+      <line x1="6" y1="6" x2="6.01" y2="6" />
+      <line x1="6" y1="18" x2="6.01" y2="18" />
+    </svg>
+  ),
+  'full-system': (
+    <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      <polyline points="2 17 12 22 22 17" />
+      <polyline points="2 12 12 17 22 12" />
+    </svg>
+  ),
+};
+
+function Step1({ formData, setFormData, onNext, wizardConfig }) {
   const [error, setError] = useState('');
 
-  const tiles = [
-    {
-      value: 'web-app',
-      title: 'Web App',
-      desc: 'React · Next.js · Full Stack',
-      icon: (
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      ),
-    },
-    {
-      value: 'mobile-app',
-      title: 'Mobile App',
-      desc: 'Flutter · Cross Platform',
-      icon: (
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-          <rect x="5" y="2" width="14" height="20" rx="2" />
-          <line x1="12" y1="18" x2="12.01" y2="18" />
-        </svg>
-      ),
-    },
-    {
-      value: 'api-backend',
-      title: 'API / Backend',
-      desc: 'Node · Express · NestJS',
-      icon: (
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="2" width="20" height="8" rx="2" />
-          <rect x="2" y="14" width="20" height="8" rx="2" />
-          <line x1="6" y1="6" x2="6.01" y2="6" />
-          <line x1="6" y1="18" x2="6.01" y2="18" />
-        </svg>
-      ),
-    },
-    {
-      value: 'full-system',
-      title: 'Full System',
-      desc: 'End-to-End Architecture',
-      icon: (
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 2 7 12 12 22 7 12 2" />
-          <polyline points="2 17 12 22 22 17" />
-          <polyline points="2 12 12 17 22 12" />
-        </svg>
-      ),
-    },
-  ];
+  const rawTypes = Array.isArray(wizardConfig?.projectTypes) && wizardConfig.projectTypes.length > 0
+    ? wizardConfig.projectTypes.filter((t) => t.visible !== false)
+    : DEFAULT_PROJECT_TYPES;
+
+  const tiles = rawTypes.map((t) => ({
+    value: t.id,
+    title: t.label || t.title,
+    desc: t.description || t.desc,
+    icon: PROJECT_TYPE_ICONS[t.id] || PROJECT_TYPE_ICONS['web-app'],
+  }));
+
+  const step1Info = wizardConfig?.steps?.[0];
+  const step1Title = step1Info?.title || 'What are we\nbuilding?';
+  const step1Sub = step1Info?.subtitle || 'Select your project type';
+  const titleParts = step1Title.split('\n');
 
   const handleTileSelect = (val) => {
     setFormData((prev) => ({ ...prev, projectType: val }));
@@ -395,14 +417,18 @@ function Step1({ formData, setFormData, onNext }) {
     <div className="max-w-5xl w-full mx-auto flex flex-col">
       {/* Heading */}
       <h2 className="font-sans font-extrabold text-[clamp(2rem,7vw,2.5rem)] sm:text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-tight text-content-primary mb-2">
-        What are we
-        <br />
-        <span className="text-accent">building?</span>
+        {titleParts[0]}
+        {titleParts.length > 1 && (
+          <>
+            <br />
+            <span className="text-accent">{titleParts.slice(1).join(' ')}</span>
+          </>
+        )}
       </h2>
 
       {/* Subtext */}
       <p className="font-code text-[12px] text-content-muted uppercase tracking-[0.12em] mb-8 sm:mb-10">
-        Select your project type
+        {step1Sub}
       </p>
 
       {/* Project Type Tiles */}
@@ -487,11 +513,16 @@ function Step1({ formData, setFormData, onNext }) {
 /* ═══════════════════════════════════════════════════════════════
    STEP 2 — "Who are you?"
    ═══════════════════════════════════════════════════════════════ */
-function Step2({ formData, setFormData, errors, touched, onBlur, onChange, onNext, onBack, isDarkMode }) {
+function Step2({ formData, setFormData, errors, touched, onBlur, onChange, onNext, onBack, isDarkMode, wizardConfig }) {
   const [focusedField, setFocusedField] = useState(null);
 
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isEnabled = Boolean(formData.name.trim() && isValidEmail(formData.email));
+
+  const step2Info = wizardConfig?.steps?.[1];
+  const step2Title = step2Info?.title || 'Tell me\nwho you are.';
+  const step2Sub = step2Info?.subtitle || 'Your contact information';
+  const titleParts = step2Title.split('\n');
 
   const getBorderColor = (fieldName) => {
     if (errors[fieldName] && touched[fieldName]) return '#ef4444';
@@ -503,14 +534,18 @@ function Step2({ formData, setFormData, errors, touched, onBlur, onChange, onNex
     <div className="max-w-5xl w-full mx-auto flex flex-col">
       {/* Heading */}
       <h2 className="font-sans font-extrabold text-[clamp(2rem,7vw,2.5rem)] sm:text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-tight text-content-primary mb-2">
-        Tell me
-        <br />
-        <span className="text-accent">who you are.</span>
+        {titleParts[0]}
+        {titleParts.length > 1 && (
+          <>
+            <br />
+            <span className="text-accent">{titleParts.slice(1).join(' ')}</span>
+          </>
+        )}
       </h2>
 
       {/* Subtext */}
       <p className="font-code text-[12px] text-content-muted uppercase tracking-[0.12em] mb-8 sm:mb-12">
-        Your contact information
+        {step2Sub}
       </p>
 
       {/* Field 1: Name */}
@@ -639,6 +674,24 @@ function Step2({ formData, setFormData, errors, touched, onBlur, onChange, onNex
 /* ═══════════════════════════════════════════════════════════════
    STEP 3 — "When do you need this?"
    ═══════════════════════════════════════════════════════════════ */
+const DEFAULT_TIMELINES = [
+  {
+    id: 'asap',
+    label: 'As Soon As Possible',
+    description: 'Ready to start immediately',
+  },
+  {
+    id: '1-3-months',
+    label: '1–3 Months',
+    description: 'Planning phase, flexible start',
+  },
+  {
+    id: '3-plus-months',
+    label: '3+ Months',
+    description: 'Long-term planning',
+  },
+];
+
 function Step3({
   formData,
   setFormData,
@@ -651,29 +704,30 @@ function Step3({
   contactInfo,
   onReset,
   isDarkMode,
+  wizardConfig,
 }) {
   const [timelineError, setTimelineError] = useState('');
 
-  const tiles = [
-    {
-      value: 'asap',
-      number: '01',
-      title: 'As Soon As Possible',
-      desc: 'Ready to start immediately',
-    },
-    {
-      value: '1-3-months',
-      number: '02',
-      title: '1–3 Months',
-      desc: 'Planning phase, flexible start',
-    },
-    {
-      value: '3-plus-months',
-      number: '03',
-      title: '3+ Months',
-      desc: 'Long-term planning',
-    },
-  ];
+  const rawTimelines = Array.isArray(wizardConfig?.timelines) && wizardConfig.timelines.length > 0
+    ? wizardConfig.timelines.filter((t) => t.visible !== false)
+    : DEFAULT_TIMELINES;
+
+  const tiles = rawTimelines.map((t, idx) => ({
+    value: t.id,
+    number: String(idx + 1).padStart(2, '0'),
+    title: t.label || t.title,
+    desc: t.description || t.desc,
+  }));
+
+  const step3Info = wizardConfig?.steps?.[2];
+  const step3Title = step3Info?.title || 'When do you\nneed this?';
+  const step3Sub = step3Info?.subtitle || 'Select your timeline';
+  const titleParts = step3Title.split('\n');
+
+  const submitText = wizardConfig?.submitButtonText || 'Send Brief';
+  const submittingText = wizardConfig?.submittingButtonText || 'Sending...';
+  const responseNotice = wizardConfig?.responseTimeNotice || '⟳ Response within 4 hours';
+  const privacyNotice = wizardConfig?.privacyNotice || '✓ Your data is never shared';
 
   const handleTimelineSelect = (val) => {
     setFormData((prev) => ({ ...prev, timeline: val }));
@@ -700,14 +754,18 @@ function Step3({
     <div className="max-w-5xl w-full mx-auto flex flex-col">
       {/* Heading */}
       <h2 className="font-sans font-extrabold text-[clamp(2rem,7vw,2.5rem)] sm:text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-tight text-content-primary mb-2">
-        When do you
-        <br />
-        <span className="text-accent">need this?</span>
+        {titleParts[0]}
+        {titleParts.length > 1 && (
+          <>
+            <br />
+            <span className="text-accent">{titleParts.slice(1).join(' ')}</span>
+          </>
+        )}
       </h2>
 
       {/* Subtext */}
       <p className="font-code text-[12px] text-content-muted uppercase tracking-[0.12em] mb-8">
-        Select your timeline
+        {step3Sub}
       </p>
 
       {/* Timeline Tiles */}
@@ -766,10 +824,10 @@ function Step3({
         {/* Left commitments */}
         <div className="flex flex-col select-none">
           <span className="font-code text-[10px] text-content-muted">
-            ⟳ Response within 4 hours
+            {responseNotice}
           </span>
           <span className="font-code text-[10px] text-content-muted mt-1">
-            ✓ Your data is never shared
+            {privacyNotice}
           </span>
         </div>
 
@@ -809,11 +867,11 @@ function Step3({
             {isSubmitting ? (
               <>
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse flex-shrink-0" />
-                <span>Sending...</span>
+                <span>{submittingText}</span>
               </>
             ) : (
               <>
-                <span>Send Brief</span>
+                <span>{submitText}</span>
                 <svg
                   className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1 flex-shrink-0"
                   viewBox="0 0 24 24"
@@ -1053,7 +1111,7 @@ export const ContactSection = () => {
       <BlueprintCanvas step={step} isDarkMode={isDarkMode} />
 
       {/* Layer 2 — Progress Rail */}
-      <ProgressRail step={step} />
+      <ProgressRail step={step} wizardConfig={contactInfo?.wizard} />
 
       {/* Layer 3 — Step Panels */}
       <div className="relative z-10 w-full flex-1 flex items-center justify-center">
@@ -1071,6 +1129,7 @@ export const ContactSection = () => {
                 formData={formData}
                 setFormData={setFormData}
                 onNext={() => setStep(2)}
+                wizardConfig={contactInfo?.wizard}
               />
             </motion.div>
           )}
@@ -1094,6 +1153,7 @@ export const ContactSection = () => {
                 onNext={handleStep2Next}
                 onBack={() => setStep(1)}
                 isDarkMode={isDarkMode}
+                wizardConfig={contactInfo?.wizard}
               />
             </motion.div>
           )}
@@ -1119,6 +1179,7 @@ export const ContactSection = () => {
                 contactInfo={contactInfo}
                 onReset={handleReset}
                 isDarkMode={isDarkMode}
+                wizardConfig={contactInfo?.wizard}
               />
             </motion.div>
           )}

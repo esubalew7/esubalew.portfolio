@@ -12,6 +12,23 @@ const ctaSchema = new mongoose.Schema({
   link: { type: String, default: "" },
 }, { _id: false });
 
+const heroMetricSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  value: { type: String, required: true },
+  label: { type: String, required: true },
+  suffix: { type: String, default: "" },
+  order: { type: Number, default: 0 },
+  visible: { type: Boolean, default: true },
+}, { _id: false });
+
+const availabilityBannerSchema = new mongoose.Schema({
+  visible: { type: Boolean, default: true },
+  badgeText: { type: String, default: "AVAILABLE FOR FREELANCE" },
+  subText: { type: String, default: "RESPONSE TIME < 24H" },
+  buttonText: { type: String, default: "BOOK A CALL" },
+  buttonLink: { type: String, default: "#contact" },
+}, { _id: false });
+
 const heroSchema = new mongoose.Schema({
   greeting: { type: String, default: "Hello, I am" },
   name: { type: String, default: "" },
@@ -20,10 +37,29 @@ const heroSchema = new mongoose.Schema({
   image: { type: String, default: "" },
   backgroundImage: { type: String, default: "" },
   available: { type: Boolean, default: true },
+  availabilityBanner: { type: availabilityBannerSchema, default: () => ({}) },
+  metrics: [heroMetricSchema],
   cta: {
     primary: { type: ctaSchema, default: () => ({}) },
     secondary: { type: ctaSchema, default: () => ({}) },
   },
+}, { _id: false });
+
+const competencySchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  name: { type: String, required: true },
+  order: { type: Number, default: 0 },
+  visible: { type: Boolean, default: true },
+}, { _id: false });
+
+const assignmentSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  organization: { type: String, required: true },
+  role: { type: String, required: true },
+  period: { type: String, default: "" },
+  status: { type: String, default: "Active" },
+  order: { type: Number, default: 0 },
+  visible: { type: Boolean, default: true },
 }, { _id: false });
 
 const aboutSchema = new mongoose.Schema({
@@ -31,14 +67,28 @@ const aboutSchema = new mongoose.Schema({
   subtitle: { type: String, default: "" },
   description: { type: String, default: "" },
   image: { type: String, default: "" },
+  dossierRef: { type: String, default: "Ref: ESU-2024" },
+  clearanceLevel: { type: String, default: "Senior Engineer" },
+  personnelId: { type: String, default: "ID: ESU-001" },
   stats: [statSchema],
+  competencies: [competencySchema],
+  assignments: [assignmentSchema],
   cta: { type: ctaSchema, default: () => ({}) },
 }, { _id: false });
 
 const skillItemSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   name: { type: String, required: true },
-  level: { type: Number, min: 0, max: 100, default: 0 },
-}, { _id: false });
+  level: { type: mongoose.Schema.Types.Mixed, default: "Advanced" },
+  exp: { type: String, default: "" },
+  orbit: { type: String, default: "orbit-1" },
+  category: { type: String, default: "" },
+  description: { type: String, default: "" },
+  tags: [{ type: String }],
+  iconSlug: { type: String, default: "" },
+  order: { type: Number, default: 0 },
+  visible: { type: Boolean, default: true },
+}, { _id: false, strict: false });
 
 const skillCategorySchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -134,6 +184,28 @@ const resumeSchema = new mongoose.Schema({
   buttonText: { type: String, default: "Download Resume" },
 }, { _id: false });
 
+const contactWizardStepSchema = new mongoose.Schema({
+  stepNumber: { type: Number, required: true },
+  title: { type: String, default: "" },
+  description: { type: String, default: "" },
+}, { _id: false });
+
+const contactOptionSchema = new mongoose.Schema({
+  value: { type: String, required: true },
+  title: { type: String, required: true },
+  desc: { type: String, default: "" },
+}, { _id: false });
+
+const contactWizardSchema = new mongoose.Schema({
+  steps: [contactWizardStepSchema],
+  projectTypes: [contactOptionSchema],
+  timelines: [contactOptionSchema],
+  submitButtonText: { type: String, default: "Send Brief" },
+  submittingButtonText: { type: String, default: "Dispatching brief..." },
+  responseTimeText: { type: String, default: "Response within 4 hours" },
+  privacyText: { type: String, default: "Your data is never shared" },
+}, { _id: false });
+
 const contactInfoSchema = new mongoose.Schema({
   email: { type: String, default: "" },
   phone: { type: String, default: "" },
@@ -142,6 +214,7 @@ const contactInfoSchema = new mongoose.Schema({
   formDescription: { type: String, default: "" },
   formButtonText: { type: String, default: "Send Message" },
   successMessage: { type: String, default: "Thank you! Your message has been sent successfully." },
+  wizard: { type: contactWizardSchema, default: () => ({}) },
 }, { _id: false });
 
 const seoSchema = new mongoose.Schema({
@@ -180,7 +253,21 @@ const footerSocialSchema = new mongoose.Schema({
 
 const footerSchema = new mongoose.Schema({
   copyright: { type: String, default: "All rights reserved." },
+  attribution: { type: String, default: "Built with React + Three.js" },
   socials: [footerSocialSchema],
+}, { _id: false });
+
+const projectsSectionFilterSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  label: { type: String, required: true },
+  order: { type: Number, default: 0 },
+}, { _id: false });
+
+const projectsSectionSchema = new mongoose.Schema({
+  eyebrow: { type: String, default: "Selected Work" },
+  title: { type: String, default: "What I've built\nfor production." },
+  subtitle: { type: String, default: "" },
+  filters: [projectsSectionFilterSchema],
 }, { _id: false });
 
 const portfolioContentSchema = new mongoose.Schema({
@@ -190,6 +277,7 @@ const portfolioContentSchema = new mongoose.Schema({
   hero: { type: heroSchema, default: () => ({}) },
   about: { type: aboutSchema, default: () => ({}) },
   skills: { type: skillsSchema, default: () => ({}) },
+  projectsSection: { type: projectsSectionSchema, default: () => ({}) },
   experience: { type: experienceSchema, default: () => ({}) },
   certificates: [certificateSchema],
   testimonials: { type: testimonialsSchema, default: () => ({}) },
@@ -200,6 +288,7 @@ const portfolioContentSchema = new mongoose.Schema({
   structuredData: { type: Mixed, default: {} },
 }, {
   timestamps: true,
+  strict: false,
 });
 
 const PortfolioContent = mongoose.model("PortfolioContent", portfolioContentSchema);

@@ -485,16 +485,19 @@ function SkillFocusCard({
   orbitLabel,
   brandColor,
   meta,
+  details: customDetails,
   isDark,
   isMobile,
+  slugMap = SLUG_MAP,
+  brandMap = BRAND_MAP,
 }) {
   if (!skill) return null;
-  const slug = SLUG_MAP[skill] || 'javascript';
+  const slug = (slugMap && slugMap[skill]) || SLUG_MAP[skill] || 'javascript';
   const orbitBadge = `${orbitLabel || SKILL_TO_ORBIT[skill] || 'Core'} Orbit`;
   const isMicroservices = skill === 'Microservices';
   const isProduction = meta?.status === 'production';
-  const color = brandColor || BRAND_MAP[skill] || '#38BDF8';
-  const details = SKILL_DETAILS[skill] || {
+  const color = brandColor || (brandMap && brandMap[skill]) || BRAND_MAP[skill] || '#38BDF8';
+  const details = customDetails || SKILL_DETAILS[skill] || {
     category: 'Full-Stack',
     level: 'Advanced',
     description: 'Production-ready technology utilized across modern web and software stacks.',
@@ -737,10 +740,12 @@ function SkillNode({
   onHover,
   onLeave,
   onClick,
+  brandMap = BRAND_MAP,
+  slugMap = SLUG_MAP,
 }) {
   const [imgError, setImgError] = useState(false);
-  const brandColor = BRAND_MAP[skill] || '#38BDF8';
-  const slug = SLUG_MAP[skill] || 'javascript';
+  const brandColor = (brandMap && brandMap[skill]) || BRAND_MAP[skill] || '#38BDF8';
+  const slug = (slugMap && slugMap[skill]) || SLUG_MAP[skill] || 'javascript';
   const isMicroservices = skill === 'Microservices';
 
   return (
@@ -885,6 +890,8 @@ function OrbitRing({
   onHoverSkill,
   onLeaveSkill,
   onClickSkill,
+  brandMap = BRAND_MAP,
+  slugMap = SLUG_MAP,
 }) {
   return (
     <div
@@ -921,7 +928,7 @@ function OrbitRing({
           <SkillNode
             key={skillName}
             skill={skillName}
-            initialAngle={orbit.angles[idx]}
+            initialAngle={orbit.angles[idx] ?? Math.round((idx * 360) / (orbit.skills.length || 1))}
             radius={orbit.radius}
             duration={orbit.duration}
             isDark={isDark}
@@ -930,6 +937,8 @@ function OrbitRing({
             onHover={() => onHoverSkill(skillName)}
             onLeave={onLeaveSkill}
             onClick={() => onClickSkill(skillName)}
+            brandMap={brandMap}
+            slugMap={slugMap}
           />
         ))}
       </div>
@@ -943,11 +952,15 @@ function SkillsList({
   setActiveSkill,
   skillMeta,
   isDark,
+  orbitConfigs = ORBIT_CONFIGS,
+  slugMap = SLUG_MAP,
+  brandMap = BRAND_MAP,
+  skillToOrbit = SKILL_TO_ORBIT,
 }) {
   const activeMeta = activeSkill ? skillMeta[activeSkill] : null;
-  const activeBrand = activeSkill ? BRAND_MAP[activeSkill] || '#38BDF8' : '#38BDF8';
-  const activeSlug = activeSkill ? SLUG_MAP[activeSkill] || 'javascript' : null;
-  const activeOrbit = activeSkill ? SKILL_TO_ORBIT[activeSkill] : null;
+  const activeBrand = activeSkill ? brandMap[activeSkill] || '#38BDF8' : '#38BDF8';
+  const activeSlug = activeSkill ? slugMap[activeSkill] || 'javascript' : null;
+  const activeOrbit = activeSkill ? skillToOrbit[activeSkill] : null;
 
   return (
     <div className="hidden lg:flex flex-col w-[280px] shrink-0 gap-4 select-none">
@@ -1028,7 +1041,7 @@ function SkillsList({
           border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)',
         }}
       >
-        {ORBIT_CONFIGS.map((orbit) => (
+        {orbitConfigs.map((orbit) => (
           <div key={orbit.id}>
             <div
               className="font-mono text-[9px] uppercase tracking-[0.16em] mb-2 font-semibold"
@@ -1039,8 +1052,8 @@ function SkillsList({
             <div className="flex flex-wrap gap-1.5">
               {orbit.skills.map((skill) => {
                 const isActive = activeSkill === skill;
-                const brand = BRAND_MAP[skill] || '#38BDF8';
-                const slug = SLUG_MAP[skill] || 'javascript';
+                const brand = brandMap[skill] || BRAND_MAP[skill] || '#38BDF8';
+                const slug = slugMap[skill] || SLUG_MAP[skill] || 'javascript';
                 return (
                   <button
                     key={skill}
@@ -1106,10 +1119,13 @@ function MobileSkillGrid({
   activeSkill,
   setActiveSkill,
   isDark,
+  orbitConfigs = ORBIT_CONFIGS,
+  slugMap = SLUG_MAP,
+  brandMap = BRAND_MAP,
 }) {
   return (
     <div className="block lg:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
-      {ORBIT_CONFIGS.map((orbit) => (
+      {orbitConfigs.map((orbit) => (
         <div key={orbit.id}>
           <div
             className="font-mono text-[9px] uppercase tracking-[0.16em] mb-2 font-bold"
@@ -1120,8 +1136,8 @@ function MobileSkillGrid({
           <div className="flex flex-wrap gap-2">
             {orbit.skills.map((skill) => {
               const isActive = activeSkill === skill;
-              const brand = BRAND_MAP[skill] || '#38BDF8';
-              const slug = SLUG_MAP[skill] || 'javascript';
+              const brand = (brandMap && brandMap[skill]) || BRAND_MAP[skill] || '#38BDF8';
+              const slug = (slugMap && slugMap[skill]) || SLUG_MAP[skill] || 'javascript';
               return (
                 <button
                   key={skill}
@@ -1216,28 +1232,104 @@ export const SkillsSection = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Merge CMS skills with hardcoded skills (override metadata where CMS has records)
-  const mergedSkillMeta = useMemo(() => {
-    const merged = { ...SKILL_META };
+  // Dynamic derivation of orbits, skills, and metadata from CMS contentStore
+  const BASE_ORBIT_PARAMS = {
+    'orbit-1': { id: 'orbit-1', duration: 18, tiltX: 72, tiltZ: 12, radius: 135, darkBorder: 'rgba(56, 189, 248, 0.14)', lightBorder: 'rgba(2, 132, 199, 0.20)', accentColor: '#38BDF8', baseOffset: 0 },
+    'orbit-2': { id: 'orbit-2', duration: 26, tiltX: 58, tiltZ: -22, radius: 215, darkBorder: 'rgba(16, 185, 129, 0.14)', lightBorder: 'rgba(5, 150, 105, 0.20)', accentColor: '#10B981', baseOffset: 36 },
+    'orbit-3': { id: 'orbit-3', duration: 34, tiltX: 64, tiltZ: 30, radius: 295, darkBorder: 'rgba(129, 140, 248, 0.14)', lightBorder: 'rgba(99, 102, 241, 0.20)', accentColor: '#818CF8', baseOffset: 15 },
+    'orbit-4': { id: 'orbit-4', duration: 44, tiltX: 52, tiltZ: -8, radius: 375, darkBorder: 'rgba(245, 158, 11, 0.14)', lightBorder: 'rgba(217, 119, 6, 0.20)', accentColor: '#F59E0B', baseOffset: 60 },
+  };
+
+  const {
+    resolvedOrbits,
+    dynamicSkillMeta,
+    dynamicSkillDetails,
+    dynamicSlugMap,
+    dynamicBrandMap,
+    dynamicSkillToOrbit,
+    totalSkillsCount,
+  } = useMemo(() => {
     const categories = content?.skills?.categories;
-    if (Array.isArray(categories) && categories.length > 0) {
-      categories.forEach((cat) => {
+    const hasCmsCategories = Array.isArray(categories) && categories.length > 0;
+
+    const skillMeta = { ...SKILL_META };
+    const skillDetails = { ...SKILL_DETAILS };
+    const slugMap = { ...SLUG_MAP };
+    const brandMap = { ...BRAND_MAP };
+    const skillToOrbit = { ...SKILL_TO_ORBIT };
+
+    let orbits = ORBIT_CONFIGS;
+
+    if (hasCmsCategories) {
+      const orbitMap = {
+        'orbit-1': { ...ORBIT_CONFIGS[0], skills: [] },
+        'orbit-2': { ...ORBIT_CONFIGS[1], skills: [] },
+        'orbit-3': { ...ORBIT_CONFIGS[2], skills: [] },
+        'orbit-4': { ...ORBIT_CONFIGS[3], skills: [] },
+      };
+
+      categories.forEach((cat, idx) => {
+        const orbitKey = cat.orbit || `orbit-${idx + 1}`;
+        const targetOrbit = orbitMap[orbitKey] || orbitMap[`orbit-${(idx % 4) + 1}`];
+        if (cat.name) {
+          targetOrbit.name = cat.name;
+        }
+
         if (Array.isArray(cat.items)) {
           cat.items.forEach((item) => {
-            if (item && item.name && merged[item.name]) {
-              if (item.level) {
-                merged[item.name] = {
-                  ...merged[item.name],
-                  exp: item.level >= 80 ? '3+ yrs' : item.level >= 50 ? '2+ yrs' : '1+ yr',
-                  status: item.level >= 60 ? 'production' : 'learning',
-                };
-              }
+            if (!item || !item.name || item.visible === false) return;
+            const skillName = item.name;
+            if (!targetOrbit.skills.includes(skillName)) {
+              targetOrbit.skills.push(skillName);
+            }
+            skillToOrbit[skillName] = targetOrbit.name;
+
+            const isProd = item.status === 'production' || (item.level && item.level.toLowerCase() !== 'active learner');
+            skillMeta[skillName] = {
+              exp: item.exp || skillMeta[skillName]?.exp || '2+ yrs',
+              status: isProd ? 'production' : 'learning',
+            };
+
+            skillDetails[skillName] = {
+              category: item.category || cat.name || skillDetails[skillName]?.category || 'Core',
+              level: item.level || skillDetails[skillName]?.level || 'Advanced',
+              description: item.description || skillDetails[skillName]?.description || 'Production-ready technology utilized across modern web and software stacks.',
+              tags: Array.isArray(item.tags) && item.tags.length > 0
+                ? item.tags
+                : skillDetails[skillName]?.tags || ['Production', 'Full-Stack'],
+            };
+
+            if (item.iconSlug) {
+              slugMap[skillName] = item.iconSlug;
             }
           });
         }
       });
+
+      orbits = Object.values(orbitMap).map((orbit) => {
+        const skills = orbit.skills.length > 0 ? orbit.skills : ORBIT_CONFIGS.find((o) => o.id === orbit.id)?.skills || [];
+        const baseOffset = BASE_ORBIT_PARAMS[orbit.id]?.baseOffset ?? 0;
+        const count = skills.length;
+        const angles = skills.map((_, i) => Math.round((baseOffset + (i * (360 / (count || 1)))) % 360));
+        return {
+          ...orbit,
+          skills,
+          angles,
+        };
+      });
     }
-    return merged;
+
+    const totalCount = orbits.reduce((acc, o) => acc + o.skills.length, 0);
+
+    return {
+      resolvedOrbits: orbits,
+      dynamicSkillMeta: skillMeta,
+      dynamicSkillDetails: skillDetails,
+      dynamicSlugMap: slugMap,
+      dynamicBrandMap: brandMap,
+      dynamicSkillToOrbit: skillToOrbit,
+      totalSkillsCount: totalCount,
+    };
   }, [content?.skills?.categories]);
 
   // Loading skeleton state
@@ -1283,28 +1375,36 @@ export const SkillsSection = () => {
               className="font-mono text-[11px] tracking-[0.18em] uppercase font-bold"
               style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
             >
-              Technical Arsenal
+              {content?.skills?.title || 'Technical Arsenal'}
             </span>
           </div>
 
           {/* H2 Heading */}
           <h2 className="font-sans font-extrabold text-4xl md:text-5xl tracking-tight leading-tight mb-4">
-            <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
-              The stack I ship{' '}
-            </span>
-            <span style={{ color: isDarkMode ? '#8B939E' : '#52596A' }}>
-              to production.
-            </span>
+            {content?.skills?.subtitle ? (
+              <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
+                {content.skills.subtitle}
+              </span>
+            ) : (
+              <>
+                <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
+                  The stack I ship{' '}
+                </span>
+                <span style={{ color: isDarkMode ? '#8B939E' : '#52596A' }}>
+                  to production.
+                </span>
+              </>
+            )}
           </h2>
 
           {/* Stat row */}
           <div className="flex items-center justify-center gap-6 sm:gap-8 font-mono text-xs mb-5">
             <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
-              18 technologies
+              {totalSkillsCount || 18} technologies
             </span>
             <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}>•</span>
             <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
-              4 orbit layers
+              {resolvedOrbits.length} orbit layers
             </span>
             <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}>•</span>
             <span style={{ color: isDarkMode ? '#8B939E' : '#9CA3AF' }}>
@@ -1361,7 +1461,7 @@ export const SkillsSection = () => {
               <Nucleus isDarkMode={isDarkMode} />
 
               {/* 4 3D ORBIT RINGS */}
-              {ORBIT_CONFIGS.map((orbit) => (
+              {resolvedOrbits.map((orbit) => (
                 <OrbitRing
                   key={orbit.id}
                   orbit={orbit}
@@ -1380,6 +1480,8 @@ export const SkillsSection = () => {
                       return skill;
                     })
                   }
+                  brandMap={dynamicBrandMap}
+                  slugMap={dynamicSlugMap}
                 />
               ))}
             </div>
@@ -1401,7 +1503,7 @@ export const SkillsSection = () => {
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -20%)',
-                      background: `radial-gradient(circle, ${BRAND_MAP[activeSkill] || '#38BDF8'} 0%, #3b82f6 50%, transparent 70%)`,
+                      background: `radial-gradient(circle, ${dynamicBrandMap[activeSkill] || '#38BDF8'} 0%, #3b82f6 50%, transparent 70%)`,
                       filter: 'blur(48px)',
                     }}
                     aria-hidden="true"
@@ -1409,11 +1511,14 @@ export const SkillsSection = () => {
 
                   <SkillFocusCard
                     skill={activeSkill}
-                    orbitLabel={SKILL_TO_ORBIT[activeSkill]}
-                    brandColor={BRAND_MAP[activeSkill]}
-                    meta={mergedSkillMeta[activeSkill]}
+                    orbitLabel={dynamicSkillToOrbit[activeSkill]}
+                    brandColor={dynamicBrandMap[activeSkill]}
+                    meta={dynamicSkillMeta[activeSkill]}
+                    details={dynamicSkillDetails[activeSkill]}
                     isDark={isDarkMode}
                     isMobile={isMobile}
+                    slugMap={dynamicSlugMap}
+                    brandMap={dynamicBrandMap}
                   />
                 </>
               )}
@@ -1427,8 +1532,12 @@ export const SkillsSection = () => {
               setActiveSkill(skill);
               setIsPaused(Boolean(skill));
             }}
-            skillMeta={mergedSkillMeta}
+            skillMeta={dynamicSkillMeta}
             isDark={isDarkMode}
+            orbitConfigs={resolvedOrbits}
+            slugMap={dynamicSlugMap}
+            brandMap={dynamicBrandMap}
+            skillToOrbit={dynamicSkillToOrbit}
           />
         </div>
 
@@ -1440,6 +1549,9 @@ export const SkillsSection = () => {
             setIsPaused(Boolean(skill));
           }}
           isDark={isDarkMode}
+          orbitConfigs={resolvedOrbits}
+          slugMap={dynamicSlugMap}
+          brandMap={dynamicBrandMap}
         />
       </div>
     </section>

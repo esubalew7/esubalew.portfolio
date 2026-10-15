@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
@@ -63,11 +63,29 @@ export const Navbar = () => {
   const hero = content?.hero || {};
   const isHome = location.pathname === '/';
 
+  const logoName = content?.navbar?.brandName?.split(' ')[0] || hero.name?.split(' ')[0] || 'Esubalew';
+  const ctaText = content?.navbar?.ctaText || 'Hire Me';
+  const ctaLink = content?.navbar?.ctaLink || '#contact';
+
+  const dynamicNavLinks = useMemo(() => {
+    const items = content?.navbar?.navItems;
+    if (Array.isArray(items) && items.length > 0) {
+      return items
+        .filter((item) => item.visible !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((item) => ({
+          id: (item.path || '').replace('#', '') || item.label.toLowerCase(),
+          label: item.label,
+        }));
+    }
+    return NAV_LINKS;
+  }, [content?.navbar?.navItems]);
+
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
       // Active section detection
-      for (const link of [...NAV_LINKS].reverse()) {
+      for (const link of [...dynamicNavLinks].reverse()) {
         const el = document.getElementById(link.id);
         if (el && window.scrollY >= el.offsetTop - 120) {
           setActive(link.id);
@@ -77,7 +95,7 @@ export const Navbar = () => {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [dynamicNavLinks]);
 
   const onNavigate = useCallback((e, id) => {
     if (!isHome) return;
@@ -85,8 +103,6 @@ export const Navbar = () => {
     setMenuOpen(false);
     scrollToSectionById(id);
   }, [isHome]);
-
-  const logoName = hero.name?.split(' ')[0] || 'Esubalew';
 
   return (
     <header
@@ -137,7 +153,7 @@ export const Navbar = () => {
 
         {/* Desktop nav */}
         <nav aria-label="Main navigation" style={{ display: 'flex', gap: 32 }} className="hidden-mobile">
-          {NAV_LINKS.map(link => (
+          {dynamicNavLinks.map(link => (
             <DesktopLink
               key={link.id}
               link={link}
@@ -176,8 +192,13 @@ export const Navbar = () => {
 
           {/* Hire Me — orange pill */}
           <a
-            href="#contact"
-            onClick={e => { if (isHome) { e.preventDefault(); scrollToSectionById('contact'); } }}
+            href={ctaLink}
+            onClick={e => {
+              if (isHome && ctaLink.startsWith('#')) {
+                e.preventDefault();
+                scrollToSectionById(ctaLink.replace('#', ''));
+              }
+            }}
             style={{
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -190,7 +211,7 @@ export const Navbar = () => {
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
             className="hidden-mobile"
           >
-            Hire Me
+            {ctaText}
           </a>
 
           {/* Mobile menu trigger */}
@@ -228,7 +249,7 @@ export const Navbar = () => {
               padding: '1.5rem',
             }}
           >
-            {NAV_LINKS.map((link, i) => (
+            {dynamicNavLinks.map((link, i) => (
               <motion.a
                 key={link.id}
                 href={getSectionHref(link.id, location.pathname)}

@@ -19,6 +19,23 @@ export const defaultContent = {
     description:
       'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.',
     available: true,
+    metrics: [
+      { id: 'metric-1', value: '3+', label: 'Years building', suffix: '', order: 1, visible: true },
+      { id: 'metric-2', value: '15+', label: 'Systems shipped', suffix: '', order: 2, visible: true },
+      { id: 'metric-3', value: '3', label: 'Production stacks', suffix: '', order: 3, visible: true },
+      { id: 'metric-4', value: '2FA', label: 'Auth architecture', suffix: '', order: 4, visible: true },
+    ],
+    availabilityBanner: {
+      enabled: true,
+      badgeText: 'Available for freelance',
+      subText: 'Response time < 24h',
+      buttonText: 'Book a Call',
+      buttonLink: '#contact',
+      bookedBadgeText: 'Currently booked',
+      bookedSubText: 'Accepting inquiries for next quarter',
+      bookedButtonText: 'Inquire',
+      visible: true,
+    },
     cta: {
       primary: { text: 'Selected Work', link: '#projects' },
       secondary: { text: 'Download CV', link: '/resume.pdf' },
@@ -26,6 +43,9 @@ export const defaultContent = {
   },
   about: {
     title: 'About Me',
+    dossierRef: 'Ref: ESU-2024',
+    clearanceLevel: 'Clearance: Senior Engineer',
+    personnelId: 'ESU-001',
     description:
       "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.",
     image: '/images/esu.png',
@@ -34,9 +54,51 @@ export const defaultContent = {
       { value: 15, suffix: '+', label: 'Full-stack systems shipped' },
       { value: 3, suffix: '', label: 'Live production stacks' },
     ],
+    competencies: [
+      'MERN Stack', 'PERN Stack', 'Flutter', 'Node.js', 'React',
+      'TypeScript', 'PostgreSQL', 'MongoDB', 'Docker', 'Socket.IO',
+      'REST API', 'Microservices', 'NestJS', 'Redis', 'RabbitMQ',
+      'JWT Auth', '2FA', 'Swagger', 'Postman', 'Git',
+    ],
+    assignments: [
+      {
+        id: 'asg-1',
+        organization: 'Askuala Link Software Co.',
+        role: 'Frontend Developer Intern',
+        period: '2024 — Present',
+        status: 'active',
+        current: true,
+        order: 1,
+        visible: true,
+      },
+      {
+        id: 'asg-2',
+        organization: 'Bahir Dar University',
+        role: 'B.Sc. Computer Science',
+        period: '2022 — Present',
+        status: 'completed',
+        current: false,
+        order: 2,
+        visible: true,
+      },
+    ],
   },
   skills: {
+    title: 'Technical Arsenal',
+    subtitle: 'The stack I ship to production.',
     categories: [],
+  },
+  projectsSection: {
+    eyebrow: 'Selected Work',
+    title: "What I've built\nfor production.",
+    subtitle: 'Production-grade applications architected for reliability, sub-100ms API response times, and resilient state synchronization.',
+    filters: [
+      { id: 'all', label: 'All', order: 1 },
+      { id: 'mern', label: 'MERN', order: 2 },
+      { id: 'frontend', label: 'Frontend', order: 3 },
+      { id: 'backend', label: 'Backend', order: 4 },
+      { id: 'mobile', label: 'Mobile', order: 5 },
+    ],
   },
   experience: {
     categories: [
@@ -151,13 +213,50 @@ export const defaultContent = {
   contactInfo: {
     email: 'esubalew392@gmail.com',
     phone: '+251 915795794',
-    location: 'Ethiopia',
+    location: 'Bahir Dar, Ethiopia',
+    formTitle: 'What are we building?',
+    formDescription: 'Select your project type',
+    formButtonText: 'Send Brief',
+    successMessage: "I'll review your project and respond within 4 hours.",
+    wizard: {
+      steps: [
+        { stepNumber: 1, title: 'What are we building?', description: 'Select your project type' },
+        { stepNumber: 2, title: 'Tell me who you are.', description: 'Your contact information' },
+        { stepNumber: 3, title: 'When do you need this?', description: 'Select your timeline' },
+      ],
+      projectTypes: [
+        { value: 'web-app', title: 'Web App', desc: 'React · Next.js · Full Stack' },
+        { value: 'mobile-app', title: 'Mobile App', desc: 'Flutter · Cross Platform' },
+        { value: 'api-backend', title: 'API / Backend', desc: 'Node · Express · NestJS' },
+        { value: 'full-system', title: 'Full System', desc: 'End-to-End Architecture' },
+      ],
+      timelines: [
+        { value: 'asap', number: '01', title: 'As Soon As Possible', desc: 'Ready to start immediately' },
+        { value: '1-3-months', number: '02', title: '1–3 Months', desc: 'Planning phase, flexible start' },
+        { value: '3-plus-months', number: '03', title: '3+ Months', desc: 'Long-term planning' },
+      ],
+      submitButtonText: 'Send Brief',
+      submittingButtonText: 'Sending...',
+      responseTimeText: 'Response within 4 hours',
+      privacyText: 'Your data is never shared',
+    },
   },
   socialLinks: [
     { platform: 'GitHub', url: 'https://github.com/esubalew7', enabled: true },
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/esubalew-molla-7a584739b', enabled: true },
     { platform: 'Telegram', url: 'https://t.me/Esuman7', enabled: true },
   ],
+  navbar: {
+    brand: 'Esubalew',
+    navItems: [
+      { id: 'home', label: 'Home', sectionId: 'home', order: 1, visible: true },
+      { id: 'about', label: 'About', sectionId: 'about', order: 2, visible: true },
+      { id: 'skills', label: 'Skills', sectionId: 'skills', order: 3, visible: true },
+      { id: 'projects', label: 'Work', sectionId: 'projects', order: 4, visible: true },
+      { id: 'experience', label: 'Timeline', sectionId: 'experience', order: 5, visible: true },
+      { id: 'contact', label: 'Contact', sectionId: 'contact', order: 6, visible: true },
+    ],
+  },
   resume: {
     url: '/resume.pdf',
     title: 'Resume',
@@ -206,6 +305,7 @@ export const defaultContent = {
   footer: {
     copyright: 'All rights reserved.',
     text: 'Built with care and shipped to production.',
+    attribution: 'Built with React + Three.js',
   },
   seo: {
     title: 'Esubalew Molla | Full Stack Developer',
@@ -322,6 +422,13 @@ export function mapBackendContent(raw) {
       titles: data.hero?.titles?.length ? data.hero.titles : defaultContent.hero.titles,
       description: data.hero?.description || defaultContent.hero.description,
       available: typeof data.hero?.available === 'boolean' ? data.hero.available : defaultContent.hero.available,
+      metrics: Array.isArray(data.hero?.metrics) && data.hero.metrics.length > 0
+        ? data.hero.metrics
+        : defaultContent.hero.metrics,
+      availabilityBanner: {
+        ...defaultContent.hero.availabilityBanner,
+        ...(data.hero?.availabilityBanner || {}),
+      },
       cta: {
         primary: {
           ...defaultContent.hero.cta.primary,
@@ -336,11 +443,20 @@ export function mapBackendContent(raw) {
     about: {
       ...defaultContent.about,
       ...data.about,
+      dossierRef: data.about?.dossierRef || defaultContent.about.dossierRef,
+      clearanceLevel: data.about?.clearanceLevel || defaultContent.about.clearanceLevel,
+      personnelId: data.about?.personnelId || defaultContent.about.personnelId,
       description: data.about?.description || defaultContent.about.description,
       image: data.about?.image || defaultContent.about.image,
       stats: Array.isArray(data.about?.stats) && data.about.stats.length
         ? data.about.stats
         : defaultContent.about.stats,
+      competencies: Array.isArray(data.about?.competencies) && data.about.competencies.length > 0
+        ? data.about.competencies
+        : defaultContent.about.competencies,
+      assignments: Array.isArray(data.about?.assignments) && data.about.assignments.length > 0
+        ? data.about.assignments
+        : defaultContent.about.assignments,
     },
     skills: {
       ...defaultContent.skills,
@@ -348,6 +464,13 @@ export function mapBackendContent(raw) {
       categories: Array.isArray(data.skills?.categories)
         ? data.skills.categories
         : defaultContent.skills.categories,
+    },
+    projectsSection: {
+      ...defaultContent.projectsSection,
+      ...(data.projectsSection || {}),
+      filters: Array.isArray(data.projectsSection?.filters) && data.projectsSection.filters.length > 0
+        ? data.projectsSection.filters
+        : defaultContent.projectsSection.filters,
     },
     experience: {
       ...defaultContent.experience,
@@ -366,8 +489,19 @@ export function mapBackendContent(raw) {
       email: data.contactInfo?.email || defaultContent.contactInfo.email,
       phone: data.contactInfo?.phone || defaultContent.contactInfo.phone,
       location: data.contactInfo?.location || defaultContent.contactInfo.location,
+      wizard: {
+        ...defaultContent.contactInfo.wizard,
+        ...(data.contactInfo?.wizard || {}),
+      },
     },
     socialLinks: resolvedSocialLinks,
+    navbar: {
+      ...defaultContent.navbar,
+      ...(data.navbar || {}),
+      navItems: Array.isArray(data.navbar?.navItems) && data.navbar.navItems.length > 0
+        ? data.navbar.navItems
+        : defaultContent.navbar.navItems,
+    },
     resume: {
       ...defaultContent.resume,
       ...data.resume,
@@ -383,6 +517,7 @@ export function mapBackendContent(raw) {
       ...data.footer,
       copyright: data.footer?.copyright || defaultContent.footer.copyright,
       text: data.footer?.copyright || defaultContent.footer.text,
+      attribution: data.footer?.attribution || defaultContent.footer.attribution,
     },
     testimonials: (
       (Array.isArray(data.testimonials) && data.testimonials.length > 0

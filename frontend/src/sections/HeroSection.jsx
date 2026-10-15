@@ -346,7 +346,8 @@ export const HeroSection = () => {
     'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
-  const role = useTypewriter(TYPEWRITER_ROLES, 70, 35, 2400);
+  const heroTitles = Array.isArray(hero?.titles) && hero.titles.length > 0 ? hero.titles : TYPEWRITER_ROLES;
+  const role = useTypewriter(heroTitles, 70, 35, 2400);
 
   // Mount canvas after first paint
   useEffect(() => {
@@ -534,10 +535,23 @@ export const HeroSection = () => {
               transition: 'border-color 0.3s ease',
             }}
           >
-            <MetricChip value="3+" label="Years building" delay={1.2} isDarkMode={isDarkMode} />
-            <MetricChip value="15+" label="Systems shipped" delay={1.3} isDarkMode={isDarkMode} />
-            <MetricChip value="3" label="Production stacks" delay={1.4} isDarkMode={isDarkMode} />
-            <MetricChip value="2FA" label="Auth architecture" delay={1.5} isDarkMode={isDarkMode} />
+            {(Array.isArray(hero?.metrics) && hero.metrics.length > 0
+              ? hero.metrics.filter((m) => m.visible !== false)
+              : [
+                  { id: 'm-1', value: '3+', label: 'Years building' },
+                  { id: 'm-2', value: '15+', label: 'Systems shipped' },
+                  { id: 'm-3', value: '3', label: 'Production stacks' },
+                  { id: 'm-4', value: '2FA', label: 'Auth architecture' },
+                ]
+            ).map((metric, idx) => (
+              <MetricChip
+                key={metric.id || metric._id || idx}
+                value={metric.value}
+                label={metric.label}
+                delay={1.2 + idx * 0.1}
+                isDarkMode={isDarkMode}
+              />
+            ))}
           </motion.div>
 
           {/* ── Official Tech Stack Badges ── */}

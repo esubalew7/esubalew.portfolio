@@ -59,6 +59,40 @@ const HeroEditor = () => {
     update({ ...hero, cta });
   };
 
+  const handleAddMetric = () => {
+    const metrics = [
+      ...(hero.metrics || []),
+      { id: `metric-${Date.now()}`, value: '', label: '', suffix: '', order: (hero.metrics?.length || 0) + 1, visible: true },
+    ];
+    update({ ...hero, metrics });
+  };
+
+  const handleRemoveMetric = (index) => {
+    const metrics = (hero.metrics || []).filter((_, i) => i !== index);
+    update({ ...hero, metrics });
+  };
+
+  const handleMetricChange = (index, field, value) => {
+    const metrics = (hero.metrics || []).map((m, i) => (i === index ? { ...m, [field]: value } : m));
+    update({ ...hero, metrics });
+  };
+
+  const handleBannerChange = (field, value) => {
+    const availabilityBanner = {
+      badgeText: 'Available for freelance',
+      subText: 'Response time < 24h',
+      buttonText: 'Book a Call',
+      buttonLink: '#contact',
+      bookedBadgeText: 'Currently booked',
+      bookedSubText: 'Accepting inquiries for next quarter',
+      bookedButtonText: 'Inquire',
+      visible: true,
+      ...(hero.availabilityBanner || {}),
+      [field]: value,
+    };
+    update({ ...hero, availabilityBanner });
+  };
+
   return (
     <div className="max-w-4xl">
       <SectionHeader
@@ -69,6 +103,22 @@ const HeroEditor = () => {
       />
 
       <Card className="space-y-6">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700/50">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Freelance Availability</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Toggle live availability status badge across portfolio</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hero.available !== false}
+              onChange={(e) => update({ ...hero, available: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
+          </label>
+        </div>
+
         <FormInput
           label="Greeting"
           value={hero.greeting || ''}
@@ -84,11 +134,6 @@ const HeroEditor = () => {
           value={hero.image || ''}
           onChange={(url) => update({ ...hero, image: url })}
         />
-       {/* <ImageUploader
-          label="Background Image"
-          value={hero.backgroundImage || ''}
-          onChange={(url) => update({ ...hero, backgroundImage: url })}
-        /> */}
         <FormInput
           label="Description"
           textarea
@@ -134,6 +179,123 @@ const HeroEditor = () => {
               </button>
             </div>
           ))}
+        </div>
+
+        {/* ── Metric Chips ── */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Hero Metric Chips</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Key highlight counters displayed under hero CTAs</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddMetric}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Metric
+            </button>
+          </div>
+          {(hero.metrics || []).map((metric, index) => (
+            <div
+              key={metric.id || index}
+              className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700/50 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Metric {index + 1}
+                </span>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-500 flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={metric.visible !== false}
+                      onChange={(e) => handleMetricChange(index, 'visible', e.target.checked)}
+                      className="rounded text-blue-600"
+                    />
+                    Visible
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMetric(index)}
+                    className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormInput
+                  label="Display Value (e.g. 3+, 15+, 2FA)"
+                  value={metric.value || ''}
+                  onChange={(e) => handleMetricChange(index, 'value', e.target.value)}
+                />
+                <FormInput
+                  label="Label (e.g. Years building, Systems shipped)"
+                  value={metric.label || ''}
+                  onChange={(e) => handleMetricChange(index, 'label', e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Availability Ticker Configuration ── */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Top Availability Ticker</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Top notification bar with pulse indicator and quick CTA</p>
+            </div>
+            <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hero.availabilityBanner?.visible !== false}
+                onChange={(e) => handleBannerChange('visible', e.target.checked)}
+                className="rounded text-blue-600"
+              />
+              Show Ticker
+            </label>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="Available Badge Text"
+              value={hero.availabilityBanner?.badgeText || ''}
+              placeholder="Available for freelance"
+              onChange={(e) => handleBannerChange('badgeText', e.target.value)}
+            />
+            <FormInput
+              label="Available Subtext"
+              value={hero.availabilityBanner?.subText || ''}
+              placeholder="Response time < 24h"
+              onChange={(e) => handleBannerChange('subText', e.target.value)}
+            />
+            <FormInput
+              label="Available Button Text"
+              value={hero.availabilityBanner?.buttonText || ''}
+              placeholder="Book a Call"
+              onChange={(e) => handleBannerChange('buttonText', e.target.value)}
+            />
+            <FormInput
+              label="Button Target Link"
+              value={hero.availabilityBanner?.buttonLink || ''}
+              placeholder="#contact"
+              onChange={(e) => handleBannerChange('buttonLink', e.target.value)}
+            />
+            <FormInput
+              label="Booked Badge Text"
+              value={hero.availabilityBanner?.bookedBadgeText || ''}
+              placeholder="Currently booked"
+              onChange={(e) => handleBannerChange('bookedBadgeText', e.target.value)}
+            />
+            <FormInput
+              label="Booked Subtext"
+              value={hero.availabilityBanner?.bookedSubText || ''}
+              placeholder="Accepting inquiries for next quarter"
+              onChange={(e) => handleBannerChange('bookedSubText', e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">

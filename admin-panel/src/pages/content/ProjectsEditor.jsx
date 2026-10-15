@@ -63,6 +63,40 @@ const DashboardProjects = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  // Section Headers CMS State
+  const [sectionHeaders, setSectionHeaders] = useState({
+    eyebrow: 'Selected Work',
+    title: "What I've built\nfor production.",
+    subtitle: 'Production-grade applications architected for reliability, sub-100ms API response times, and resilient state synchronization.',
+  });
+  const [savingHeaders, setSavingHeaders] = useState(false);
+  const [showHeaderSettings, setShowHeaderSettings] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/content').then((res) => {
+      const data = res?.data?.data || res?.data;
+      if (data?.projectsSection) {
+        setSectionHeaders({
+          eyebrow: data.projectsSection.eyebrow || 'Selected Work',
+          title: data.projectsSection.title || "What I've built\nfor production.",
+          subtitle: data.projectsSection.subtitle || '',
+        });
+      }
+    }).catch((err) => console.warn('Failed to load project section settings:', err));
+  }, []);
+
+  const handleSaveHeaders = async () => {
+    setSavingHeaders(true);
+    try {
+      await api.put('/api/content', { projectsSection: sectionHeaders });
+      showToast('Section headers updated successfully!');
+    } catch (err) {
+      showToast(err.message || 'Failed to save section headers.', 'error');
+    } finally {
+      setSavingHeaders(false);
+    }
+  };
+
   // Sync external errors to toasts
   useEffect(() => {
     if (projectsError) showToast(projectsError, 'error');
@@ -270,6 +304,37 @@ const DashboardProjects = () => {
           </>
         }
       />
+
+      {/* Section Header Controls */}
+      <div className="mb-6 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Section Heading & Eyebrow</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Customize the eyebrow tag and H2 title displayed on the public portfolio</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleSaveHeaders}
+            disabled={savingHeaders}
+          >
+            {savingHeaders ? 'Saving...' : 'Save Section Header'}
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="Eyebrow Tag"
+            value={sectionHeaders.eyebrow}
+            placeholder="Selected Work"
+            onChange={(e) => setSectionHeaders((prev) => ({ ...prev, eyebrow: e.target.value }))}
+          />
+          <FormInput
+            label="Section Title"
+            value={sectionHeaders.title}
+            placeholder="What I've built for production."
+            onChange={(e) => setSectionHeaders((prev) => ({ ...prev, title: e.target.value }))}
+          />
+        </div>
+      </div>
 
       {viewMode === 'table' ? (
         <DashboardTable 

@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useTexture, Float } from '@react-three/drei';
 import { useProjects } from '../context/ProjectContext';
 import { useTheme } from '../context/ThemeContext';
+import { useContentStore } from '../store/contentStore';
 import { useTrackSection } from '../hooks/useVisitorTracking';
 import { EASINGS } from '../animations/variants';
 import { getCloudinaryUrl } from '../utils/cloudinary';
@@ -275,7 +276,7 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
 }
 
 // ─── Sticky Filter Dock ──────────────────────────────────────────────────────
-function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalCount, isDarkMode }) {
+function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalCount, isDarkMode, filters = FILTERS }) {
   const [dockVisible, setDockVisible] = useState(true);
   const lastScrollYRef = useRef(0);
 
@@ -317,7 +318,7 @@ function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalC
 
         {/* RIGHT: Filter chips row */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar flex-nowrap py-1">
-          {FILTERS.map((chip) => {
+          {filters.map((chip) => {
             const isActive = activeFilter === chip.value;
             return (
               <button
@@ -640,7 +641,32 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
 }
 
 // ─── Section Header Component ────────────────────────────────────────────────
-function SectionHeader({ totalCount }) {
+function SectionHeader({ totalCount, eyebrow, title }) {
+  const displayEyebrow = eyebrow || 'Selected Work';
+
+  const renderTitle = () => {
+    if (!title) {
+      return (
+        <>
+          <span className="text-content-primary">What I've built</span>
+          <br />
+          <span className="text-content-secondary">for production.</span>
+        </>
+      );
+    }
+    const parts = title.split('\n');
+    if (parts.length > 1) {
+      return (
+        <>
+          <span className="text-content-primary">{parts[0]}</span>
+          <br />
+          <span className="text-content-secondary">{parts.slice(1).join(' ')}</span>
+        </>
+      );
+    }
+    return <span className="text-content-primary">{title}</span>;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-20 pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
@@ -649,13 +675,11 @@ function SectionHeader({ totalCount }) {
           <div className="flex items-center gap-3 mb-3">
             <div className="w-7 h-px bg-accent" />
             <span className="font-code text-[11px] tracking-[0.18em] uppercase text-accent">
-              Selected Work
+              {displayEyebrow}
             </span>
           </div>
           <h2 className="font-sans font-extrabold text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.0] tracking-tight">
-            <span className="text-content-primary">What I've built</span>
-            <br />
-            <span className="text-content-secondary">for production.</span>
+            {renderTitle()}
           </h2>
         </div>
 
@@ -707,6 +731,8 @@ function EmptyState() {
 export const ProjectsSection = () => {
   const { projects, loading, error } = useProjects();
   const { isDarkMode } = useTheme();
+  const { content } = useContentStore();
+  const projectsSection = content?.projectsSection;
   useTrackSection?.('projects');
 
   const [activeFilter, setActiveFilter] = useState('all');
@@ -720,6 +746,16 @@ export const ProjectsSection = () => {
       activeFilter === 'all' ||
       (p.category || '').toLowerCase().trim() === activeFilter
   );
+
+  const dynamicFilters = useMemo(() => {
+    if (Array.isArray(projectsSection?.filters) && projectsSection.filters.length > 0) {
+      return projectsSection.filters.map((f) => ({
+        label: f.label,
+        value: (f.id || f.label).toLowerCase().trim(),
+      }));
+    }
+    return FILTERS;
+  }, [projectsSection?.filters]);
 
   // Section-level intersection observer to show/hide fixed ProgressRail
   useEffect(() => {
@@ -752,7 +788,11 @@ export const ProjectsSection = () => {
       />
 
       {/* Section Header */}
-      <SectionHeader totalCount={safeProjects.length} />
+      <SectionHeader
+        totalCount={safeProjects.length}
+        eyebrow={projectsSection?.eyebrow}
+        title={projectsSection?.title}
+      />
 
       {/* Sticky Filter Dock */}
       <StickyFilterDock
@@ -761,6 +801,7 @@ export const ProjectsSection = () => {
         filteredCount={filteredProjects.length}
         totalCount={safeProjects.length}
         isDarkMode={isDarkMode}
+        filters={dynamicFilters}
       />
 
       {/* Loading State */}

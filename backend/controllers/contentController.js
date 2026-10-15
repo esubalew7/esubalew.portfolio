@@ -37,88 +37,176 @@ const getDefaultContent = () => ({
   },
   footer: {
     copyright: "All rights reserved.",
+    attribution: "Built with React + Three.js",
     socials: SOCIAL_PLATFORMS_DEFAULT,
   },
   hero: {
     greeting: "Hello, I am",
-    name: "Esubalew",
+    name: "Esubalew Molla",
     titles: [
-      "MERN Stack Developer.",
-      "Problem Solver.",
-      "Creative Thinker.",
-      "React Enthusiast.",
+      "Full Stack Engineer.",
+      "System Architect.",
+      "MERN Specialist.",
+      "Distributed Systems.",
+      "Real-Time Platforms.",
     ],
     description:
-      "I am a Computer Science student and MERN Stack Developer with a passion for building dynamic web applications. I specialize in creating seamless user experiences and robust backend systems. Let's build something amazing together!",
-    image: "/images/esu2.png",
+      "Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.",
+    image: "/images/esu.png",
     backgroundImage: "",
+    available: true,
+    availabilityBanner: {
+      visible: true,
+      badgeText: "AVAILABLE FOR FREELANCE",
+      subText: "RESPONSE TIME < 24H",
+      buttonText: "BOOK A CALL",
+      buttonLink: "#contact",
+    },
+    metrics: [
+      { id: "hm-1", value: "3+", label: "Years building", suffix: "", order: 1, visible: true },
+      { id: "hm-2", value: "15+", label: "Systems shipped", suffix: "", order: 2, visible: true },
+      { id: "hm-3", value: "3", label: "Production stacks", suffix: "", order: 3, visible: true },
+      { id: "hm-4", value: "2FA", label: "Auth architecture", suffix: "", order: 4, visible: true },
+    ],
     cta: {
-      primary: { text: "View Projects", link: "#projects" },
-      secondary: { text: "Download Resume", link: "/resume.pdf" },
+      primary: { text: "Selected Work", link: "#projects" },
+      secondary: { text: "Download CV", link: "/resume.pdf" },
     },
   },
   about: {
     title: "About Me",
-    subtitle: "Computer Science Student & MERN Stack Developer",
+    subtitle: "Full Stack Engineer & 3rd-year CS Student at Bahir Dar University",
     description:
-      "I am a third-year Computer Science student passionate about full-stack development. My expertise lies in the MERN stack, where I focus on building robust applications with clean architecture and scalable design patterns. I thrive on solving complex problems and turning ideas into seamless digital experiences.",
-    image: "/images/esu3.png",
+      "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards. My approach is architecture first: I think in event flows, caching layers, and separation of concerns before writing the first line of code. The result is software that scales and doesn't break at 3 AM.",
+    image: "/images/esu.png",
+    dossierRef: "Ref: ESU-2024",
+    clearanceLevel: "Senior Engineer",
+    personnelId: "ID: ESU-001",
     stats: [
-      { label: "Years Experience", value: 1, suffix: "+" },
-      { label: "Total Projects", value: 5, suffix: "+" },
-      { label: "Core Skills", value: 15, suffix: "+" },
+      { label: "Years of production code", value: 3, suffix: "+" },
+      { label: "Systems Shipped", value: 15, suffix: "+" },
+      { label: "Live production stacks", value: 3, suffix: "" },
     ],
-    cta: { text: "Let's Collaborate", link: "#contact" },
+    competencies: [
+      "MERN Stack", "PERN Stack", "Flutter", "Node.js", "React", "TypeScript",
+      "PostgreSQL", "MongoDB", "Docker", "Socket.IO", "REST API", "Microservices",
+      "NestJS", "Redis", "RabbitMQ", "JWT Auth", "2FA", "Swagger", "Postman", "Git"
+    ].map((name, i) => ({ id: `comp-${i + 1}`, name, order: i + 1, visible: true })),
+    assignments: [
+      {
+        id: "asgn-1",
+        organization: "Askuala Link Software Co.",
+        role: "Frontend Developer Intern",
+        period: "2024 — Present",
+        status: "Active",
+        order: 1,
+        visible: true,
+      },
+      {
+        id: "asgn-2",
+        organization: "Bahir Dar University",
+        role: "B.Sc. Computer Science",
+        period: "2022 — Present",
+        status: "Active",
+        order: 2,
+        visible: true,
+      },
+    ],
+    cta: { text: "Start a Conversation", link: "#contact" },
   },
   skills: {
-    title: "Core Skills",
-    subtitle:
-      "A comprehensive overview of my technical expertise across modern web development, backend engineering, and foundational tooling.",
+    title: "Technical Arsenal",
+    subtitle: "The stack I ship to production.",
     categories: [
       {
         name: "Frontend",
+        orbit: "orbit-1",
         items: [
-          { name: "HTML", level: 95 },
-          { name: "CSS", level: 90 },
-          { name: "JavaScript", level: 85 },
-          { name: "Bootstrap", level: 80 },
-          { name: "Tailwind CSS", level: 95 },
-          { name: "React", level: 90 },
+          { id: "sk-1", name: "JavaScript", level: "Advanced", exp: "3+ yrs", orbit: "orbit-1", category: "Core Language", description: "Modern ES2024+ JavaScript powering responsive applications and async pipelines.", tags: ["ESNext", "Async/Await", "DOM", "Performance"], iconSlug: "javascript", order: 1, visible: true },
+          { id: "sk-2", name: "TypeScript", level: "Advanced", exp: "2+ yrs", orbit: "orbit-1", category: "Full-Stack Type System", description: "Enterprise typed JavaScript ensuring compile-time contracts, strict types, and robust refactoring.", tags: ["Type Safety", "Generics", "Interfaces", "Strict Mode"], iconSlug: "typescript", order: 2, visible: true },
+          { id: "sk-3", name: "React", level: "Advanced", exp: "3+ yrs", orbit: "orbit-1", category: "Frontend UI Library", description: "Building interactive, scalable user interfaces using component-driven architecture.", tags: ["React 19", "Hooks", "SPA", "Vite", "Component UI"], iconSlug: "react", order: 3, visible: true },
+          { id: "sk-4", name: "Next.js", level: "Advanced", exp: "1+ yr", orbit: "orbit-1", category: "Full-Stack React Framework", description: "Production React framework for high-performance SSR, Server Components, and edge rendering.", tags: ["App Router", "SSR", "Server Actions", "Edge API"], iconSlug: "nextdotjs", order: 4, visible: true },
+          { id: "sk-5", name: "Tailwind CSS", level: "Advanced", exp: "2+ yrs", orbit: "orbit-1", category: "Design Systems & UI", description: "Utility-first CSS framework for building ultra-fast, responsive, and custom design systems.", tags: ["Utility CSS", "Design Tokens", "Dark Mode", "Responsive"], iconSlug: "tailwindcss", order: 5, visible: true },
         ],
       },
       {
         name: "Backend",
+        orbit: "orbit-2",
         items: [
-          { name: "Node.js", level: 80 },
-          { name: "Express.js", level: 85 },
+          { id: "sk-6", name: "Node.js", level: "Advanced", exp: "3+ yrs", orbit: "orbit-2", category: "Backend Architecture", description: "High-throughput asynchronous runtime powering distributed backends and event streams.", tags: ["Event Loop", "Streams", "Async I/O", "V8 Engine"], iconSlug: "nodedotjs", order: 1, visible: true },
+          { id: "sk-7", name: "Express", level: "Advanced", exp: "3+ yrs", orbit: "orbit-2", category: "Backend Framework", description: "Fast, minimalist server framework for scalable REST APIs, authentication, and middleware.", tags: ["REST APIs", "Middleware", "JWT Auth", "CORS"], iconSlug: "express", order: 2, visible: true },
+          { id: "sk-8", name: "NestJS", level: "Intermediate", exp: "1+ yr", orbit: "orbit-2", category: "Enterprise Microservices", description: "Structured enterprise TypeScript backend framework built on dependency injection and modules.", tags: ["Dependency Injection", "Decorators", "Microservices", "DTOs"], iconSlug: "nestjs", order: 3, visible: true },
+          { id: "sk-9", name: "Redis", level: "Intermediate", exp: "1+ yr", orbit: "orbit-2", category: "In-Memory Data Store", description: "Ultra-fast in-memory data cache for high-speed session storage, rate limiting, and pub/sub queues.", tags: ["In-Memory", "Pub/Sub", "TTL Caching", "Session Store"], iconSlug: "redis", order: 4, visible: true },
+          { id: "sk-10", name: "RabbitMQ", level: "Active Learner", exp: "< 1 yr", orbit: "orbit-2", category: "Message Broker Systems", description: "Distributed message broker orchestrating decoupled asynchronous queues and event architectures.", tags: ["AMQP", "Message Queues", "Dead Letter", "Decoupling"], iconSlug: "rabbitmq", order: 5, visible: true },
         ],
       },
       {
-        name: "Database",
+        name: "Data & Infrastructure",
+        orbit: "orbit-3",
         items: [
-          { name: "MongoDB", level: 85 },
-          { name: "mySQL", level: 50 },
-          { name: "Firebase", level: 60 },
+          { id: "sk-11", name: "MongoDB", level: "Advanced", exp: "3+ yrs", orbit: "orbit-3", category: "NoSQL Database", description: "Scalable document database with aggregation pipelines, compound indices, and geospatial querying.", tags: ["Aggregation", "Indexing", "Mongoose", "GeoJSON"], iconSlug: "mongodb", order: 1, visible: true },
+          { id: "sk-12", name: "PostgreSQL", level: "Advanced", exp: "2+ yrs", orbit: "orbit-3", category: "Relational Database", description: "Advanced relational database management with strict ACID compliance, relational schemas, and complex joins.", tags: ["Relational", "ACID", "SQL Joins", "Indexing"], iconSlug: "postgresql", order: 2, visible: true },
+          { id: "sk-13", name: "Docker", level: "Intermediate", exp: "1+ yr", orbit: "orbit-3", category: "Containerization & DevOps", description: "Lightweight container virtualization standardizing isolated multi-service development and production setups.", tags: ["Containers", "Images", "Docker Compose", "Multi-Stage"], iconSlug: "docker", order: 3, visible: true },
+          { id: "sk-14", name: "Microservices", level: "Intermediate", exp: "1+ yr", orbit: "orbit-3", category: "Distributed Architecture", description: "Decoupled domain-driven service architecture with independent deployment cycles and fault isolation.", tags: ["Event-Driven", "API Gateway", "Service Mesh", "Fault Isolation"], iconSlug: "microservices", order: 4, visible: true },
         ],
       },
       {
-        name: "Programming",
+        name: "Mobile & Tools",
+        orbit: "orbit-4",
         items: [
-          { name: "C++", level: 55 },
-          { name: "Java", level: 55 },
-          { name: "Flutter", level: 65 },
-          { name: "PHP", level: 55 },
-        ],
-      },
-      {
-        name: "Tools",
-        items: [
-          { name: "Git", level: 85 },
-          { name: "GitHub", level: 90 },
-          { name: "Postman", level: 85 },
+          { id: "sk-15", name: "Flutter", level: "Intermediate", exp: "1+ yr", orbit: "orbit-4", category: "Cross-Platform Mobile UI", description: "High-performance cross-platform mobile framework compiling to native ARM binaries for iOS and Android.", tags: ["Dart", "State Management", "Cross-Platform", "Mobile UI"], iconSlug: "flutter", order: 1, visible: true },
+          { id: "sk-16", name: "Git", level: "Advanced", exp: "3+ yrs", orbit: "orbit-4", category: "Version Control & Collaboration", description: "Distributed source control for branching workflows, code reviews, and automated CI/CD deployments.", tags: ["VCS", "GitHub", "Branching", "Gitflow"], iconSlug: "git", order: 2, visible: true },
+          { id: "sk-17", name: "Postman", level: "Advanced", exp: "3+ yrs", orbit: "orbit-4", category: "API Testing & Automation", description: "Comprehensive API client for testing request payloads, running integration suites, and mocking responses.", tags: ["REST Testing", "Automation", "Collections", "Mock Servers"], iconSlug: "postman", order: 3, visible: true },
+          { id: "sk-18", name: "Swagger", level: "Advanced", exp: "2+ yrs", orbit: "orbit-4", category: "API Documentation & OpenAPI", description: "Interactive OpenAPI specifications facilitating team contract testing, documentation, and client generation.", tags: ["OpenAPI 3.0", "API Docs", "Contracts", "Interactive Testing"], iconSlug: "swagger", order: 4, visible: true },
         ],
       },
     ],
+  },
+  projectsSection: {
+    eyebrow: "Selected Work",
+    title: "What I've built\nfor production.",
+    subtitle: "",
+    filters: [
+      { id: "all", label: "All", order: 1 },
+      { id: "mern", label: "MERN", order: 2 },
+      { id: "frontend", label: "Frontend", order: 3 },
+      { id: "backend", label: "Backend", order: 4 },
+      { id: "mobile", label: "Mobile", order: 5 },
+    ],
+  },
+  contactInfo: {
+    email: "esubalew392@gmail.com",
+    phone: "+251 915795794",
+    location: "Bahir Dar, Ethiopia",
+    formTitle: "Get in touch",
+    formDescription:
+      "I'm currently available for freelance work or full-time opportunities. Reach out via the form or any of the methods below.",
+    formButtonText: "Send Message",
+    successMessage:
+      "Thank you! Your message has been sent successfully.",
+    wizard: {
+      steps: [
+        { stepNumber: 1, title: "Project Scope", description: "What type of system are we building?" },
+        { stepNumber: 2, title: "Your Identity", description: "Who should I address the proposal to?" },
+        { stepNumber: 3, title: "Timeline & Launch", description: "When do you need the platform deployed?" },
+      ],
+      projectTypes: [
+        { value: "fullstack", title: "Full-Stack Web App", desc: "React, Node, MongoDB/Postgres, Cloud" },
+        { value: "backend", title: "Backend / Microservices", desc: "REST APIs, Socket.IO, DB schema, 2FA" },
+        { value: "mobile", title: "Mobile Application", desc: "Cross-platform Flutter iOS & Android" },
+        { value: "contract", title: "Senior Contract Engineer", desc: "Embedded in existing engineering sprint" },
+      ],
+      timelines: [
+        { value: "immediate", title: "< 2 Weeks", desc: "Fast turnaround or immediate start" },
+        { value: "month", title: "1 — 2 Months", desc: "Standard production build" },
+        { value: "quarter", title: "3+ Months", desc: "Long-term platform architecture" },
+        { value: "flexible", title: "Flexible", desc: "Timeline depends on design scope" },
+      ],
+      submitButtonText: "Send Brief",
+      submittingButtonText: "Dispatching brief...",
+      responseTimeText: "Response within 4 hours",
+      privacyText: "Your data is never shared",
+    },
   },
   experience: {
     title: "Where I've built\nreal systems.",
@@ -439,6 +527,85 @@ const ensureExperienceAndCertificates = async (content) => {
   }
 };
 
+const ensureAllContentDefaults = async (content) => {
+  let modified = false;
+  const defaults = getDefaultContent();
+
+  // 1. Hero metrics & availabilityBanner
+  if (!content.hero) {
+    content.hero = defaults.hero;
+    modified = true;
+  } else {
+    if (!Array.isArray(content.hero.metrics) || content.hero.metrics.length === 0) {
+      content.hero.metrics = defaults.hero.metrics;
+      modified = true;
+    }
+    if (!content.hero.availabilityBanner || !content.hero.availabilityBanner.badgeText) {
+      content.hero.availabilityBanner = defaults.hero.availabilityBanner;
+      modified = true;
+    }
+    if (!Array.isArray(content.hero.titles) || content.hero.titles.length === 0) {
+      content.hero.titles = defaults.hero.titles;
+      modified = true;
+    }
+  }
+
+  // 2. About competencies, assignments, dossierRef
+  if (!content.about) {
+    content.about = defaults.about;
+    modified = true;
+  } else {
+    if (!Array.isArray(content.about.competencies) || content.about.competencies.length === 0) {
+      content.about.competencies = defaults.about.competencies;
+      modified = true;
+    }
+    if (!Array.isArray(content.about.assignments) || content.about.assignments.length === 0) {
+      content.about.assignments = defaults.about.assignments;
+      modified = true;
+    }
+    if (!content.about.dossierRef) {
+      content.about.dossierRef = defaults.about.dossierRef;
+      content.about.clearanceLevel = defaults.about.clearanceLevel;
+      content.about.personnelId = defaults.about.personnelId;
+      modified = true;
+    }
+  }
+
+  // 3. Skills: enrich categories if missing orbital tags
+  if (!content.skills || !Array.isArray(content.skills.categories) || content.skills.categories.length === 0 || !content.skills.categories.some(c => c.orbit || c.name === 'Frontend')) {
+    content.skills = defaults.skills;
+    modified = true;
+  }
+
+  // 4. ProjectsSection
+  if (!content.projectsSection || !content.projectsSection.title) {
+    content.projectsSection = defaults.projectsSection;
+    modified = true;
+  }
+
+  // 5. Contact wizard
+  if (!content.contactInfo) {
+    content.contactInfo = defaults.contactInfo;
+    modified = true;
+  } else if (!content.contactInfo.wizard || !Array.isArray(content.contactInfo.wizard.projectTypes) || content.contactInfo.wizard.projectTypes.length === 0) {
+    content.contactInfo.wizard = defaults.contactInfo.wizard;
+    modified = true;
+  }
+
+  // 6. Footer attribution
+  if (!content.footer) {
+    content.footer = defaults.footer;
+    modified = true;
+  } else if (!content.footer.attribution) {
+    content.footer.attribution = defaults.footer.attribution;
+    modified = true;
+  }
+
+  if (modified) {
+    await content.save();
+  }
+};
+
 export const getContent = async (req, res) => {
   try {
     let content = await PortfolioContent.findOne();
@@ -448,6 +615,7 @@ export const getContent = async (req, res) => {
     } else {
       await migrateFooterSocials(content);
       await ensureExperienceAndCertificates(content);
+      await ensureAllContentDefaults(content);
     }
 
     let isAdmin = false;
@@ -557,7 +725,7 @@ export const updateContent = async (req, res) => {
     }
 
     const allowedFields = [
-      "sections", "navbar", "footer", "hero", "about", "skills", "experience",
+      "sections", "navbar", "footer", "hero", "about", "skills", "projectsSection", "experience",
       "certificates", "testimonials", "socialLinks", "resume", "contactInfo",
       "terminal", "seo",
     ];
