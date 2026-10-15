@@ -80,6 +80,9 @@ const Verify2FA = () => {
       });
 
       if (data.success) {
+        if (data.token) {
+          localStorage.setItem('admin_token', data.token);
+        }
         setIsSuccess(true);
         setTimeout(() => {
           navigate(from, { replace: true });

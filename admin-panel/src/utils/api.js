@@ -3,10 +3,10 @@ import axios from 'axios';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === "development"
-    ? "http://localhost:5000"
+    ? "http://127.0.0.1:5000"
     : "https://portfolio-backend-gxhv.onrender.com");
 
-// Axios instance configured for HttpOnly cookie auth.
+// Axios instance configured for HttpOnly cookie auth + Bearer token fallback.
 // withCredentials: true ensures the cookie is sent cross-origin.
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,13 +24,16 @@ const normalizeError = (error) => {
   };
 };
 
-// Request interceptor — no longer attaches a Bearer token from localStorage.
-// The JWT is sent automatically via the HttpOnly cookie.
+// Request interceptor — attaches Bearer token from localStorage if present
 api.interceptors.request.use(
   (config) => {
     // If sending FormData, let axios set the correct Content-Type with boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
+    }
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -43,9 +46,9 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response ? error.response.status : null;
 
-    // On 401, redirect to login (token missing, expired, or invalid).
-    // The HttpOnly cookie is managed entirely by the server.
-    if (status === 401) {
+    // On 401, redirect to login (only if not already on /login to avoid refresh loops)
+    if (status === 401 && window.location.pathname !== '/login') {
+      localStorage.removeItem('admin_token');
       window.location.href = '/login';
     }
 

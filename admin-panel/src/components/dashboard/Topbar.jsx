@@ -103,6 +103,7 @@ const Topbar = ({ onMenuClick, unreadCount: propUnreadCount, admin }) => {
     } catch {
       // navigate regardless
     }
+    localStorage.removeItem('admin_token');
     navigate('/login');
   };
 

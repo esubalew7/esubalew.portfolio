@@ -10,9 +10,13 @@ import jwt from "jsonwebtoken";
 const protect = (req, res, next) => {
     try {
         // -------------------------------
-        // GET TOKEN FROM HTTPONLY COOKIE
+        // GET TOKEN FROM HTTPONLY COOKIE OR BEARER HEADER
         // -------------------------------
-        const token = req.cookies?.token;
+        let token = req.cookies?.token;
+
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+            token = req.headers.authorization.split(" ")[1];
+        }
 
         // -------------------------------
         // IF TOKEN NOT FOUND

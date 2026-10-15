@@ -105,6 +105,7 @@ const Sidebar = ({ open, onClose, admin }) => {
     } catch {
       // navigate regardless
     }
+    localStorage.removeItem('admin_token');
     navigate('/login');
   };
 
