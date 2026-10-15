@@ -554,7 +554,26 @@ body::before {
   }
 }
 
+/* ── Contact Section — Direct Channels ─────────── */
+.bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.08);
+}
 
+.contact-input::placeholder {
+  color: var(--content-muted);
+  opacity: 0.6;
+}
+.contact-input:focus {
+  outline: none;
+}
+.contact-textarea::placeholder {
+  color: var(--content-muted);
+  opacity: 0.5;
+}
+.contact-textarea:focus {
+  outline: none;
+}
 
-
-
+@media (prefers-reduced-motion: reduce) {
+  .contact-tile { transform: none !important; }
+}
