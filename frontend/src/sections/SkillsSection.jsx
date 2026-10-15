@@ -1306,8 +1306,12 @@ export const SkillsSection = () => {
         }
       });
 
+      const hasAnyCmsSkills = Object.values(orbitMap).some((o) => o.skills.length > 0);
+
       orbits = Object.values(orbitMap).map((orbit) => {
-        const skills = orbit.skills.length > 0 ? orbit.skills : ORBIT_CONFIGS.find((o) => o.id === orbit.id)?.skills || [];
+        const skills = hasAnyCmsSkills
+          ? orbit.skills
+          : (ORBIT_CONFIGS.find((o) => o.id === orbit.id)?.skills || []);
         const baseOffset = BASE_ORBIT_PARAMS[orbit.id]?.baseOffset ?? 0;
         const count = skills.length;
         const angles = skills.map((_, i) => Math.round((baseOffset + (i * (360 / (count || 1)))) % 360));

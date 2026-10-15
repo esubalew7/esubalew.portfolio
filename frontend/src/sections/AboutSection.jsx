@@ -167,7 +167,7 @@ function PersonnelFileBar({ available = true, dossierRef, clearanceLevel }) {
 /**
  * Photo with dossier corner brackets and watermark file stamp
  */
-function PhotoBlock({ image, name, isDarkMode }) {
+function PhotoBlock({ image, name, isDarkMode, clearanceLevel, personnelId }) {
   const photoSrc = getCloudinaryUrl(image, {
     fallback: '/images/esu.png',
     width: 800,
@@ -237,11 +237,11 @@ function PhotoBlock({ image, name, isDarkMode }) {
               {name || 'Esubalew Molla'}
             </div>
             <div className="font-code text-[7px] text-white/50 uppercase tracking-[0.1em] mt-0.5">
-              Senior Engineer
+              {clearanceLevel || 'Senior Engineer'}
             </div>
           </div>
           <div className="font-code text-[8px] text-accent uppercase tracking-[0.1em] font-bold">
-            ID: ESU-001
+            {personnelId || 'ID: ESU-001'}
           </div>
         </div>
       </div>
@@ -252,7 +252,13 @@ function PhotoBlock({ image, name, isDarkMode }) {
 /**
  * Vertical metrics and credential table with horizontal borders
  */
-function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
+function MetricsTable({
+  stats = [],
+  location,
+  resumeUrl = '/resume.pdf',
+  education = 'Bahir Dar University',
+  academicYear = '3rd Year · CS',
+}) {
   const defaultStats = [
     { value: 3, suffix: '+', label: 'Years of production code' },
     { value: 15, suffix: '+', label: 'Systems Shipped' },
@@ -307,7 +313,7 @@ function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
             Education
           </span>
           <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            Bahir Dar University
+            {education || 'Bahir Dar University'}
           </span>
         </motion.div>
 
@@ -327,7 +333,7 @@ function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
             Year
           </span>
           <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            3rd Year · CS
+            {academicYear || '3rd Year · CS'}
           </span>
         </motion.div>
 
@@ -560,7 +566,7 @@ function AssignmentBlock({ assignments }) {
 /**
  * Left Column Container
  */
-function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
+function LeftColumn({ about, hero, contactInfo, isDarkMode, education, academicYear }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -32 }}
@@ -573,11 +579,15 @@ function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
         image={about?.image}
         name={hero?.name}
         isDarkMode={isDarkMode}
+        clearanceLevel={about?.clearanceLevel}
+        personnelId={about?.personnelId}
       />
       <MetricsTable
         stats={about?.stats}
         location={contactInfo?.location}
         resumeUrl={about?.resume?.url || '/resume.pdf'}
+        education={education}
+        academicYear={academicYear}
       />
     </motion.div>
   );
@@ -586,7 +596,7 @@ function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
 /**
  * Right Column Container
  */
-function RightColumn({ about, hero, inView, socialLinks = [] }) {
+function RightColumn({ about, hero, inView, socialLinks = [], education }) {
   const handleContactClick = (e) => {
     const link = about?.cta?.link || '#contact';
     if (link.startsWith('#')) {
@@ -616,7 +626,7 @@ function RightColumn({ about, hero, inView, socialLinks = [] }) {
     >
       {/* SECTION INDEX LABEL */}
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-accent mb-6 md:mb-8 font-semibold">
-        01 — Identity & Background
+        {about?.eyebrow || '01 — Identity & Background'}
       </div>
 
       {/* NAME BLOCK */}
@@ -631,7 +641,7 @@ function RightColumn({ about, hero, inView, socialLinks = [] }) {
           </span>
           <span className="w-1 h-1 rounded-full bg-border-strong" />
           <span className="font-code text-[10px] text-content-muted">
-            Bahir Dar University
+            {education || 'Bahir Dar University'}
           </span>
         </div>
       </div>
@@ -655,7 +665,7 @@ function RightColumn({ about, hero, inView, socialLinks = [] }) {
             boxShadow: '0 0 20px rgba(255,77,0,0.2)',
           }}
         >
-          <span>→ Start a Conversation</span>
+          <span>→ {about?.cta?.text || 'Start a Conversation'}</span>
         </a>
 
         <div className="flex items-center gap-4">
@@ -716,6 +726,24 @@ export const AboutSection = () => {
 
   const available = hero?.available ?? true;
 
+  // Resolve education institution and degree/year from CMS about.education or education assignment
+  const eduAssignment = Array.isArray(about?.assignments)
+    ? about.assignments.find((a) =>
+        /university|college|school|b\.sc|bachelor|degree|student/i.test(`${a.organization || ''} ${a.role || ''}`)
+      )
+    : null;
+
+  const resolvedEducation =
+    about?.education?.institution ||
+    eduAssignment?.organization ||
+    'Bahir Dar University';
+
+  const resolvedAcademicYear =
+    about?.education?.degree ||
+    about?.education?.year ||
+    eduAssignment?.role ||
+    '3rd Year · CS';
+
   return (
     <section
       id="about"
@@ -739,6 +767,8 @@ export const AboutSection = () => {
             hero={hero}
             contactInfo={contactInfo}
             isDarkMode={isDarkMode}
+            education={resolvedEducation}
+            academicYear={resolvedAcademicYear}
           />
           <RightColumn
             about={about}
@@ -746,6 +776,7 @@ export const AboutSection = () => {
             contactInfo={contactInfo}
             socialLinks={socialLinks}
             inView={inView}
+            education={resolvedEducation}
           />
         </div>
       </div>

@@ -126,6 +126,33 @@ const AboutEditor = () => {
           />
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700/50">
+          <FormInput
+            label="Education / Institution"
+            value={about.education?.institution || ''}
+            placeholder="e.g. Bahir Dar University"
+            onChange={(e) => update({
+              ...about,
+              education: { ...(about.education || {}), institution: e.target.value }
+            })}
+          />
+          <FormInput
+            label="Degree / Academic Status"
+            value={about.education?.degree || ''}
+            placeholder="e.g. 3rd Year · CS"
+            onChange={(e) => update({
+              ...about,
+              education: { ...(about.education || {}), degree: e.target.value }
+            })}
+          />
+        </div>
+
+        <FormInput
+          label="Section Eyebrow"
+          value={about.eyebrow || ''}
+          placeholder="01 — Identity & Background"
+          onChange={(e) => update({ ...about, eyebrow: e.target.value })}
+        />
         <FormInput
           label="Title"
           value={about.title || ''}

@@ -447,164 +447,140 @@ const syncSocialLinks = async (content) => {
   }
 };
 
-const ensureExperienceAndCertificates = async (content) => {
-  let modified = false;
+export const ensureExperienceAndCertificates = (content) => {
+  const defaults = getDefaultContent();
 
-  // 1. Ensure certificates exist
-  if (!content.certificates || content.certificates.length === 0) {
-    const defaults = getDefaultContent().certificates;
-    content.certificates = defaults;
-    modified = true;
-  } else {
+  // 1. Certificates: only populate defaults if undefined or null, NEVER overwrite empty array []
+  if (content.certificates === undefined || content.certificates === null) {
+    content.certificates = defaults.certificates;
+  } else if (Array.isArray(content.certificates)) {
     content.certificates.forEach((cert, idx) => {
       if (!cert.id && !cert._id) {
         cert.id = `cert-${idx + 1}`;
-        modified = true;
       }
       if (cert.order === undefined) {
         cert.order = idx + 1;
-        modified = true;
       }
       if (cert.published === undefined) {
         cert.published = true;
-        modified = true;
       }
     });
   }
 
-  // 2. Ensure experience metadata & items
-  if (content.experience) {
-    if (!content.experience.eyebrow) {
+  // 2. Experience metadata & categories
+  if (!content.experience) {
+    content.experience = defaults.experience;
+  } else {
+    if (content.experience.eyebrow === undefined) {
       content.experience.eyebrow = "Career Record";
-      modified = true;
     }
-    if (!content.experience.title) {
+    if (content.experience.title === undefined) {
       content.experience.title = "Where I've built\nreal systems.";
-      modified = true;
     }
-    if (!content.experience.resumeUrl) {
+    if (content.experience.resumeUrl === undefined) {
       content.experience.resumeUrl = content.resume?.url || "/resume.pdf";
-      modified = true;
+    }
+    if (content.experience.resumeText === undefined) {
+      content.experience.resumeText = "Resume";
     }
 
     if (Array.isArray(content.experience.categories)) {
       content.experience.categories.forEach((cat, catIdx) => {
         if (!cat.id && !cat._id) {
           cat.id = `cat-${catIdx + 1}`;
-          modified = true;
         }
         if (cat.order === undefined) {
           cat.order = catIdx + 1;
-          modified = true;
         }
         if (cat.published === undefined) {
           cat.published = true;
-          modified = true;
         }
 
         if (Array.isArray(cat.items)) {
           cat.items.forEach((item, itemIdx) => {
             if (!item.id && !item._id) {
               item.id = `exp-${catIdx + 1}-${itemIdx + 1}`;
-              modified = true;
             }
             if (item.order === undefined) {
               item.order = itemIdx + 1;
-              modified = true;
             }
             if (item.published === undefined) {
               item.published = true;
-              modified = true;
             }
           });
         }
       });
     }
   }
-
-  if (modified) {
-    await content.save();
-  }
 };
 
-const ensureAllContentDefaults = async (content) => {
-  let modified = false;
+export const ensureAllContentDefaults = (content) => {
   const defaults = getDefaultContent();
 
-  // 1. Hero metrics & availabilityBanner
+  // 1. Hero: only initialize missing structures
   if (!content.hero) {
     content.hero = defaults.hero;
-    modified = true;
   } else {
-    if (!Array.isArray(content.hero.metrics) || content.hero.metrics.length === 0) {
+    if (content.hero.metrics === undefined) {
       content.hero.metrics = defaults.hero.metrics;
-      modified = true;
     }
-    if (!content.hero.availabilityBanner || !content.hero.availabilityBanner.badgeText) {
+    if (content.hero.availabilityBanner === undefined) {
       content.hero.availabilityBanner = defaults.hero.availabilityBanner;
-      modified = true;
     }
-    if (!Array.isArray(content.hero.titles) || content.hero.titles.length === 0) {
+    if (content.hero.titles === undefined) {
       content.hero.titles = defaults.hero.titles;
-      modified = true;
     }
   }
 
   // 2. About competencies, assignments, dossierRef
   if (!content.about) {
     content.about = defaults.about;
-    modified = true;
   } else {
-    if (!Array.isArray(content.about.competencies) || content.about.competencies.length === 0) {
+    if (content.about.competencies === undefined) {
       content.about.competencies = defaults.about.competencies;
-      modified = true;
     }
-    if (!Array.isArray(content.about.assignments) || content.about.assignments.length === 0) {
+    if (content.about.assignments === undefined) {
       content.about.assignments = defaults.about.assignments;
-      modified = true;
     }
-    if (!content.about.dossierRef) {
+    if (content.about.dossierRef === undefined) {
       content.about.dossierRef = defaults.about.dossierRef;
+    }
+    if (content.about.clearanceLevel === undefined) {
       content.about.clearanceLevel = defaults.about.clearanceLevel;
+    }
+    if (content.about.personnelId === undefined) {
       content.about.personnelId = defaults.about.personnelId;
-      modified = true;
     }
   }
 
-  // 3. Skills: enrich categories if missing orbital tags
-  if (!content.skills || !Array.isArray(content.skills.categories) || content.skills.categories.length === 0 || !content.skills.categories.some(c => c.orbit || c.name === 'Frontend')) {
+  // 3. Skills: Only default if completely missing/null. NEVER require 'Frontend' or orbital tags, NEVER overwrite custom categories or empty arrays.
+  if (!content.skills) {
     content.skills = defaults.skills;
-    modified = true;
+  } else if (!Array.isArray(content.skills.categories)) {
+    content.skills.categories = defaults.skills.categories;
   }
 
   // 4. ProjectsSection
-  if (!content.projectsSection || !content.projectsSection.title) {
+  if (!content.projectsSection) {
     content.projectsSection = defaults.projectsSection;
-    modified = true;
   }
 
   // 5. Contact wizard
   if (!content.contactInfo) {
     content.contactInfo = defaults.contactInfo;
-    modified = true;
-  } else if (!content.contactInfo.wizard || !Array.isArray(content.contactInfo.wizard.projectTypes) || content.contactInfo.wizard.projectTypes.length === 0) {
+  } else if (!content.contactInfo.wizard) {
     content.contactInfo.wizard = defaults.contactInfo.wizard;
-    modified = true;
   }
 
   // 6. Footer attribution
   if (!content.footer) {
     content.footer = defaults.footer;
-    modified = true;
-  } else if (!content.footer.attribution) {
+  } else if (content.footer.attribution === undefined) {
     content.footer.attribution = defaults.footer.attribution;
-    modified = true;
-  }
-
-  if (modified) {
-    await content.save();
   }
 };
+
+export { getDefaultContent };
 
 export const getContent = async (req, res) => {
   try {
@@ -613,9 +589,8 @@ export const getContent = async (req, res) => {
     if (!content) {
       content = await PortfolioContent.create(getDefaultContent());
     } else {
-      await migrateFooterSocials(content);
-      await ensureExperienceAndCertificates(content);
-      await ensureAllContentDefaults(content);
+      ensureExperienceAndCertificates(content);
+      ensureAllContentDefaults(content);
     }
 
     let isAdmin = false;
@@ -670,7 +645,7 @@ export const getExperience = async (req, res) => {
     if (!content) {
       content = await PortfolioContent.create(getDefaultContent());
     } else {
-      await ensureExperienceAndCertificates(content);
+      ensureExperienceAndCertificates(content);
     }
 
     let isAdmin = false;

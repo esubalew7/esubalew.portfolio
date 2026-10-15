@@ -68,15 +68,33 @@ export const Navbar = () => {
   const ctaLink = content?.navbar?.ctaLink || '#contact';
 
   const dynamicNavLinks = useMemo(() => {
+    const LABEL_TO_SECTION = {
+      home: 'home',
+      about: 'about',
+      skills: 'skills',
+      work: 'projects',
+      projects: 'projects',
+      timeline: 'experience',
+      experience: 'experience',
+      testimonials: 'testimonials',
+      feedback: 'testimonials',
+      contact: 'contact',
+    };
+
     const items = content?.navbar?.navItems;
     if (Array.isArray(items) && items.length > 0) {
       return items
         .filter((item) => item.visible !== false)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map((item) => ({
-          id: (item.path || '').replace('#', '') || item.label.toLowerCase(),
-          label: item.label,
-        }));
+        .map((item) => {
+          const rawId = (item.id || item.path || '').replace('#', '').trim();
+          const cleanLabel = (item.label || '').toLowerCase().trim();
+          const targetId = rawId || LABEL_TO_SECTION[cleanLabel] || cleanLabel;
+          return {
+            id: targetId,
+            label: item.label,
+          };
+        });
     }
     return NAV_LINKS;
   }, [content?.navbar?.navItems]);

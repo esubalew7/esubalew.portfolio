@@ -9,8 +9,11 @@ import { scrollToSectionById } from '../utils/sectionNavigation';
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
 
 // ─── Availability pill ─────────────────────────────────────────────────────
-function StatusPill({ available = true, isDarkMode = true }) {
+function StatusPill({ available = true, isDarkMode = true, badgeText, bookedBadgeText }) {
   const isAvailable = available !== false;
+  const statusLabel = isAvailable
+    ? (badgeText || 'Available for freelance')
+    : (bookedBadgeText || 'Taking Q4 Inquiries');
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
@@ -49,7 +52,7 @@ function StatusPill({ available = true, isDarkMode = true }) {
           transition: 'color 0.3s ease',
         }}
       >
-        {isAvailable ? 'Available for freelance' : 'Taking Q4 Inquiries'}
+        {statusLabel}
       </span>
     </motion.div>
   );
@@ -113,7 +116,9 @@ const TECH_BADGES = [
   { name: 'NestJS', slug: 'nestjs', color: 'E0234E' },
 ];
 
-function TechBadgeRow({ isDarkMode = true }) {
+function TechBadgeRow({ badges = TECH_BADGES, isDarkMode = true }) {
+  const badgeList = Array.isArray(badges) && badges.length > 0 ? badges : TECH_BADGES;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -128,7 +133,7 @@ function TechBadgeRow({ isDarkMode = true }) {
       }}
       aria-label="Core Technology Stack"
     >
-      {TECH_BADGES.map((badge) => {
+      {badgeList.map((badge) => {
         const iconColor = isDarkMode
           ? (badge.colorDark || badge.color)
           : (badge.colorLight || badge.color);
@@ -176,7 +181,13 @@ function TechBadgeRow({ isDarkMode = true }) {
 }
 
 // ─── CTA buttons ──────────────────────────────────────────────────────────
-function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMode = true }) {
+function CTARow({
+  primaryText = 'Selected Work',
+  primaryLink = '#projects',
+  secondaryText = 'Download CV',
+  resumeUrl = '/resume.pdf',
+  isDarkMode = true,
+}) {
   const handlePrimaryClick = (e) => {
     if (!primaryLink || primaryLink === '#projects' || primaryLink.startsWith('#')) {
       e.preventDefault();
@@ -234,7 +245,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMo
           style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)' }}
           aria-hidden="true"
         />
-        <span className="relative">Selected Work</span>
+        <span className="relative">{primaryText || 'Selected Work'}</span>
         <svg
           width="16"
           height="16"
@@ -282,7 +293,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMo
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
-        Download CV
+        {secondaryText || 'Download CV'}
       </a>
     </motion.div>
   );
@@ -429,7 +440,12 @@ export const HeroSection = () => {
         >
           {/* Status Availability Pill (Visitor Pill removed) */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-            <StatusPill available={hero?.available} isDarkMode={isDarkMode} />
+            <StatusPill
+              available={hero?.available}
+              isDarkMode={isDarkMode}
+              badgeText={hero?.availabilityBanner?.badgeText}
+              bookedBadgeText={hero?.availabilityBanner?.bookedBadgeText}
+            />
           </div>
 
           {/* ── Name — display-scale ── */}
@@ -514,7 +530,9 @@ export const HeroSection = () => {
           {/* ── CTAs ── */}
           <div style={{ marginTop: '2.5rem' }}>
             <CTARow
+              primaryText={hero?.cta?.primary?.text}
               primaryLink={hero?.cta?.primary?.link || '#projects'}
+              secondaryText={hero?.cta?.secondary?.text}
               resumeUrl={resumeUrl}
               isDarkMode={isDarkMode}
             />
@@ -555,7 +573,7 @@ export const HeroSection = () => {
           </motion.div>
 
           {/* ── Official Tech Stack Badges ── */}
-          <TechBadgeRow isDarkMode={isDarkMode} />
+          <TechBadgeRow badges={hero?.techBadges} isDarkMode={isDarkMode} />
         </div>
       </motion.div>
 

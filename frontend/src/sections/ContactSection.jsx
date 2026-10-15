@@ -387,15 +387,15 @@ function Step1({ formData, setFormData, onNext, wizardConfig }) {
     : DEFAULT_PROJECT_TYPES;
 
   const tiles = rawTypes.map((t) => ({
-    value: t.id,
+    value: t.value || t.id,
     title: t.label || t.title,
     desc: t.description || t.desc,
-    icon: PROJECT_TYPE_ICONS[t.id] || PROJECT_TYPE_ICONS['web-app'],
+    icon: PROJECT_TYPE_ICONS[t.value || t.id] || PROJECT_TYPE_ICONS['web-app'],
   }));
 
   const step1Info = wizardConfig?.steps?.[0];
   const step1Title = step1Info?.title || 'What are we\nbuilding?';
-  const step1Sub = step1Info?.subtitle || 'Select your project type';
+  const step1Sub = step1Info?.subtitle || step1Info?.description || 'Select your project type';
   const titleParts = step1Title.split('\n');
 
   const handleTileSelect = (val) => {
@@ -521,7 +521,7 @@ function Step2({ formData, setFormData, errors, touched, onBlur, onChange, onNex
 
   const step2Info = wizardConfig?.steps?.[1];
   const step2Title = step2Info?.title || 'Tell me\nwho you are.';
-  const step2Sub = step2Info?.subtitle || 'Your contact information';
+  const step2Sub = step2Info?.subtitle || step2Info?.description || 'Your contact information';
   const titleParts = step2Title.split('\n');
 
   const getBorderColor = (fieldName) => {
@@ -713,21 +713,21 @@ function Step3({
     : DEFAULT_TIMELINES;
 
   const tiles = rawTimelines.map((t, idx) => ({
-    value: t.id,
-    number: String(idx + 1).padStart(2, '0'),
+    value: t.value || t.id,
+    number: t.number || String(idx + 1).padStart(2, '0'),
     title: t.label || t.title,
     desc: t.description || t.desc,
   }));
 
   const step3Info = wizardConfig?.steps?.[2];
   const step3Title = step3Info?.title || 'When do you\nneed this?';
-  const step3Sub = step3Info?.subtitle || 'Select your timeline';
+  const step3Sub = step3Info?.subtitle || step3Info?.description || 'Select your timeline';
   const titleParts = step3Title.split('\n');
 
   const submitText = wizardConfig?.submitButtonText || 'Send Brief';
   const submittingText = wizardConfig?.submittingButtonText || 'Sending...';
-  const responseNotice = wizardConfig?.responseTimeNotice || '⟳ Response within 4 hours';
-  const privacyNotice = wizardConfig?.privacyNotice || '✓ Your data is never shared';
+  const responseNotice = wizardConfig?.responseTimeText || wizardConfig?.responseTimeNotice || '⟳ Response within 4 hours';
+  const privacyNotice = wizardConfig?.privacyText || wizardConfig?.privacyNotice || '✓ Your data is never shared';
 
   const handleTimelineSelect = (val) => {
     setFormData((prev) => ({ ...prev, timeline: val }));
@@ -930,11 +930,11 @@ function SuccessScreen({ contactInfo, onReset }) {
       </svg>
 
       <h3 className="font-sans font-extrabold text-3xl text-content-primary mt-6 mb-2">
-        Brief received.
+        {contactInfo?.successTitle || contactInfo?.formTitle || contactInfo?.successMessage || 'Brief received.'}
       </h3>
 
       <div className="font-code text-[13px] text-content-muted">
-        <p>I'll review your project and respond within 4 hours.</p>
+        <p>{contactInfo?.successDescription || contactInfo?.formDescription || "I'll review your project and respond within 4 hours."}</p>
         <p className="mt-1">
           Sent to: {contactInfo?.email || 'esubalew392@gmail.com'}
         </p>

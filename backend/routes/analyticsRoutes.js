@@ -8,6 +8,7 @@ import {
   getLocations,
   getPortfolioAnalytics,
   getRecentVisitors,
+  getDashboardAnalytics,
 } from "../controllers/analyticsController.js";
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.get("/today", getTodayVisitorCount);
 
 router.use(protect);
 
+router.get("/", getDashboardAnalytics);
 router.get("/overview", getOverview);
 router.get("/charts", getCharts);
 router.get("/locations", getLocations);
