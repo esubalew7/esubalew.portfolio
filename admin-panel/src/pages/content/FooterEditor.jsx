@@ -66,6 +66,12 @@ const FooterEditor = () => {
               value={d.copyright || ''}
               onChange={(e) => set('copyright', e.target.value)}
             />
+            <FormInput
+              label="Attribution / Tech Stack"
+              placeholder="Built with React + Three.js"
+              value={d.attribution || ''}
+              onChange={(e) => set('attribution', e.target.value)}
+            />
           </div>
         </Card>
 

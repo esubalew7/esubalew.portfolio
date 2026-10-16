@@ -344,3 +344,59 @@ export const getRecentVisitors = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
+
+export const getDashboardAnalytics = async (req, res) => {
+  try {
+    const [locationsData, overviewData] = await Promise.all([
+      Visitor.aggregate([
+        { $group: { _id: "$country", visitors: { $sum: 1 } } },
+        { $sort: { visitors: -1 } },
+        { $limit: 10 },
+      ]),
+      Visitor.aggregate([
+        { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+    ]);
+
+    const totalVisitors = locationsData.reduce((sum, c) => sum + c.visitors, 0) || 1;
+    const countries = locationsData.map((c) => ({
+      name: c._id || "Unknown",
+      country: c._id || "Unknown",
+      visitors: c.visitors,
+      count: c.visitors,
+      percentage: Math.round((c.visitors / totalVisitors) * 100),
+    }));
+
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split("T")[0];
+      const found = overviewData.find((item) => item._id === dateStr);
+      days.push({
+        date: d.toLocaleDateString("en-US", { weekday: "short" }),
+        fullDate: dateStr,
+        count: found ? found.count : 0,
+        visitors: found ? found.count : 0,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        countries,
+        dailyVisits: days,
+      },
+    });
+  } catch (error) {
+    console.error("Get dashboard analytics error:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+

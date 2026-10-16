@@ -13,15 +13,16 @@ export const ProjectProvider = ({ children }) => {
       // Don't override the "Server is waking up..." message if it's retrying
       setLoading(true);
       const res = await api.get('/api/projects');
-      setProjects(Array.isArray(res) ? res : []);
+      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      setProjects(list);
       setError(null);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching projects:', err);
       
       const isNetworkError = err.code === 'ECONNABORTED' || 
-                            err.message.includes('Network Error') || 
-                            err.message.includes('Failed to fetch') ||
+                            err.message?.includes('Network Error') || 
+                            err.message?.includes('Failed to fetch') ||
                             !err.response;
       
       if (isNetworkError) {
@@ -48,8 +49,9 @@ export const ProjectProvider = ({ children }) => {
   const addProject = async (projectData) => {
     try {
       const response = await api.post('/api/projects', projectData);
-      setProjects((prev) => [...prev, response]);
-      return { success: true, data: response };
+      const newProj = response?.data && (response.data._id || response.data.title) ? response.data : response;
+      setProjects((prev) => [newProj, ...prev]);
+      return { success: true, data: newProj };
     } catch (err) {
       const errorMessage = err.message || 'Failed to add project';
       setError(errorMessage);
@@ -60,10 +62,11 @@ export const ProjectProvider = ({ children }) => {
   const updateProject = async (id, projectData) => {
     try {
       const response = await api.put(`/api/projects/${id}`, projectData);
+      const updatedProj = response?.data && (response.data._id || response.data.title) ? response.data : response;
       setProjects((prev) =>
-        prev.map((p) => (p._id === id || p.id === id ? response : p))
+        prev.map((p) => (p._id === id || p.id === id ? updatedProj : p))
       );
-      return { success: true, data: response };
+      return { success: true, data: updatedProj };
     } catch (err) {
       const errorMessage = err.message || 'Failed to update project';
       setError(errorMessage);

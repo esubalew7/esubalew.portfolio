@@ -13,6 +13,48 @@ const SOCIAL_PLATFORMS_DEFAULT = [
   { platform: "Instagram", url: "https://instagram.com/esubalew_7_7", enabled: true },
 ];
 
+const DEFAULT_TERMINAL_COMMANDS = [
+  { id: "help", name: "help", description: "Show all available commands", category: "System", aliases: ["h", "?"], enabled: true, order: 1 },
+  { id: "about", name: "about", description: "Information about me and background", category: "Information", aliases: ["whoami", "info"], enabled: true, order: 2 },
+  { id: "skills", name: "skills", description: "View technical skills and stack", category: "Information", aliases: ["tech", "techstack"], enabled: true, order: 3 },
+  { id: "projects", name: "projects", description: "View portfolio projects", category: "Portfolio", aliases: ["proj"], enabled: true, order: 4 },
+  { id: "experience", name: "experience", description: "My professional experience and roles", category: "Information", aliases: ["exp"], enabled: true, order: 5 },
+  { id: "education", name: "education", description: "Educational background and certifications", category: "Information", aliases: ["edu"], enabled: true, order: 6 },
+  { id: "resume", name: "resume", description: "Download my CV/Resume", category: "Portfolio", aliases: ["cv"], enabled: true, order: 7 },
+  { id: "contact", name: "contact", description: "Get direct contact details", category: "Links", aliases: ["mail", "email"], enabled: true, order: 8 },
+  { id: "github", name: "github", description: "Open GitHub profile", category: "Links", aliases: ["gh"], enabled: true, order: 9 },
+  { id: "linkedin", name: "linkedin", description: "Open LinkedIn profile", category: "Links", aliases: ["in"], enabled: true, order: 10 },
+  { id: "clear", name: "clear", description: "Clear terminal history", category: "System", aliases: ["cls", "rm"], enabled: true, order: 11 },
+];
+
+const DEFAULT_TERMINAL_CONFIG = {
+  enabled: true,
+  title: "Command Prompt",
+  subtitle: "Interactive Developer Console",
+  welcomeMessage: `        WELCOME TO MY INTERACTIVE DEVELOPER TERMINAL        
+
+Hi, I'm an interactive terminal that lets you explore my portfolio,
+projects, and professional journey.
+
+Getting Started:
+   • Type 'help' to see all available commands
+   • Use Arrow Keys ↑↓ to navigate command history
+   • Click links to open external profiles
+
+Quick Commands:
+   • about        → Learn about me
+   • experience   → View my work history
+   • projects     → Browse portfolio projects
+   • skills       → See my technical skills
+   • contact      → Get in touch
+
+Ready to explore? Let's go!`,
+  promptPrefix: "E C:\\esubalew\\portfolio>",
+  shortcut: "Ctrl+`",
+  showEntryPoint: true,
+  commands: DEFAULT_TERMINAL_COMMANDS,
+};
+
 const getDefaultContent = () => ({
   sections: {
     hero: true,
@@ -37,88 +79,176 @@ const getDefaultContent = () => ({
   },
   footer: {
     copyright: "All rights reserved.",
+    attribution: "Built with React + Three.js",
     socials: SOCIAL_PLATFORMS_DEFAULT,
   },
   hero: {
     greeting: "Hello, I am",
-    name: "Esubalew",
+    name: "Esubalew Molla",
     titles: [
-      "MERN Stack Developer.",
-      "Problem Solver.",
-      "Creative Thinker.",
-      "React Enthusiast.",
+      "Full Stack Engineer.",
+      "System Architect.",
+      "MERN Specialist.",
+      "Distributed Systems.",
+      "Real-Time Platforms.",
     ],
     description:
-      "I am a Computer Science student and MERN Stack Developer with a passion for building dynamic web applications. I specialize in creating seamless user experiences and robust backend systems. Let's build something amazing together!",
-    image: "/images/esu2.png",
+      "Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.",
+    image: "/images/esu.png",
     backgroundImage: "",
+    available: true,
+    availabilityBanner: {
+      visible: true,
+      badgeText: "AVAILABLE FOR FREELANCE",
+      subText: "RESPONSE TIME < 24H",
+      buttonText: "BOOK A CALL",
+      buttonLink: "#contact",
+    },
+    metrics: [
+      { id: "hm-1", value: "3+", label: "Years building", suffix: "", order: 1, visible: true },
+      { id: "hm-2", value: "15+", label: "Systems shipped", suffix: "", order: 2, visible: true },
+      { id: "hm-3", value: "3", label: "Production stacks", suffix: "", order: 3, visible: true },
+      { id: "hm-4", value: "2FA", label: "Auth architecture", suffix: "", order: 4, visible: true },
+    ],
     cta: {
-      primary: { text: "View Projects", link: "#projects" },
-      secondary: { text: "Download Resume", link: "/resume.pdf" },
+      primary: { text: "Selected Work", link: "#projects" },
+      secondary: { text: "Download CV", link: "/resume.pdf" },
     },
   },
   about: {
     title: "About Me",
-    subtitle: "Computer Science Student & MERN Stack Developer",
+    subtitle: "Full Stack Engineer & 3rd-year CS Student at Bahir Dar University",
     description:
-      "I am a third-year Computer Science student passionate about full-stack development. My expertise lies in the MERN stack, where I focus on building robust applications with clean architecture and scalable design patterns. I thrive on solving complex problems and turning ideas into seamless digital experiences.",
-    image: "/images/esu3.png",
+      "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards. My approach is architecture first: I think in event flows, caching layers, and separation of concerns before writing the first line of code. The result is software that scales and doesn't break at 3 AM.",
+    image: "/images/esu.png",
+    dossierRef: "Ref: ESU-2024",
+    clearanceLevel: "Senior Engineer",
+    personnelId: "ID: ESU-001",
     stats: [
-      { label: "Years Experience", value: 1, suffix: "+" },
-      { label: "Total Projects", value: 5, suffix: "+" },
-      { label: "Core Skills", value: 15, suffix: "+" },
+      { label: "Years of production code", value: 3, suffix: "+" },
+      { label: "Systems Shipped", value: 15, suffix: "+" },
+      { label: "Live production stacks", value: 3, suffix: "" },
     ],
-    cta: { text: "Let's Collaborate", link: "#contact" },
+    competencies: [
+      "MERN Stack", "PERN Stack", "Flutter", "Node.js", "React", "TypeScript",
+      "PostgreSQL", "MongoDB", "Docker", "Socket.IO", "REST API", "Microservices",
+      "NestJS", "Redis", "RabbitMQ", "JWT Auth", "2FA", "Swagger", "Postman", "Git"
+    ].map((name, i) => ({ id: `comp-${i + 1}`, name, order: i + 1, visible: true })),
+    assignments: [
+      {
+        id: "asgn-1",
+        organization: "Askuala Link Software Co.",
+        role: "Frontend Developer Intern",
+        period: "2024 — Present",
+        status: "Active",
+        order: 1,
+        visible: true,
+      },
+      {
+        id: "asgn-2",
+        organization: "Bahir Dar University",
+        role: "B.Sc. Computer Science",
+        period: "2022 — Present",
+        status: "Active",
+        order: 2,
+        visible: true,
+      },
+    ],
+    cta: { text: "Start a Conversation", link: "#contact" },
   },
   skills: {
-    title: "Core Skills",
-    subtitle:
-      "A comprehensive overview of my technical expertise across modern web development, backend engineering, and foundational tooling.",
+    title: "Technical Arsenal",
+    subtitle: "The stack I ship to production.",
     categories: [
       {
         name: "Frontend",
+        orbit: "orbit-1",
         items: [
-          { name: "HTML", level: 95 },
-          { name: "CSS", level: 90 },
-          { name: "JavaScript", level: 85 },
-          { name: "Bootstrap", level: 80 },
-          { name: "Tailwind CSS", level: 95 },
-          { name: "React", level: 90 },
+          { id: "sk-1", name: "JavaScript", level: "Advanced", exp: "3+ yrs", orbit: "orbit-1", category: "Core Language", description: "Modern ES2024+ JavaScript powering responsive applications and async pipelines.", tags: ["ESNext", "Async/Await", "DOM", "Performance"], iconSlug: "javascript", order: 1, visible: true },
+          { id: "sk-2", name: "TypeScript", level: "Advanced", exp: "2+ yrs", orbit: "orbit-1", category: "Full-Stack Type System", description: "Enterprise typed JavaScript ensuring compile-time contracts, strict types, and robust refactoring.", tags: ["Type Safety", "Generics", "Interfaces", "Strict Mode"], iconSlug: "typescript", order: 2, visible: true },
+          { id: "sk-3", name: "React", level: "Advanced", exp: "3+ yrs", orbit: "orbit-1", category: "Frontend UI Library", description: "Building interactive, scalable user interfaces using component-driven architecture.", tags: ["React 19", "Hooks", "SPA", "Vite", "Component UI"], iconSlug: "react", order: 3, visible: true },
+          { id: "sk-4", name: "Next.js", level: "Advanced", exp: "1+ yr", orbit: "orbit-1", category: "Full-Stack React Framework", description: "Production React framework for high-performance SSR, Server Components, and edge rendering.", tags: ["App Router", "SSR", "Server Actions", "Edge API"], iconSlug: "nextdotjs", order: 4, visible: true },
+          { id: "sk-5", name: "Tailwind CSS", level: "Advanced", exp: "2+ yrs", orbit: "orbit-1", category: "Design Systems & UI", description: "Utility-first CSS framework for building ultra-fast, responsive, and custom design systems.", tags: ["Utility CSS", "Design Tokens", "Dark Mode", "Responsive"], iconSlug: "tailwindcss", order: 5, visible: true },
         ],
       },
       {
         name: "Backend",
+        orbit: "orbit-2",
         items: [
-          { name: "Node.js", level: 80 },
-          { name: "Express.js", level: 85 },
+          { id: "sk-6", name: "Node.js", level: "Advanced", exp: "3+ yrs", orbit: "orbit-2", category: "Backend Architecture", description: "High-throughput asynchronous runtime powering distributed backends and event streams.", tags: ["Event Loop", "Streams", "Async I/O", "V8 Engine"], iconSlug: "nodedotjs", order: 1, visible: true },
+          { id: "sk-7", name: "Express", level: "Advanced", exp: "3+ yrs", orbit: "orbit-2", category: "Backend Framework", description: "Fast, minimalist server framework for scalable REST APIs, authentication, and middleware.", tags: ["REST APIs", "Middleware", "JWT Auth", "CORS"], iconSlug: "express", order: 2, visible: true },
+          { id: "sk-8", name: "NestJS", level: "Intermediate", exp: "1+ yr", orbit: "orbit-2", category: "Enterprise Microservices", description: "Structured enterprise TypeScript backend framework built on dependency injection and modules.", tags: ["Dependency Injection", "Decorators", "Microservices", "DTOs"], iconSlug: "nestjs", order: 3, visible: true },
+          { id: "sk-9", name: "Redis", level: "Intermediate", exp: "1+ yr", orbit: "orbit-2", category: "In-Memory Data Store", description: "Ultra-fast in-memory data cache for high-speed session storage, rate limiting, and pub/sub queues.", tags: ["In-Memory", "Pub/Sub", "TTL Caching", "Session Store"], iconSlug: "redis", order: 4, visible: true },
+          { id: "sk-10", name: "RabbitMQ", level: "Active Learner", exp: "< 1 yr", orbit: "orbit-2", category: "Message Broker Systems", description: "Distributed message broker orchestrating decoupled asynchronous queues and event architectures.", tags: ["AMQP", "Message Queues", "Dead Letter", "Decoupling"], iconSlug: "rabbitmq", order: 5, visible: true },
         ],
       },
       {
-        name: "Database",
+        name: "Data & Infrastructure",
+        orbit: "orbit-3",
         items: [
-          { name: "MongoDB", level: 85 },
-          { name: "mySQL", level: 50 },
-          { name: "Firebase", level: 60 },
+          { id: "sk-11", name: "MongoDB", level: "Advanced", exp: "3+ yrs", orbit: "orbit-3", category: "NoSQL Database", description: "Scalable document database with aggregation pipelines, compound indices, and geospatial querying.", tags: ["Aggregation", "Indexing", "Mongoose", "GeoJSON"], iconSlug: "mongodb", order: 1, visible: true },
+          { id: "sk-12", name: "PostgreSQL", level: "Advanced", exp: "2+ yrs", orbit: "orbit-3", category: "Relational Database", description: "Advanced relational database management with strict ACID compliance, relational schemas, and complex joins.", tags: ["Relational", "ACID", "SQL Joins", "Indexing"], iconSlug: "postgresql", order: 2, visible: true },
+          { id: "sk-13", name: "Docker", level: "Intermediate", exp: "1+ yr", orbit: "orbit-3", category: "Containerization & DevOps", description: "Lightweight container virtualization standardizing isolated multi-service development and production setups.", tags: ["Containers", "Images", "Docker Compose", "Multi-Stage"], iconSlug: "docker", order: 3, visible: true },
+          { id: "sk-14", name: "Microservices", level: "Intermediate", exp: "1+ yr", orbit: "orbit-3", category: "Distributed Architecture", description: "Decoupled domain-driven service architecture with independent deployment cycles and fault isolation.", tags: ["Event-Driven", "API Gateway", "Service Mesh", "Fault Isolation"], iconSlug: "microservices", order: 4, visible: true },
         ],
       },
       {
-        name: "Programming",
+        name: "Mobile & Tools",
+        orbit: "orbit-4",
         items: [
-          { name: "C++", level: 55 },
-          { name: "Java", level: 55 },
-          { name: "Flutter", level: 65 },
-          { name: "PHP", level: 55 },
-        ],
-      },
-      {
-        name: "Tools",
-        items: [
-          { name: "Git", level: 85 },
-          { name: "GitHub", level: 90 },
-          { name: "Postman", level: 85 },
+          { id: "sk-15", name: "Flutter", level: "Intermediate", exp: "1+ yr", orbit: "orbit-4", category: "Cross-Platform Mobile UI", description: "High-performance cross-platform mobile framework compiling to native ARM binaries for iOS and Android.", tags: ["Dart", "State Management", "Cross-Platform", "Mobile UI"], iconSlug: "flutter", order: 1, visible: true },
+          { id: "sk-16", name: "Git", level: "Advanced", exp: "3+ yrs", orbit: "orbit-4", category: "Version Control & Collaboration", description: "Distributed source control for branching workflows, code reviews, and automated CI/CD deployments.", tags: ["VCS", "GitHub", "Branching", "Gitflow"], iconSlug: "git", order: 2, visible: true },
+          { id: "sk-17", name: "Postman", level: "Advanced", exp: "3+ yrs", orbit: "orbit-4", category: "API Testing & Automation", description: "Comprehensive API client for testing request payloads, running integration suites, and mocking responses.", tags: ["REST Testing", "Automation", "Collections", "Mock Servers"], iconSlug: "postman", order: 3, visible: true },
+          { id: "sk-18", name: "Swagger", level: "Advanced", exp: "2+ yrs", orbit: "orbit-4", category: "API Documentation & OpenAPI", description: "Interactive OpenAPI specifications facilitating team contract testing, documentation, and client generation.", tags: ["OpenAPI 3.0", "API Docs", "Contracts", "Interactive Testing"], iconSlug: "swagger", order: 4, visible: true },
         ],
       },
     ],
+  },
+  projectsSection: {
+    eyebrow: "Selected Work",
+    title: "What I've built\nfor production.",
+    subtitle: "",
+    filters: [
+      { id: "all", label: "All", order: 1 },
+      { id: "mern", label: "MERN", order: 2 },
+      { id: "frontend", label: "Frontend", order: 3 },
+      { id: "backend", label: "Backend", order: 4 },
+      { id: "mobile", label: "Mobile", order: 5 },
+    ],
+  },
+  contactInfo: {
+    email: "esubalew392@gmail.com",
+    phone: "+251 915795794",
+    location: "Bahir Dar, Ethiopia",
+    formTitle: "Get in touch",
+    formDescription:
+      "I'm currently available for freelance work or full-time opportunities. Reach out via the form or any of the methods below.",
+    formButtonText: "Send Message",
+    successMessage:
+      "Thank you! Your message has been sent successfully.",
+    wizard: {
+      steps: [
+        { stepNumber: 1, title: "Project Scope", description: "What type of system are we building?" },
+        { stepNumber: 2, title: "Your Identity", description: "Who should I address the proposal to?" },
+        { stepNumber: 3, title: "Timeline & Launch", description: "When do you need the platform deployed?" },
+      ],
+      projectTypes: [
+        { value: "fullstack", title: "Full-Stack Web App", desc: "React, Node, MongoDB/Postgres, Cloud" },
+        { value: "backend", title: "Backend / Microservices", desc: "REST APIs, Socket.IO, DB schema, 2FA" },
+        { value: "mobile", title: "Mobile Application", desc: "Cross-platform Flutter iOS & Android" },
+        { value: "contract", title: "Senior Contract Engineer", desc: "Embedded in existing engineering sprint" },
+      ],
+      timelines: [
+        { value: "immediate", title: "< 2 Weeks", desc: "Fast turnaround or immediate start" },
+        { value: "month", title: "1 — 2 Months", desc: "Standard production build" },
+        { value: "quarter", title: "3+ Months", desc: "Long-term platform architecture" },
+        { value: "flexible", title: "Flexible", desc: "Timeline depends on design scope" },
+      ],
+      submitButtonText: "Send Brief",
+      submittingButtonText: "Dispatching brief...",
+      responseTimeText: "Response within 4 hours",
+      privacyText: "Your data is never shared",
+    },
   },
   experience: {
     title: "Where I've built\nreal systems.",
@@ -327,6 +457,7 @@ const getDefaultContent = () => ({
     successMessage:
       "Thank you! Your message has been sent successfully.",
   },
+  terminal: DEFAULT_TERMINAL_CONFIG,
   seo: {
     title: "",
     description: "",
@@ -359,85 +490,164 @@ const syncSocialLinks = async (content) => {
   }
 };
 
-const ensureExperienceAndCertificates = async (content) => {
-  let modified = false;
+export const ensureExperienceAndCertificates = (content) => {
+  const defaults = getDefaultContent();
 
-  // 1. Ensure certificates exist
-  if (!content.certificates || content.certificates.length === 0) {
-    const defaults = getDefaultContent().certificates;
-    content.certificates = defaults;
-    modified = true;
-  } else {
+  // 1. Certificates: only populate defaults if undefined or null, NEVER overwrite empty array []
+  if (content.certificates === undefined || content.certificates === null) {
+    content.certificates = defaults.certificates;
+  } else if (Array.isArray(content.certificates)) {
     content.certificates.forEach((cert, idx) => {
       if (!cert.id && !cert._id) {
         cert.id = `cert-${idx + 1}`;
-        modified = true;
       }
       if (cert.order === undefined) {
         cert.order = idx + 1;
-        modified = true;
       }
       if (cert.published === undefined) {
         cert.published = true;
-        modified = true;
       }
     });
   }
 
-  // 2. Ensure experience metadata & items
-  if (content.experience) {
-    if (!content.experience.eyebrow) {
+  // 2. Experience metadata & categories
+  if (!content.experience) {
+    content.experience = defaults.experience;
+  } else {
+    if (content.experience.eyebrow === undefined) {
       content.experience.eyebrow = "Career Record";
-      modified = true;
     }
-    if (!content.experience.title) {
+    if (content.experience.title === undefined) {
       content.experience.title = "Where I've built\nreal systems.";
-      modified = true;
     }
-    if (!content.experience.resumeUrl) {
+    if (content.experience.resumeUrl === undefined) {
       content.experience.resumeUrl = content.resume?.url || "/resume.pdf";
-      modified = true;
+    }
+    if (content.experience.resumeText === undefined) {
+      content.experience.resumeText = "Resume";
     }
 
     if (Array.isArray(content.experience.categories)) {
       content.experience.categories.forEach((cat, catIdx) => {
         if (!cat.id && !cat._id) {
           cat.id = `cat-${catIdx + 1}`;
-          modified = true;
         }
         if (cat.order === undefined) {
           cat.order = catIdx + 1;
-          modified = true;
         }
         if (cat.published === undefined) {
           cat.published = true;
-          modified = true;
         }
 
         if (Array.isArray(cat.items)) {
           cat.items.forEach((item, itemIdx) => {
             if (!item.id && !item._id) {
               item.id = `exp-${catIdx + 1}-${itemIdx + 1}`;
-              modified = true;
             }
             if (item.order === undefined) {
               item.order = itemIdx + 1;
-              modified = true;
             }
             if (item.published === undefined) {
               item.published = true;
-              modified = true;
             }
           });
         }
       });
     }
   }
+};
 
-  if (modified) {
-    await content.save();
+export const ensureAllContentDefaults = (content) => {
+  const defaults = getDefaultContent();
+
+  // 1. Hero: only initialize missing structures
+  if (!content.hero) {
+    content.hero = defaults.hero;
+  } else {
+    if (content.hero.metrics === undefined) {
+      content.hero.metrics = defaults.hero.metrics;
+    }
+    if (content.hero.availabilityBanner === undefined) {
+      content.hero.availabilityBanner = defaults.hero.availabilityBanner;
+    }
+    if (content.hero.titles === undefined) {
+      content.hero.titles = defaults.hero.titles;
+    }
+  }
+
+  // 2. About competencies, assignments, dossierRef
+  if (!content.about) {
+    content.about = defaults.about;
+  } else {
+    if (content.about.competencies === undefined) {
+      content.about.competencies = defaults.about.competencies;
+    }
+    if (content.about.assignments === undefined) {
+      content.about.assignments = defaults.about.assignments;
+    }
+    if (content.about.dossierRef === undefined) {
+      content.about.dossierRef = defaults.about.dossierRef;
+    }
+    if (content.about.clearanceLevel === undefined) {
+      content.about.clearanceLevel = defaults.about.clearanceLevel;
+    }
+    if (content.about.personnelId === undefined) {
+      content.about.personnelId = defaults.about.personnelId;
+    }
+  }
+
+  // 3. Skills: Only default if completely missing/null. NEVER require 'Frontend' or orbital tags, NEVER overwrite custom categories or empty arrays.
+  if (!content.skills) {
+    content.skills = defaults.skills;
+  } else if (!Array.isArray(content.skills.categories)) {
+    content.skills.categories = defaults.skills.categories;
+  }
+
+  // 4. ProjectsSection
+  if (!content.projectsSection) {
+    content.projectsSection = defaults.projectsSection;
+  }
+
+  // 5. Contact wizard
+  if (!content.contactInfo) {
+    content.contactInfo = defaults.contactInfo;
+  } else if (!content.contactInfo.wizard) {
+    content.contactInfo.wizard = defaults.contactInfo.wizard;
+  }
+
+  // 6. Footer attribution
+  if (!content.footer) {
+    content.footer = defaults.footer;
+  } else if (content.footer.attribution === undefined) {
+    content.footer.attribution = defaults.footer.attribution;
+  }
+
+  // 7. Terminal
+  if (!content.terminal) {
+    content.terminal = defaults.terminal;
+  } else {
+    if (content.terminal.enabled === undefined) {
+      content.terminal.enabled = true;
+    }
+    if (!content.terminal.title) {
+      content.terminal.title = "Command Prompt";
+    }
+    if (content.terminal.promptPrefix === undefined) {
+      content.terminal.promptPrefix = defaults.terminal.promptPrefix;
+    }
+    if (content.terminal.shortcut === undefined) {
+      content.terminal.shortcut = defaults.terminal.shortcut;
+    }
+    if (content.terminal.showEntryPoint === undefined) {
+      content.terminal.showEntryPoint = true;
+    }
+    if (!Array.isArray(content.terminal.commands) || content.terminal.commands.length === 0) {
+      content.terminal.commands = defaults.terminal.commands;
+    }
   }
 };
+
+export { getDefaultContent };
 
 export const getContent = async (req, res) => {
   try {
@@ -446,8 +656,8 @@ export const getContent = async (req, res) => {
     if (!content) {
       content = await PortfolioContent.create(getDefaultContent());
     } else {
-      await migrateFooterSocials(content);
-      await ensureExperienceAndCertificates(content);
+      ensureExperienceAndCertificates(content);
+      ensureAllContentDefaults(content);
     }
 
     let isAdmin = false;
@@ -502,7 +712,7 @@ export const getExperience = async (req, res) => {
     if (!content) {
       content = await PortfolioContent.create(getDefaultContent());
     } else {
-      await ensureExperienceAndCertificates(content);
+      ensureExperienceAndCertificates(content);
     }
 
     let isAdmin = false;
@@ -557,7 +767,7 @@ export const updateContent = async (req, res) => {
     }
 
     const allowedFields = [
-      "sections", "navbar", "footer", "hero", "about", "skills", "experience",
+      "sections", "navbar", "footer", "hero", "about", "skills", "projectsSection", "experience",
       "certificates", "testimonials", "socialLinks", "resume", "contactInfo",
       "terminal", "seo",
     ];

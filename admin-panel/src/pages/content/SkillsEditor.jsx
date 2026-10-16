@@ -34,7 +34,9 @@ const SkillsEditor = () => {
   const skills = data || {};
 
   const handleAddCategory = () => {
-    const categories = [...(skills.categories || []), { name: '', items: [] }];
+    const orbitIds = ['orbit-1', 'orbit-2', 'orbit-3', 'orbit-4'];
+    const nextOrbit = orbitIds[skills.categories?.length % 4] || 'orbit-1';
+    const categories = [...(skills.categories || []), { name: '', orbit: nextOrbit, items: [] }];
     update({ ...skills, categories });
   };
 
@@ -43,17 +45,36 @@ const SkillsEditor = () => {
     update({ ...skills, categories });
   };
 
-  const handleCategoryNameChange = (index, value) => {
+  const handleCategoryFieldChange = (index, field, value) => {
     const categories = skills.categories.map((c, i) =>
-      i === index ? { ...c, name: value } : c
+      i === index ? { ...c, [field]: value } : c
     );
     update({ ...skills, categories });
   };
 
   const handleAddSkill = (catIndex) => {
+    const defaultOrbit = skills.categories?.[catIndex]?.orbit || 'orbit-1';
     const categories = skills.categories.map((c, i) =>
       i === catIndex
-        ? { ...c, items: [...(c.items || []), { name: '', level: 0 }] }
+        ? {
+            ...c,
+            items: [
+              ...(c.items || []),
+              {
+                id: `sk-${Date.now()}`,
+                name: '',
+                level: 'Advanced',
+                exp: '2+ yrs',
+                orbit: defaultOrbit,
+                category: c.name || 'Core',
+                description: '',
+                tags: [],
+                iconSlug: '',
+                order: (c.items?.length || 0) + 1,
+                visible: true,
+              },
+            ],
+          }
         : c
     );
     update({ ...skills, categories });
@@ -85,8 +106,8 @@ const SkillsEditor = () => {
   return (
     <div className="max-w-4xl">
       <SectionHeader
-        title="Skills Section"
-        subtitle="Edit your skills and proficiency categories"
+        title="Skills Section & 3D Orbits"
+        subtitle="Manage orbital skills, ring assignments, technical descriptions, and SimpleIcons brand slugs"
         onSave={save}
         saving={saving}
       />
@@ -105,9 +126,14 @@ const SkillsEditor = () => {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Categories
-            </label>
+            <div>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Orbital Categories & Skill Rings
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Skills map to the 4 Three.js perspective rings: Ring 1 (Frontend, 135px), Ring 2 (Backend, 215px), Ring 3 (Data & Infra, 295px), Ring 4 (Mobile & Tools, 375px)
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleAddCategory}
@@ -129,7 +155,7 @@ const SkillsEditor = () => {
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  {category.name || `Category ${catIndex + 1}`}
+                  Category {catIndex + 1}: {category.name || 'Untitled'}
                 </span>
                 <button
                   type="button"
@@ -139,15 +165,32 @@ const SkillsEditor = () => {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              <FormInput
-                label="Category Name"
-                value={category.name || ''}
-                onChange={(e) => handleCategoryNameChange(catIndex, e.target.value)}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormInput
+                  label="Category Name"
+                  value={category.name || ''}
+                  onChange={(e) => handleCategoryFieldChange(catIndex, 'name', e.target.value)}
+                />
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Default Orbital Ring
+                  </label>
+                  <select
+                    value={category.orbit || 'orbit-1'}
+                    onChange={(e) => handleCategoryFieldChange(catIndex, 'orbit', e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="orbit-1">Orbit 1 — Frontend (Inner Ring · 135px)</option>
+                    <option value="orbit-2">Orbit 2 — Backend (Mid-Inner Ring · 215px)</option>
+                    <option value="orbit-3">Orbit 3 — Data & Infrastructure (Mid-Outer Ring · 295px)</option>
+                    <option value="orbit-4">Orbit 4 — Mobile & Tools (Outer Ring · 375px)</option>
+                  </select>
+                </div>
+              </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Skills
+                    Skills in {category.name || 'this category'}
                   </label>
                   <button
                     type="button"
@@ -166,39 +209,100 @@ const SkillsEditor = () => {
                 {(category.items || []).map((skill, skillIndex) => (
                   <div
                     key={skillIndex}
-                    className="flex items-start gap-3"
+                    className="p-3 bg-white dark:bg-gray-900/60 rounded-lg border border-gray-200 dark:border-gray-700/60 space-y-3"
                   >
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {skill.name || `Skill ${skillIndex + 1}`}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-mono">
+                          {skill.orbit || category.orbit || 'orbit-1'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500 flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={skill.visible !== false}
+                            onChange={(e) => handleSkillChange(catIndex, skillIndex, 'visible', e.target.checked)}
+                            className="rounded text-blue-600"
+                          />
+                          Visible
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSkill(catIndex, skillIndex)}
+                          className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                       <FormInput
-                        label="Name"
+                        label="Skill Name"
                         value={skill.name || ''}
                         onChange={(e) =>
                           handleSkillChange(catIndex, skillIndex, 'name', e.target.value)
                         }
                       />
                       <FormInput
-                        label="Level (0-100)"
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={skill.level ?? 0}
+                        label="Experience (e.g. 3+ yrs)"
+                        value={skill.exp || ''}
+                        onChange={(e) =>
+                          handleSkillChange(catIndex, skillIndex, 'exp', e.target.value)
+                        }
+                      />
+                      <FormInput
+                        label="Icon Slug (SimpleIcons)"
+                        placeholder="e.g. react, nodedotjs"
+                        value={skill.iconSlug || ''}
+                        onChange={(e) =>
+                          handleSkillChange(catIndex, skillIndex, 'iconSlug', e.target.value)
+                        }
+                      />
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                          Assigned Orbit
+                        </label>
+                        <select
+                          value={skill.orbit || category.orbit || 'orbit-1'}
+                          onChange={(e) =>
+                            handleSkillChange(catIndex, skillIndex, 'orbit', e.target.value)
+                          }
+                          className="w-full px-2.5 py-2 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white outline-none focus:border-blue-500"
+                        >
+                          <option value="orbit-1">Ring 1 (Frontend)</option>
+                          <option value="orbit-2">Ring 2 (Backend)</option>
+                          <option value="orbit-3">Ring 3 (Data & Infra)</option>
+                          <option value="orbit-4">Ring 4 (Mobile & Tools)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <FormInput
+                        label="Focus Card Description"
+                        value={skill.description || ''}
+                        placeholder="Short technical description for 3D hover focus card"
+                        onChange={(e) =>
+                          handleSkillChange(catIndex, skillIndex, 'description', e.target.value)
+                        }
+                      />
+                      <FormInput
+                        label="Technical Tags (comma-separated)"
+                        value={Array.isArray(skill.tags) ? skill.tags.join(', ') : skill.tags || ''}
+                        placeholder="e.g. React 19, Hooks, Vite"
                         onChange={(e) =>
                           handleSkillChange(
                             catIndex,
                             skillIndex,
-                            'level',
-                            Number(e.target.value)
+                            'tags',
+                            e.target.value.split(',').map((t) => t.trim()).filter(Boolean)
                           )
                         }
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(catIndex, skillIndex)}
-                      className="mt-7 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))}
               </div>

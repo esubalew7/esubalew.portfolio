@@ -58,8 +58,7 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Token is now stored in an HttpOnly cookie by the server.
-  // On success we simply navigate — no localStorage calls needed.
+  // Token is stored in HttpOnly cookie AND localStorage as cross-origin fallback
   const handleGoogleSuccess = async (credentialResponse) => {
     setIsGoogleLoading(true);
     setLoginError('');
@@ -68,6 +67,10 @@ const Login = () => {
       const data = await api.post('/api/auth/google', {
         credential: credentialResponse.credential,
       });
+
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
+      }
 
       if (data.requiresTwoFactor && data.tempToken) {
         navigate('/verify-2fa', {
@@ -85,8 +88,9 @@ const Login = () => {
     }
   };
 
-  const handleGoogleError = () => {
-    setLoginError('Google sign-in was cancelled or failed. Please try again.');
+  const handleGoogleError = (err) => {
+    console.warn('Google sign-in error:', err);
+    setLoginError('Google sign-in was cancelled or failed. Please verify your Google account or sign in with email and password.');
   };
 
   const handleSubmit = async (e) => {
@@ -104,6 +108,10 @@ const Login = () => {
         email: formData.email,
         password: formData.password
       });
+
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
+      }
 
       if (data.requiresTwoFactor && data.tempToken) {
         navigate('/verify-2fa', {

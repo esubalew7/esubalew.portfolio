@@ -116,7 +116,7 @@ function IcosahedronBg({ isDarkMode }) {
 /**
  * Top full-width bar indicating personnel file classification and status
  */
-function PersonnelFileBar({ available = true }) {
+function PersonnelFileBar({ available = true, dossierRef, clearanceLevel }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
@@ -136,11 +136,11 @@ function PersonnelFileBar({ available = true }) {
           </span>
           <span className="text-content-muted text-[10px] hidden min-[420px]:inline">·</span>
           <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.16em] hidden min-[420px]:inline">
-            Ref: ESU-2024
+            {dossierRef || 'Ref: ESU-2024'}
           </span>
           <span className="text-content-muted text-[10px] hidden min-[420px]:inline">·</span>
           <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.16em] hidden min-[420px]:inline">
-            Clearance: Senior Engineer
+            {clearanceLevel || 'Clearance: Senior Engineer'}
           </span>
         </div>
 
@@ -167,7 +167,7 @@ function PersonnelFileBar({ available = true }) {
 /**
  * Photo with dossier corner brackets and watermark file stamp
  */
-function PhotoBlock({ image, name, isDarkMode }) {
+function PhotoBlock({ image, name, isDarkMode, clearanceLevel, personnelId }) {
   const photoSrc = getCloudinaryUrl(image, {
     fallback: '/images/esu.png',
     width: 800,
@@ -237,11 +237,11 @@ function PhotoBlock({ image, name, isDarkMode }) {
               {name || 'Esubalew Molla'}
             </div>
             <div className="font-code text-[7px] text-white/50 uppercase tracking-[0.1em] mt-0.5">
-              Senior Engineer
+              {clearanceLevel || 'Senior Engineer'}
             </div>
           </div>
           <div className="font-code text-[8px] text-accent uppercase tracking-[0.1em] font-bold">
-            ID: ESU-001
+            {personnelId || 'ID: ESU-001'}
           </div>
         </div>
       </div>
@@ -252,7 +252,13 @@ function PhotoBlock({ image, name, isDarkMode }) {
 /**
  * Vertical metrics and credential table with horizontal borders
  */
-function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
+function MetricsTable({
+  stats = [],
+  location,
+  resumeUrl = '/resume.pdf',
+  education = 'Bahir Dar University',
+  academicYear = '3rd Year · CS',
+}) {
   const defaultStats = [
     { value: 3, suffix: '+', label: 'Years of production code' },
     { value: 15, suffix: '+', label: 'Systems Shipped' },
@@ -307,7 +313,7 @@ function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
             Education
           </span>
           <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            Bahir Dar University
+            {education || 'Bahir Dar University'}
           </span>
         </motion.div>
 
@@ -327,7 +333,7 @@ function MetricsTable({ stats = [], location, resumeUrl = '/resume.pdf' }) {
             Year
           </span>
           <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            3rd Year · CS
+            {academicYear || '3rd Year · CS'}
           </span>
         </motion.div>
 
@@ -409,14 +415,18 @@ const TICKER_ITEMS = [
 /**
  * Continuous auto-scrolling tech competencies ticker
  */
-function CompetenciesTicker() {
+function CompetenciesTicker({ competencies }) {
+  const items = Array.isArray(competencies) && competencies.length > 0
+    ? competencies.map((c) => (typeof c === 'string' ? c : c.text || c.name || ''))
+    : TICKER_ITEMS;
+
   return (
     <div
       className="overflow-hidden border-t border-b border-border-subtle py-2 mb-8 select-none"
       aria-hidden="true"
     >
       <div className="about-ticker-track">
-        {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
+        {[...items, ...items].map((item, idx) => (
           <div key={idx} className="flex items-center gap-3 px-4">
             <span className="w-1 h-1 rounded-full bg-accent opacity-60 flex-shrink-0" />
             <span className="font-code text-[10px] uppercase tracking-[0.12em] text-content-muted whitespace-nowrap">
@@ -490,48 +500,65 @@ function StatementBlock({ description, inView }) {
 /**
  * Compact assignment block representing current role and university track
  */
-function AssignmentBlock() {
+function AssignmentBlock({ assignments }) {
+  const defaultAssignments = [
+    {
+      id: 'asg-1',
+      organization: 'Askuala Link Software Co.',
+      role: 'Frontend Developer Intern',
+      period: '2024 — Present',
+      status: 'active',
+      current: true,
+    },
+    {
+      id: 'asg-2',
+      organization: 'Bahir Dar University',
+      role: 'B.Sc. Computer Science',
+      period: '2022 — Present',
+      status: 'completed',
+      current: false,
+    },
+  ];
+
+  const items = Array.isArray(assignments) && assignments.length > 0
+    ? assignments.filter((a) => a.visible !== false)
+    : defaultAssignments;
+
   return (
     <div className="mb-8">
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-content-muted mb-3 font-semibold">
         02 — Current Assignment
       </div>
 
-      {/* ROW 1 — Current role */}
-      <div className="flex items-start justify-between py-3 border-b border-border-subtle">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse flex-shrink-0" />
-          <div>
-            <div className="font-sans font-semibold text-[0.9rem] text-content-primary">
-              Askuala Link Software Co.
+      {items.map((item, idx) => {
+        const isActive = item.status === 'active' || Boolean(item.current);
+        const isLast = idx === items.length - 1;
+        return (
+          <div
+            key={item.id || item._id || idx}
+            className={`flex items-start justify-between py-3 ${!isLast ? 'border-b border-border-subtle' : ''}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  isActive ? 'bg-success animate-pulse' : 'bg-border-strong'
+                }`}
+              />
+              <div>
+                <div className="font-sans font-semibold text-[0.9rem] text-content-primary">
+                  {item.organization || item.company}
+                </div>
+                <div className="font-code text-[9px] text-content-muted mt-0.5">
+                  {item.role || item.title}
+                </div>
+              </div>
             </div>
-            <div className="font-code text-[9px] text-content-muted mt-0.5">
-              Frontend Developer Intern
-            </div>
-          </div>
-        </div>
-        <div className="font-code text-[9px] text-content-muted">
-          2024 — Present
-        </div>
-      </div>
-
-      {/* ROW 2 — Education */}
-      <div className="flex items-start justify-between py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-border-strong flex-shrink-0" />
-          <div>
-            <div className="font-sans font-semibold text-[0.9rem] text-content-primary">
-              Bahir Dar University
-            </div>
-            <div className="font-code text-[9px] text-content-muted mt-0.5">
-              B.Sc. Computer Science
+            <div className="font-code text-[9px] text-content-muted">
+              {item.period || item.duration}
             </div>
           </div>
-        </div>
-        <div className="font-code text-[9px] text-content-muted">
-          2022 — Present
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
@@ -539,7 +566,7 @@ function AssignmentBlock() {
 /**
  * Left Column Container
  */
-function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
+function LeftColumn({ about, hero, contactInfo, isDarkMode, education, academicYear }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -32 }}
@@ -552,11 +579,15 @@ function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
         image={about?.image}
         name={hero?.name}
         isDarkMode={isDarkMode}
+        clearanceLevel={about?.clearanceLevel}
+        personnelId={about?.personnelId}
       />
       <MetricsTable
         stats={about?.stats}
         location={contactInfo?.location}
         resumeUrl={about?.resume?.url || '/resume.pdf'}
+        education={education}
+        academicYear={academicYear}
       />
     </motion.div>
   );
@@ -565,7 +596,7 @@ function LeftColumn({ about, hero, contactInfo, isDarkMode }) {
 /**
  * Right Column Container
  */
-function RightColumn({ about, hero, inView }) {
+function RightColumn({ about, hero, inView, socialLinks = [], education }) {
   const handleContactClick = (e) => {
     const link = about?.cta?.link || '#contact';
     if (link.startsWith('#')) {
@@ -574,6 +605,16 @@ function RightColumn({ about, hero, inView }) {
       scrollToSectionById(targetId);
     }
   };
+
+  const githubUrl =
+    socialLinks.find(
+      (s) => s.platform?.toLowerCase() === 'github' && s.enabled !== false
+    )?.url || 'https://github.com/esubalew7';
+
+  const linkedinUrl =
+    socialLinks.find(
+      (s) => s.platform?.toLowerCase() === 'linkedin' && s.enabled !== false
+    )?.url || 'https://linkedin.com/in/esubalew-molla-7a584739b';
 
   return (
     <motion.div
@@ -585,7 +626,7 @@ function RightColumn({ about, hero, inView }) {
     >
       {/* SECTION INDEX LABEL */}
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-accent mb-6 md:mb-8 font-semibold">
-        01 — Identity & Background
+        {about?.eyebrow || '01 — Identity & Background'}
       </div>
 
       {/* NAME BLOCK */}
@@ -600,19 +641,19 @@ function RightColumn({ about, hero, inView }) {
           </span>
           <span className="w-1 h-1 rounded-full bg-border-strong" />
           <span className="font-code text-[10px] text-content-muted">
-            Bahir Dar University
+            {education || 'Bahir Dar University'}
           </span>
         </div>
       </div>
 
       {/* COMPETENCIES TICKER */}
-      <CompetenciesTicker />
+      <CompetenciesTicker competencies={about?.competencies} />
 
       {/* STATEMENT BLOCK with Redaction reveal */}
       <StatementBlock description={about?.description} inView={inView} />
 
       {/* ASSIGNMENT BLOCK */}
-      <AssignmentBlock />
+      <AssignmentBlock assignments={about?.assignments} />
 
       {/* CTA ROW */}
       <div className="flex items-center gap-6 flex-wrap pt-6 border-t border-border-subtle">
@@ -624,39 +665,43 @@ function RightColumn({ about, hero, inView }) {
             boxShadow: '0 0 20px rgba(255,77,0,0.2)',
           }}
         >
-          <span>→ Start a Conversation</span>
+          <span>→ {about?.cta?.text || 'Start a Conversation'}</span>
         </a>
 
         <div className="flex items-center gap-4">
           {/* GitHub */}
-          <a
-            href="https://github.com/esubalew7"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub Profile"
-            className="text-content-muted hover:text-content-primary transition-colors duration-150 p-1"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-              />
-            </svg>
-          </a>
+          {githubUrl && (
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub Profile"
+              className="text-content-muted hover:text-content-primary transition-colors duration-150 p-1"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                />
+              </svg>
+            </a>
+          )}
 
           {/* LinkedIn */}
-          <a
-            href="https://linkedin.com/in/esubalew-molla-7a584739b"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn Profile"
-            className="text-content-muted hover:text-content-primary transition-colors duration-150 p-1"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76c.92 0 1.66-.74 1.66-1.66a1.66 1.66 0 1 0-3.32 0c0 .92.74 1.66 1.66 1.66m1.39 9.74v-8.37H5.07v8.37h2.78z" />
-            </svg>
-          </a>
+          {linkedinUrl && (
+            <a
+              href={linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn Profile"
+              className="text-content-muted hover:text-content-primary transition-colors duration-150 p-1"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76c.92 0 1.66-.74 1.66-1.66a1.66 1.66 0 1 0-3.32 0c0 .92.74 1.66 1.66 1.66m1.39 9.74v-8.37H5.07v8.37h2.78z" />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
     </motion.div>
@@ -673,13 +718,31 @@ export const AboutSection = () => {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
-  const { about, hero, contactInfo, resume } = content || {};
+  const { about, hero, contactInfo, resume, socialLinks } = content || {};
 
   if (loading && !about) {
     return <AboutSkeleton />;
   }
 
   const available = hero?.available ?? true;
+
+  // Resolve education institution and degree/year from CMS about.education or education assignment
+  const eduAssignment = Array.isArray(about?.assignments)
+    ? about.assignments.find((a) =>
+        /university|college|school|b\.sc|bachelor|degree|student/i.test(`${a.organization || ''} ${a.role || ''}`)
+      )
+    : null;
+
+  const resolvedEducation =
+    about?.education?.institution ||
+    eduAssignment?.organization ||
+    'Bahir Dar University';
+
+  const resolvedAcademicYear =
+    about?.education?.degree ||
+    about?.education?.year ||
+    eduAssignment?.role ||
+    '3rd Year · CS';
 
   return (
     <section
@@ -690,7 +753,11 @@ export const AboutSection = () => {
       className="bg-surface-raised dark:bg-surface-base pt-20 pb-24 md:pt-24 md:pb-32 overflow-hidden relative border-t border-border-subtle"
     >
       {/* Full-width Personnel File Bar at the very top */}
-      <PersonnelFileBar available={available} />
+      <PersonnelFileBar
+        available={available}
+        dossierRef={about?.dossierRef}
+        clearanceLevel={about?.clearanceLevel}
+      />
 
       {/* Two-Column Grid Inner Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16">
@@ -700,12 +767,16 @@ export const AboutSection = () => {
             hero={hero}
             contactInfo={contactInfo}
             isDarkMode={isDarkMode}
+            education={resolvedEducation}
+            academicYear={resolvedAcademicYear}
           />
           <RightColumn
             about={about}
             hero={hero}
             contactInfo={contactInfo}
+            socialLinks={socialLinks}
             inView={inView}
+            education={resolvedEducation}
           />
         </div>
       </div>

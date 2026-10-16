@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './context/ThemeContext';
 import { ProjectProvider } from './context/ProjectContext';
 import { ContentProvider } from './context/ContentContext';
+import { TerminalProvider } from './context/TerminalContext';
 import { MainLayout } from './layouts/MainLayout';
 import { Home } from './pages/Home';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -26,29 +27,31 @@ const App = () => {
       <ThemeProvider>
         <ProjectProvider>
           <ContentProvider>
-            <SEOHead />
-            {showPreloader ? (
-              <Preloader onComplete={handleComplete} />
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <Cursor>
-                  <BrowserRouter>
-                    <Routes>
-                      <Route element={<MainLayout />}>
-                        <Route path="/" element={<Home />} />
-                      </Route>
-                    </Routes>
-                    <CarScrollbar />
-                    <ScrollToTop />
-                    <PWAInstallPrompt />
-                  </BrowserRouter>
-                </Cursor>
-              </motion.div>
-            )}
+            <TerminalProvider>
+              <SEOHead />
+              {showPreloader ? (
+                <Preloader onComplete={handleComplete} />
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Cursor>
+                    <BrowserRouter>
+                      <Routes>
+                        <Route element={<MainLayout />}>
+                          <Route path="/" element={<Home />} />
+                        </Route>
+                      </Routes>
+                      <CarScrollbar />
+                      <ScrollToTop />
+                      <PWAInstallPrompt />
+                    </BrowserRouter>
+                  </Cursor>
+                </motion.div>
+              )}
+            </TerminalProvider>
           </ContentProvider>
         </ProjectProvider>
       </ThemeProvider>

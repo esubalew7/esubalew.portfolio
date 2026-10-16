@@ -21,6 +21,9 @@ const ExperienceSection = React.lazy(() =>
 const ContactSection = React.lazy(() =>
   import('../sections/ContactSection').then(m => ({ default: m.ContactSection || m.default }))
 );
+const TerminalSection = React.lazy(() =>
+  import('../sections/TerminalSection').then(m => ({ default: m.TerminalSection || m.default }))
+);
 
 // Minimal inline fallback — matches void background, no CLS
 const SectionFallback = () => (
@@ -51,7 +54,11 @@ const lazy = (Component) => (
 );
 
 export const Home = () => {
-  const sections = useContentStore(s => s.content?.sections || {});
+  const content = useContentStore((s) => s.content) || {};
+  const sections = content.sections || {};
+  const terminal = content.terminal || {};
+
+  const showTerminalSection = sections.terminal !== false && terminal.enabled !== false;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -60,6 +67,7 @@ export const Home = () => {
 
       {/* Content sections — conditional via CMS toggles */}
       {sections.about        !== false && lazy(AboutSection)}
+      {showTerminalSection             && lazy(TerminalSection)}
       {sections.skills       !== false && lazy(SkillsSection)}
       {sections.projects     !== false && lazy(ProjectsSection)}
       {sections.testimonials !== false && lazy(TestimonialsSection)}

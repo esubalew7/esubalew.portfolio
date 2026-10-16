@@ -42,7 +42,7 @@ export const Footer = () => {
               color: 'var(--text-muted)',
             }}
           >
-            {name} · {new Date().getFullYear()}
+            {footer?.copyright || `${name} · ${new Date().getFullYear()}`}
           </span>
         </div>
 
@@ -57,7 +57,7 @@ export const Footer = () => {
             color: 'var(--text-muted)',
           }}
         >
-          Built with React + Three.js
+          {footer?.attribution || 'Built with React + Three.js'}
         </p>
       </div>
     </footer>

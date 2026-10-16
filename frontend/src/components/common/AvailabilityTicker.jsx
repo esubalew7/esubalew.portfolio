@@ -13,13 +13,28 @@ export const AvailabilityTicker = () => {
   const [dismissed, setDismissed] = useState(false);
 
   const available = content?.hero?.available ?? true;
+  const banner = content?.hero?.availabilityBanner || {};
 
-  if (dismissed) return null;
+  if (dismissed || banner.visible === false) return null;
 
   const handleContactClick = (e) => {
-    e.preventDefault();
-    scrollToSectionById('contact');
+    const targetLink = banner.buttonLink || '#contact';
+    if (targetLink.startsWith('#')) {
+      e.preventDefault();
+      scrollToSectionById(targetLink.replace('#', ''));
+    }
   };
+
+  const badgeText = available
+    ? banner.badgeText || 'Available for freelance'
+    : banner.bookedBadgeText || 'Currently booked';
+  const subText = available
+    ? banner.subText || 'Response time < 24h'
+    : banner.bookedSubText || 'Accepting inquiries for next quarter';
+  const buttonText = available
+    ? banner.buttonText || 'Book a Call'
+    : banner.bookedButtonText || 'Inquire';
+  const buttonLink = banner.buttonLink || '#contact';
 
   return (
     <AnimatePresence>
@@ -94,30 +109,20 @@ export const AvailabilityTicker = () => {
                 textTransform: 'uppercase',
               }}
             >
-              {available ? (
-                <>
-                  <strong style={{ color: '#10b981', fontWeight: 600 }}>Available for freelance</strong>
-                  <span style={{ color: 'var(--border-subtle)', margin: '0 8px' }}>—</span>
-                  <span className="hidden-xs" style={{ color: 'var(--text-primary)' }}>
-                    Response time &lt; 24h
-                  </span>
-                </>
-              ) : (
-                <>
-                  <strong style={{ color: '#f59e0b', fontWeight: 600 }}>Currently booked</strong>
-                  <span style={{ color: 'var(--border-subtle)', margin: '0 8px' }}>—</span>
-                  <span className="hidden-xs" style={{ color: 'var(--text-primary)' }}>
-                    Accepting inquiries for next quarter
-                  </span>
-                </>
-              )}
+              <strong style={{ color: available ? '#10b981' : '#f59e0b', fontWeight: 600 }}>
+                {badgeText}
+              </strong>
+              <span style={{ color: 'var(--border-subtle)', margin: '0 8px' }}>—</span>
+              <span className="hidden-xs" style={{ color: 'var(--text-primary)' }}>
+                {subText}
+              </span>
             </span>
           </div>
 
           {/* Quick CTA + Close button */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <a
-              href="#contact"
+              href={buttonLink}
               onClick={handleContactClick}
               style={{
                 fontFamily: 'JetBrains Mono, monospace',
@@ -145,7 +150,7 @@ export const AvailabilityTicker = () => {
                 e.currentTarget.style.background = 'rgba(255, 77, 0, 0.05)';
               }}
             >
-              {available ? 'Book a Call' : 'Inquire'}
+              {buttonText}
               <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>

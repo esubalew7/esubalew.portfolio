@@ -239,6 +239,10 @@ export const TestimonialsSection = () => {
     }
   };
 
+  const eyebrowText = content?.testimonials?.eyebrow || 'Client Feedback';
+  const mainHeading = content?.testimonials?.headingTitle || 'Trusted by clients.\nProven in production.';
+  const headingParts = mainHeading.split('\n');
+
   return (
     <section
       id="testimonials"
@@ -253,7 +257,7 @@ export const TestimonialsSection = () => {
     >
       <div className="container-main">
         {/* Eyebrow */}
-        <div className="section-eyebrow">Client Feedback</div>
+        <div className="section-eyebrow">{eyebrowText}</div>
 
         {/* Section Heading + Navigation Arrows */}
         <div
@@ -274,8 +278,13 @@ export const TestimonialsSection = () => {
             className="font-display text-h2"
             style={{ color: 'var(--text-primary)' }}
           >
-            Trusted by clients.<br />
-            <span style={{ color: 'var(--text-secondary)' }}>Proven in production.</span>
+            {headingParts[0]}
+            {headingParts.length > 1 && (
+              <>
+                <br />
+                <span style={{ color: 'var(--text-secondary)' }}>{headingParts.slice(1).join(' ')}</span>
+              </>
+            )}
           </motion.h2>
 
           {/* Controls */}

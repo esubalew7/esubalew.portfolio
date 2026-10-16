@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useContentStore } from '../../store/contentStore';
+import { useTerminalModal } from '../../context/TerminalContext';
 import { scrollToSectionById, getSectionHref, SECTION_IDS } from '../../utils/sectionNavigation';
 import { AvailabilityTicker } from '../common/AvailabilityTicker';
 
@@ -57,17 +58,54 @@ export const Navbar = () => {
   const [active, setActive] = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
+  const { toggleTerminal, showEntryPoint, shortcut: terminalShortcut } = useTerminalModal();
   const location = useLocation();
   const navigate = useNavigate();
   const content = useContentStore(s => s.content);
   const hero = content?.hero || {};
   const isHome = location.pathname === '/';
 
+  const logoName = content?.navbar?.brandName?.split(' ')[0] || hero.name?.split(' ')[0] || 'Esubalew';
+  const ctaText = content?.navbar?.ctaText || 'Hire Me';
+  const ctaLink = content?.navbar?.ctaLink || '#contact';
+
+  const dynamicNavLinks = useMemo(() => {
+    const LABEL_TO_SECTION = {
+      home: 'home',
+      about: 'about',
+      skills: 'skills',
+      work: 'projects',
+      projects: 'projects',
+      timeline: 'experience',
+      experience: 'experience',
+      testimonials: 'testimonials',
+      feedback: 'testimonials',
+      contact: 'contact',
+    };
+
+    const items = content?.navbar?.navItems;
+    if (Array.isArray(items) && items.length > 0) {
+      return items
+        .filter((item) => item.visible !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((item) => {
+          const rawId = (item.id || item.path || '').replace('#', '').trim();
+          const cleanLabel = (item.label || '').toLowerCase().trim();
+          const targetId = rawId || LABEL_TO_SECTION[cleanLabel] || cleanLabel;
+          return {
+            id: targetId,
+            label: item.label,
+          };
+        });
+    }
+    return NAV_LINKS;
+  }, [content?.navbar?.navItems]);
+
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
       // Active section detection
-      for (const link of [...NAV_LINKS].reverse()) {
+      for (const link of [...dynamicNavLinks].reverse()) {
         const el = document.getElementById(link.id);
         if (el && window.scrollY >= el.offsetTop - 120) {
           setActive(link.id);
@@ -77,7 +115,7 @@ export const Navbar = () => {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [dynamicNavLinks]);
 
   const onNavigate = useCallback((e, id) => {
     if (!isHome) return;
@@ -85,8 +123,6 @@ export const Navbar = () => {
     setMenuOpen(false);
     scrollToSectionById(id);
   }, [isHome]);
-
-  const logoName = hero.name?.split(' ')[0] || 'Esubalew';
 
   return (
     <header
@@ -137,7 +173,7 @@ export const Navbar = () => {
 
         {/* Desktop nav */}
         <nav aria-label="Main navigation" style={{ display: 'flex', gap: 32 }} className="hidden-mobile">
-          {NAV_LINKS.map(link => (
+          {dynamicNavLinks.map(link => (
             <DesktopLink
               key={link.id}
               link={link}
@@ -150,6 +186,28 @@ export const Navbar = () => {
 
         {/* Right side controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Terminal button */}
+          {showEntryPoint && (
+            <button
+              onClick={toggleTerminal}
+              aria-label="Open Developer Terminal"
+              title={`Developer Terminal (${terminalShortcut})`}
+              style={{
+                width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'transparent', border: '1px solid var(--border-subtle)',
+                borderRadius: 3, cursor: 'pointer', color: 'var(--text-muted)',
+                transition: 'border-color 0.2s, color 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--orange)'; e.currentTarget.style.color = 'var(--orange)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            </button>
+          )}
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
@@ -176,8 +234,13 @@ export const Navbar = () => {
 
           {/* Hire Me — orange pill */}
           <a
-            href="#contact"
-            onClick={e => { if (isHome) { e.preventDefault(); scrollToSectionById('contact'); } }}
+            href={ctaLink}
+            onClick={e => {
+              if (isHome && ctaLink.startsWith('#')) {
+                e.preventDefault();
+                scrollToSectionById(ctaLink.replace('#', ''));
+              }
+            }}
             style={{
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -190,7 +253,7 @@ export const Navbar = () => {
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
             className="hidden-mobile"
           >
-            Hire Me
+            {ctaText}
           </a>
 
           {/* Mobile menu trigger */}
@@ -228,7 +291,7 @@ export const Navbar = () => {
               padding: '1.5rem',
             }}
           >
-            {NAV_LINKS.map((link, i) => (
+            {dynamicNavLinks.map((link, i) => (
               <motion.a
                 key={link.id}
                 href={getSectionHref(link.id, location.pathname)}
@@ -248,6 +311,32 @@ export const Navbar = () => {
                 {link.label}
               </motion.a>
             ))}
+
+            {showEntryPoint && (
+              <motion.button
+                onClick={() => {
+                  setMenuOpen(false);
+                  toggleTerminal();
+                }}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: dynamicNavLinks.length * 0.05, duration: 0.3 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '14px 0',
+                  borderBottom: '1px solid var(--border-faint)',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: 'var(--text-secondary)',
+                  background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+                <span>Terminal ({terminalShortcut})</span>
+              </motion.button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

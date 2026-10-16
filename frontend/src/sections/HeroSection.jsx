@@ -9,8 +9,11 @@ import { scrollToSectionById } from '../utils/sectionNavigation';
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
 
 // ─── Availability pill ─────────────────────────────────────────────────────
-function StatusPill({ available = true, isDarkMode = true }) {
+function StatusPill({ available = true, isDarkMode = true, badgeText, bookedBadgeText }) {
   const isAvailable = available !== false;
+  const statusLabel = isAvailable
+    ? (badgeText || 'Available for freelance')
+    : (bookedBadgeText || 'Taking Q4 Inquiries');
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
@@ -49,7 +52,7 @@ function StatusPill({ available = true, isDarkMode = true }) {
           transition: 'color 0.3s ease',
         }}
       >
-        {isAvailable ? 'Available for freelance' : 'Taking Q4 Inquiries'}
+        {statusLabel}
       </span>
     </motion.div>
   );
@@ -113,7 +116,9 @@ const TECH_BADGES = [
   { name: 'NestJS', slug: 'nestjs', color: 'E0234E' },
 ];
 
-function TechBadgeRow({ isDarkMode = true }) {
+function TechBadgeRow({ badges = TECH_BADGES, isDarkMode = true }) {
+  const badgeList = Array.isArray(badges) && badges.length > 0 ? badges : TECH_BADGES;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -128,7 +133,7 @@ function TechBadgeRow({ isDarkMode = true }) {
       }}
       aria-label="Core Technology Stack"
     >
-      {TECH_BADGES.map((badge) => {
+      {badgeList.map((badge) => {
         const iconColor = isDarkMode
           ? (badge.colorDark || badge.color)
           : (badge.colorLight || badge.color);
@@ -176,7 +181,13 @@ function TechBadgeRow({ isDarkMode = true }) {
 }
 
 // ─── CTA buttons ──────────────────────────────────────────────────────────
-function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMode = true }) {
+function CTARow({
+  primaryText = 'Selected Work',
+  primaryLink = '#projects',
+  secondaryText = 'Download CV',
+  resumeUrl = '/resume.pdf',
+  isDarkMode = true,
+}) {
   const handlePrimaryClick = (e) => {
     if (!primaryLink || primaryLink === '#projects' || primaryLink.startsWith('#')) {
       e.preventDefault();
@@ -234,7 +245,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMo
           style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)' }}
           aria-hidden="true"
         />
-        <span className="relative">Selected Work</span>
+        <span className="relative">{primaryText || 'Selected Work'}</span>
         <svg
           width="16"
           height="16"
@@ -282,7 +293,7 @@ function CTARow({ primaryLink = '#projects', resumeUrl = '/resume.pdf', isDarkMo
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
-        Download CV
+        {secondaryText || 'Download CV'}
       </a>
     </motion.div>
   );
@@ -346,7 +357,8 @@ export const HeroSection = () => {
     'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
-  const role = useTypewriter(TYPEWRITER_ROLES, 70, 35, 2400);
+  const heroTitles = Array.isArray(hero?.titles) && hero.titles.length > 0 ? hero.titles : TYPEWRITER_ROLES;
+  const role = useTypewriter(heroTitles, 70, 35, 2400);
 
   // Mount canvas after first paint
   useEffect(() => {
@@ -428,7 +440,12 @@ export const HeroSection = () => {
         >
           {/* Status Availability Pill (Visitor Pill removed) */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-            <StatusPill available={hero?.available} isDarkMode={isDarkMode} />
+            <StatusPill
+              available={hero?.available}
+              isDarkMode={isDarkMode}
+              badgeText={hero?.availabilityBanner?.badgeText}
+              bookedBadgeText={hero?.availabilityBanner?.bookedBadgeText}
+            />
           </div>
 
           {/* ── Name — display-scale ── */}
@@ -513,7 +530,9 @@ export const HeroSection = () => {
           {/* ── CTAs ── */}
           <div style={{ marginTop: '2.5rem' }}>
             <CTARow
+              primaryText={hero?.cta?.primary?.text}
               primaryLink={hero?.cta?.primary?.link || '#projects'}
+              secondaryText={hero?.cta?.secondary?.text}
               resumeUrl={resumeUrl}
               isDarkMode={isDarkMode}
             />
@@ -534,14 +553,27 @@ export const HeroSection = () => {
               transition: 'border-color 0.3s ease',
             }}
           >
-            <MetricChip value="3+" label="Years building" delay={1.2} isDarkMode={isDarkMode} />
-            <MetricChip value="15+" label="Systems shipped" delay={1.3} isDarkMode={isDarkMode} />
-            <MetricChip value="3" label="Production stacks" delay={1.4} isDarkMode={isDarkMode} />
-            <MetricChip value="2FA" label="Auth architecture" delay={1.5} isDarkMode={isDarkMode} />
+            {(Array.isArray(hero?.metrics) && hero.metrics.length > 0
+              ? hero.metrics.filter((m) => m.visible !== false)
+              : [
+                  { id: 'm-1', value: '3+', label: 'Years building' },
+                  { id: 'm-2', value: '15+', label: 'Systems shipped' },
+                  { id: 'm-3', value: '3', label: 'Production stacks' },
+                  { id: 'm-4', value: '2FA', label: 'Auth architecture' },
+                ]
+            ).map((metric, idx) => (
+              <MetricChip
+                key={metric.id || metric._id || idx}
+                value={metric.value}
+                label={metric.label}
+                delay={1.2 + idx * 0.1}
+                isDarkMode={isDarkMode}
+              />
+            ))}
           </motion.div>
 
           {/* ── Official Tech Stack Badges ── */}
-          <TechBadgeRow isDarkMode={isDarkMode} />
+          <TechBadgeRow badges={hero?.techBadges} isDarkMode={isDarkMode} />
         </div>
       </motion.div>
 
