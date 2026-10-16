@@ -551,7 +551,7 @@ export function mapBackendContent(raw) {
       ...defaultContent.sections,
       ...(data.sections || {}),
       testimonials: data.sections?.testimonials !== undefined ? data.sections.testimonials : true,
-      terminal: data.sections?.terminal !== undefined ? data.sections.terminal : false,
+      terminal: data.sections?.terminal !== undefined ? data.sections.terminal : true,
     },
     terminal: {
       ...defaultContent.terminal,

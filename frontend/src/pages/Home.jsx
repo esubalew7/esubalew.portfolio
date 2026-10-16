@@ -54,7 +54,11 @@ const lazy = (Component) => (
 );
 
 export const Home = () => {
-  const sections = useContentStore(s => s.content?.sections || {});
+  const content = useContentStore((s) => s.content) || {};
+  const sections = content.sections || {};
+  const terminal = content.terminal || {};
+
+  const showTerminalSection = sections.terminal !== false && terminal.enabled !== false;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -63,7 +67,7 @@ export const Home = () => {
 
       {/* Content sections — conditional via CMS toggles */}
       {sections.about        !== false && lazy(AboutSection)}
-      {sections.terminal     === true  && lazy(TerminalSection)}
+      {showTerminalSection             && lazy(TerminalSection)}
       {sections.skills       !== false && lazy(SkillsSection)}
       {sections.projects     !== false && lazy(ProjectsSection)}
       {sections.testimonials !== false && lazy(TestimonialsSection)}

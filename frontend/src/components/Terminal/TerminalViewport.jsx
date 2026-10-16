@@ -28,10 +28,10 @@ const TerminalViewport = forwardRef(
       <div
         ref={viewportRef}
         onClick={handleClick}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 font-mono text-[13px] leading-[1.5rem] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent select-text cursor-text"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3 font-mono text-[13px] leading-[1.5rem] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent select-text cursor-text"
         style={{ scrollBehavior: 'smooth' }}
       >
-        <div className="min-h-full flex flex-col justify-end">
+        <div className="min-h-full flex flex-col justify-start">
           <div className="space-y-1">
             {lines.map((line) => (
               <TerminalLine
@@ -41,16 +41,18 @@ const TerminalViewport = forwardRef(
               />
             ))}
           </div>
-          <TerminalPrompt
-            ref={inputRef}
-            value={input}
-            onChange={onInputChange}
-            onSubmit={onSubmit}
-            onNavigateHistory={onNavigateHistory}
-            onAutocomplete={onAutocomplete}
-            onInterrupt={onInterrupt}
-            promptPrefix={promptPrefix}
-          />
+          <div className="pt-2 pb-1">
+            <TerminalPrompt
+              ref={inputRef}
+              value={input}
+              onChange={onInputChange}
+              onSubmit={onSubmit}
+              onNavigateHistory={onNavigateHistory}
+              onAutocomplete={onAutocomplete}
+              onInterrupt={onInterrupt}
+              promptPrefix={promptPrefix}
+            />
+          </div>
         </div>
       </div>
     );
