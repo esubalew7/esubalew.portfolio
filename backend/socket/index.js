@@ -13,8 +13,10 @@ export function setupSocket(httpServer) {
           'http://localhost:5174',
           'http://localhost:5175',
           'http://localhost:3000',
-          'https://portfolio-mern-one-rho.vercel.app',
-          "https://portfolio-mern-bicw.vercel.app"
+          'https://portfolio-mern-one-rho.vercel.app', // old
+          "https://portfolio-mern-bicw.vercel.app", // old
+          'https://esubalew-portfolio.vercel.app', //new
+          'https://esubalew-admin-dashboard.vercel.app' //new
         ];
         if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
           callback(null, true);

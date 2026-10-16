@@ -34,8 +34,10 @@ const allowedOrigins = [
   'http://127.0.0.1:5174',
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
-  'https://portfolio-mern-one-rho.vercel.app',
-  'https://portfolio-mern-bicw.vercel.app'
+  'https://portfolio-mern-one-rho.vercel.app', // old
+  'https://portfolio-mern-bicw.vercel.app', // old
+  'https://esubalew-portfolio.vercel.app', //new
+  'https://esubalew-admin-dashboard.vercel.app' //new 
 ].filter(Boolean);
 
 app.use(cors({
@@ -78,14 +80,14 @@ app.use("/api/metrics", systemMetricsRoutes);
 
 // Health check routes
 app.get('/', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString()
   });
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'ok',
     service: 'portfolio-backend',
     uptime: Math.floor(process.uptime()),
