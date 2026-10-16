@@ -13,6 +13,48 @@ const SOCIAL_PLATFORMS_DEFAULT = [
   { platform: "Instagram", url: "https://instagram.com/esubalew_7_7", enabled: true },
 ];
 
+const DEFAULT_TERMINAL_COMMANDS = [
+  { id: "help", name: "help", description: "Show all available commands", category: "System", aliases: ["h", "?"], enabled: true, order: 1 },
+  { id: "about", name: "about", description: "Information about me and background", category: "Information", aliases: ["whoami", "info"], enabled: true, order: 2 },
+  { id: "skills", name: "skills", description: "View technical skills and stack", category: "Information", aliases: ["tech", "techstack"], enabled: true, order: 3 },
+  { id: "projects", name: "projects", description: "View portfolio projects", category: "Portfolio", aliases: ["proj"], enabled: true, order: 4 },
+  { id: "experience", name: "experience", description: "My professional experience and roles", category: "Information", aliases: ["exp"], enabled: true, order: 5 },
+  { id: "education", name: "education", description: "Educational background and certifications", category: "Information", aliases: ["edu"], enabled: true, order: 6 },
+  { id: "resume", name: "resume", description: "Download my CV/Resume", category: "Portfolio", aliases: ["cv"], enabled: true, order: 7 },
+  { id: "contact", name: "contact", description: "Get direct contact details", category: "Links", aliases: ["mail", "email"], enabled: true, order: 8 },
+  { id: "github", name: "github", description: "Open GitHub profile", category: "Links", aliases: ["gh"], enabled: true, order: 9 },
+  { id: "linkedin", name: "linkedin", description: "Open LinkedIn profile", category: "Links", aliases: ["in"], enabled: true, order: 10 },
+  { id: "clear", name: "clear", description: "Clear terminal history", category: "System", aliases: ["cls", "rm"], enabled: true, order: 11 },
+];
+
+const DEFAULT_TERMINAL_CONFIG = {
+  enabled: true,
+  title: "Command Prompt",
+  subtitle: "Interactive Developer Console",
+  welcomeMessage: `        WELCOME TO MY INTERACTIVE DEVELOPER TERMINAL        
+
+Hi, I'm an interactive terminal that lets you explore my portfolio,
+projects, and professional journey.
+
+Getting Started:
+   • Type 'help' to see all available commands
+   • Use Arrow Keys ↑↓ to navigate command history
+   • Click links to open external profiles
+
+Quick Commands:
+   • about        → Learn about me
+   • experience   → View my work history
+   • projects     → Browse portfolio projects
+   • skills       → See my technical skills
+   • contact      → Get in touch
+
+Ready to explore? Let's go!`,
+  promptPrefix: "E C:\\esubalew\\portfolio>",
+  shortcut: "Ctrl+`",
+  showEntryPoint: true,
+  commands: DEFAULT_TERMINAL_COMMANDS,
+};
+
 const getDefaultContent = () => ({
   sections: {
     hero: true,
@@ -415,6 +457,7 @@ const getDefaultContent = () => ({
     successMessage:
       "Thank you! Your message has been sent successfully.",
   },
+  terminal: DEFAULT_TERMINAL_CONFIG,
   seo: {
     title: "",
     description: "",
@@ -577,6 +620,30 @@ export const ensureAllContentDefaults = (content) => {
     content.footer = defaults.footer;
   } else if (content.footer.attribution === undefined) {
     content.footer.attribution = defaults.footer.attribution;
+  }
+
+  // 7. Terminal
+  if (!content.terminal) {
+    content.terminal = defaults.terminal;
+  } else {
+    if (content.terminal.enabled === undefined) {
+      content.terminal.enabled = true;
+    }
+    if (!content.terminal.title) {
+      content.terminal.title = "Command Prompt";
+    }
+    if (content.terminal.promptPrefix === undefined) {
+      content.terminal.promptPrefix = defaults.terminal.promptPrefix;
+    }
+    if (content.terminal.shortcut === undefined) {
+      content.terminal.shortcut = defaults.terminal.shortcut;
+    }
+    if (content.terminal.showEntryPoint === undefined) {
+      content.terminal.showEntryPoint = true;
+    }
+    if (!Array.isArray(content.terminal.commands) || content.terminal.commands.length === 0) {
+      content.terminal.commands = defaults.terminal.commands;
+    }
   }
 };
 

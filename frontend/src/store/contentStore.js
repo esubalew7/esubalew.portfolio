@@ -261,6 +261,45 @@ export const defaultContent = {
     url: '/resume.pdf',
     title: 'Resume',
   },
+  terminal: {
+    enabled: true,
+    title: 'Command Prompt',
+    subtitle: 'Interactive Developer Console',
+    welcomeMessage: `        WELCOME TO MY INTERACTIVE DEVELOPER TERMINAL        
+
+Hi, I'm an interactive terminal that lets you explore my portfolio,
+projects, and professional journey.
+
+Getting Started:
+   • Type 'help' to see all available commands
+   • Use Arrow Keys ↑↓ to navigate command history
+   • Click links to open external profiles
+
+Quick Commands:
+   • about        → Learn about me
+   • experience   → View my work history
+   • projects     → Browse portfolio projects
+   • skills       → See my technical skills
+   • contact      → Get in touch
+
+Ready to explore? Let's go!`,
+    promptPrefix: 'E C:\\esubalew\\portfolio>',
+    shortcut: 'Ctrl+`',
+    showEntryPoint: true,
+    commands: [
+      { id: 'help', name: 'help', description: 'Show all available commands', category: 'System', aliases: ['h', '?'], enabled: true, order: 1 },
+      { id: 'about', name: 'about', description: 'Information about me and background', category: 'Information', aliases: ['whoami', 'info'], enabled: true, order: 2 },
+      { id: 'skills', name: 'skills', description: 'View technical skills and stack', category: 'Information', aliases: ['tech', 'techstack'], enabled: true, order: 3 },
+      { id: 'projects', name: 'projects', description: 'View portfolio projects', category: 'Portfolio', aliases: ['proj'], enabled: true, order: 4 },
+      { id: 'experience', name: 'experience', description: 'My professional experience and roles', category: 'Information', aliases: ['exp'], enabled: true, order: 5 },
+      { id: 'education', name: 'education', description: 'Educational background and certifications', category: 'Information', aliases: ['edu'], enabled: true, order: 6 },
+      { id: 'resume', name: 'resume', description: 'Download my CV/Resume', category: 'Portfolio', aliases: ['cv'], enabled: true, order: 7 },
+      { id: 'contact', name: 'contact', description: 'Get direct contact details', category: 'Links', aliases: ['mail', 'email'], enabled: true, order: 8 },
+      { id: 'github', name: 'github', description: 'Open GitHub profile', category: 'Links', aliases: ['gh'], enabled: true, order: 9 },
+      { id: 'linkedin', name: 'linkedin', description: 'Open LinkedIn profile', category: 'Links', aliases: ['in'], enabled: true, order: 10 },
+      { id: 'clear', name: 'clear', description: 'Clear terminal history', category: 'System', aliases: ['cls', 'rm'], enabled: true, order: 11 },
+    ],
+  },
   sections: {
     hero: true,
     about: true,
@@ -268,6 +307,7 @@ export const defaultContent = {
     projects: true,
     experience: true,
     testimonials: true,
+    terminal: false,
     contact: true,
   },
   testimonials: [
@@ -511,6 +551,21 @@ export function mapBackendContent(raw) {
       ...defaultContent.sections,
       ...(data.sections || {}),
       testimonials: data.sections?.testimonials !== undefined ? data.sections.testimonials : true,
+      terminal: data.sections?.terminal !== undefined ? data.sections.terminal : false,
+    },
+    terminal: {
+      ...defaultContent.terminal,
+      ...(data.terminal || {}),
+      enabled: data.terminal?.enabled !== undefined ? data.terminal.enabled : defaultContent.terminal.enabled,
+      title: data.terminal?.title || defaultContent.terminal.title,
+      subtitle: data.terminal?.subtitle || defaultContent.terminal.subtitle,
+      welcomeMessage: data.terminal?.welcomeMessage !== undefined ? data.terminal.welcomeMessage : defaultContent.terminal.welcomeMessage,
+      promptPrefix: data.terminal?.promptPrefix || defaultContent.terminal.promptPrefix,
+      shortcut: data.terminal?.shortcut || defaultContent.terminal.shortcut,
+      showEntryPoint: data.terminal?.showEntryPoint !== undefined ? data.terminal.showEntryPoint : defaultContent.terminal.showEntryPoint,
+      commands: Array.isArray(data.terminal?.commands) && data.terminal.commands.length > 0
+        ? data.terminal.commands
+        : defaultContent.terminal.commands,
     },
     footer: {
       ...defaultContent.footer,

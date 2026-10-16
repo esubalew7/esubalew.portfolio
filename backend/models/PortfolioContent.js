@@ -270,6 +270,28 @@ const projectsSectionSchema = new mongoose.Schema({
   filters: [projectsSectionFilterSchema],
 }, { _id: false });
 
+const terminalCommandSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  description: { type: String, default: "" },
+  category: { type: String, default: "General" },
+  aliases: [{ type: String }],
+  enabled: { type: Boolean, default: true },
+  order: { type: Number, default: 0 },
+  customResponse: { type: String, default: "" },
+}, { _id: false });
+
+const terminalSchema = new mongoose.Schema({
+  enabled: { type: Boolean, default: true },
+  title: { type: String, default: "Command Prompt" },
+  subtitle: { type: String, default: "Interactive Developer Console" },
+  welcomeMessage: { type: String, default: "" },
+  promptPrefix: { type: String, default: "E C:\\esubalew\\portfolio>" },
+  shortcut: { type: String, default: "Ctrl+`" },
+  showEntryPoint: { type: Boolean, default: true },
+  commands: [terminalCommandSchema],
+}, { _id: false });
+
 const portfolioContentSchema = new mongoose.Schema({
   sections: { type: sectionsSchema, default: () => ({}) },
   navbar: { type: navbarSchema, default: () => ({}) },
@@ -284,6 +306,7 @@ const portfolioContentSchema = new mongoose.Schema({
   socialLinks: [socialLinkSchema],
   resume: { type: resumeSchema, default: () => ({}) },
   contactInfo: { type: contactInfoSchema, default: () => ({}) },
+  terminal: { type: terminalSchema, default: () => ({}) },
   seo: { type: seoSchema, default: () => ({}) },
   structuredData: { type: Mixed, default: {} },
 }, {

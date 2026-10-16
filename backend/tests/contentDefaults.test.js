@@ -134,4 +134,42 @@ describe('CMS Default Reversion Bug Prevention Tests', () => {
 
     assert.equal(snapshot2, snapshot3, 'Repeated normalization must not mutate document');
   });
+
+  test('7. Terminal settings and custom commands survive normalization', () => {
+    const customContent = {
+      terminal: {
+        enabled: true,
+        title: 'Custom Terminal',
+        subtitle: 'Dev Shell',
+        promptPrefix: 'guest@custom:~$',
+        shortcut: 'Ctrl+K',
+        showEntryPoint: false,
+        welcomeMessage: 'Hello custom terminal',
+        commands: [
+          {
+            id: 'secret',
+            name: 'secret',
+            description: 'My custom easter egg',
+            category: 'Custom',
+            aliases: ['sec'],
+            enabled: true,
+            order: 1,
+            customResponse: 'Secret revealed!',
+          },
+        ],
+      },
+    };
+
+    ensureAllContentDefaults(customContent);
+    ensureAllContentDefaults(customContent);
+
+    assert.equal(customContent.terminal.title, 'Custom Terminal');
+    assert.equal(customContent.terminal.promptPrefix, 'guest@custom:~$');
+    assert.equal(customContent.terminal.shortcut, 'Ctrl+K');
+    assert.equal(customContent.terminal.showEntryPoint, false);
+    assert.equal(customContent.terminal.commands.length, 1);
+    assert.equal(customContent.terminal.commands[0].name, 'secret');
+    assert.equal(customContent.terminal.commands[0].customResponse, 'Secret revealed!');
+  });
 });
+

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useContentStore } from '../../store/contentStore';
+import { useTerminalModal } from '../../context/TerminalContext';
 import { scrollToSectionById, getSectionHref, SECTION_IDS } from '../../utils/sectionNavigation';
 import { AvailabilityTicker } from '../common/AvailabilityTicker';
 
@@ -57,6 +58,7 @@ export const Navbar = () => {
   const [active, setActive] = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
+  const { toggleTerminal, showEntryPoint, shortcut: terminalShortcut } = useTerminalModal();
   const location = useLocation();
   const navigate = useNavigate();
   const content = useContentStore(s => s.content);
@@ -184,6 +186,28 @@ export const Navbar = () => {
 
         {/* Right side controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Terminal button */}
+          {showEntryPoint && (
+            <button
+              onClick={toggleTerminal}
+              aria-label="Open Developer Terminal"
+              title={`Developer Terminal (${terminalShortcut})`}
+              style={{
+                width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'transparent', border: '1px solid var(--border-subtle)',
+                borderRadius: 3, cursor: 'pointer', color: 'var(--text-muted)',
+                transition: 'border-color 0.2s, color 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--orange)'; e.currentTarget.style.color = 'var(--orange)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            </button>
+          )}
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
@@ -287,6 +311,32 @@ export const Navbar = () => {
                 {link.label}
               </motion.a>
             ))}
+
+            {showEntryPoint && (
+              <motion.button
+                onClick={() => {
+                  setMenuOpen(false);
+                  toggleTerminal();
+                }}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: dynamicNavLinks.length * 0.05, duration: 0.3 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '14px 0',
+                  borderBottom: '1px solid var(--border-faint)',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: 'var(--text-secondary)',
+                  background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+                <span>Terminal ({terminalShortcut})</span>
+              </motion.button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
