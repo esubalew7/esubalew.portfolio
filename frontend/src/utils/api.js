@@ -1,8 +1,10 @@
-const API_BASE_URL =
+const rawBaseUrl =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'development'
     ? 'http://127.0.0.1:5000'
     : 'https://portfolio-backend-gxhv.onrender.com');
+
+const API_BASE_URL = rawBaseUrl.trim().replace(/\/$/, '');
 
 const api = {
   async post(endpoint, data) {

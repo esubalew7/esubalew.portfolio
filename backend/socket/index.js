@@ -5,23 +5,43 @@ import Visitor from '../models/Visitor.js';
 let io;
 
 export function setupSocket(httpServer) {
+  const parseOrigins = (val) => {
+    if (!val) return [];
+    return val.split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
+  };
+
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'https://portfolio-mern-one-rho.vercel.app', // old
+    'https://portfolio-mern-bicw.vercel.app',    // old
+    'https://esubalew-portfolio.vercel.app',    // new
+    'https://esubalew-admin-dashboard.vercel.app', // new
+    ...parseOrigins(process.env.FRONTEND_URL),
+    ...parseOrigins(process.env.ADMIN_URL),
+  ];
+
+  const normalizedAllowedOrigins = [...new Set(allowedOrigins.map((u) => u.trim().replace(/\/$/, '')))];
+
   io = new Server(httpServer, {
     cors: {
       origin: function (origin, callback) {
-        const allowedOrigins = [
-          'http://localhost:5173',
-          'http://localhost:5174',
-          'http://localhost:5175',
-          'http://localhost:3000',
-          'https://portfolio-mern-one-rho.vercel.app', // old
-          "https://portfolio-mern-bicw.vercel.app", // old
-          'https://esubalew-portfolio.vercel.app', //new
-          'https://esubalew-admin-dashboard.vercel.app' //new
-        ];
-        if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+        if (!origin) {
+          return callback(null, true);
+        }
+        const cleanOrigin = origin.trim().replace(/\/$/, '');
+        if (
+          normalizedAllowedOrigins.includes(cleanOrigin) ||
+          /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(cleanOrigin)
+        ) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS'));
+          callback(null, false);
         }
       },
       credentials: true,

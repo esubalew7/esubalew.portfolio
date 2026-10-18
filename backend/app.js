@@ -26,32 +26,50 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 
-// CORS Configuration (port 5173 for frontend, port 5174 for admin-panel)
+// CORS Configuration
+const parseOrigins = (val) => {
+  if (!val) return [];
+  return val.split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
+};
+
 const allowedOrigins = [
-  'http://localhost:5173', // Frontend dev
-  'http://localhost:5174', // Admin panel dev
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_URL,
-  'https://portfolio-mern-one-rho.vercel.app', // old
-  'https://portfolio-mern-bicw.vercel.app', // old
-  'https://esubalew-portfolio.vercel.app', //new
-  'https://esubalew-admin-dashboard.vercel.app' //new 
-].filter(Boolean);
+  'http://127.0.0.1:5175',
+  'https://portfolio-mern-one-rho.vercel.app', // Old frontend
+  'https://portfolio-mern-bicw.vercel.app',    // Old admin
+  'https://esubalew-portfolio.vercel.app',    // New frontend
+  'https://esubalew-admin-dashboard.vercel.app', // New admin
+  ...parseOrigins(process.env.FRONTEND_URL),
+  ...parseOrigins(process.env.ADMIN_URL),
+];
+
+const normalizedAllowedOrigins = [...new Set(allowedOrigins.map((u) => u.trim().replace(/\/$/, '')))];
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, Postman, etc.)
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+    if (!origin) {
+      return callback(null, true);
+    }
+    const cleanOrigin = origin.trim().replace(/\/$/, '');
+    if (
+      normalizedAllowedOrigins.includes(cleanOrigin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(cleanOrigin)
+    ) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  maxAge: 86400,
 }));
 
 app.use(cookieParser());                // Parse cookies for HttpOnly JWT auth
@@ -92,6 +110,15 @@ app.get('/api/health', (req, res) => {
     service: 'portfolio-backend',
     uptime: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('[Server Error]', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
   });
 });
 
