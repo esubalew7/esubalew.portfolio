@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL =
+const rawBaseUrl =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === "development"
     ? "http://127.0.0.1:5000"
     : "https://portfolio-backend-gxhv.onrender.com");
+
+const API_BASE_URL = rawBaseUrl.trim().replace(/\/$/, '');
 
 // Axios instance configured for HttpOnly cookie auth + Bearer token fallback.
 // withCredentials: true ensures the cookie is sent cross-origin.
@@ -15,7 +17,10 @@ const api = axios.create({
 });
 
 const normalizeError = (error) => {
-  const message = error.response?.data?.message || error.message || 'An unexpected API error occurred';
+  let message = error.response?.data?.message || error.message || 'An unexpected API error occurred';
+  if (error.message === 'Network Error' && !error.response) {
+    message = 'Network Error: Unable to connect to backend server. Please verify network connection or server status.';
+  }
   return {
     ...error,
     message,
