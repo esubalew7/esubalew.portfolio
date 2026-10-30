@@ -29,18 +29,19 @@ export const Terminal = ({
 
   const isMaximized = propIsMaximized !== undefined ? propIsMaximized : windowState === 'maximized';
 
-  // Automatically focus command prompt on mount and when maximized state changes
+  // Focus command prompt when maximized state is active (prevent scroll jumping when embedded)
   useEffect(() => {
+    if (!isMaximized) return;
     const timer = setTimeout(() => {
-      inputRef?.current?.focus();
+      inputRef?.current?.focus({ preventScroll: true });
     }, 150);
     return () => clearTimeout(timer);
   }, [isMaximized, inputRef]);
 
-  // Sizing and container styles
+  // Sizing and container styles: increased vertical size while fitting within one page
   const containerClasses = isMaximized
     ? 'w-full h-full'
-    : 'w-full h-[min(480px,calc(100vh-4rem))]';
+    : 'w-full h-[min(560px,calc(100vh-8rem))] sm:h-[min(600px,calc(100vh-8rem))] min-h-[380px]';
 
   const windowCardClasses = isMaximized
     ? 'h-full w-full flex flex-col rounded-none overflow-hidden border-0 bg-[#0c0c0c] shadow-2xl'

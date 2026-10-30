@@ -25,7 +25,7 @@ export function TerminalProvider({ children }) {
 
   const focusTerminalInput = useCallback(() => {
     setTimeout(() => {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }, 150);
   }, []);
 
@@ -33,7 +33,10 @@ export function TerminalProvider({ children }) {
     setTimeout(() => {
       const el = document.getElementById('terminal');
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const navEl = document.querySelector('header');
+        const navHeight = navEl ? navEl.offsetHeight : 104;
+        const targetY = el.getBoundingClientRect().top + window.scrollY - navHeight;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
       }
     }, 80);
   }, []);

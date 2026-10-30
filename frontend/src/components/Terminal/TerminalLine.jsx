@@ -25,7 +25,7 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'welcome') {
     return (
-      <div className="text-[#7dd3fc] whitespace-pre-wrap break-words mb-3 leading-[1.45] font-mono text-[13px]">
+      <div className="text-[#7dd3fc] whitespace-pre-wrap break-words mb-2 leading-[1.4] font-mono text-[13px]">
         {content}
       </div>
     );
@@ -33,7 +33,7 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'command') {
     return (
-      <div className="flex items-start font-mono text-[13px] leading-[1.45]">
+      <div className="flex items-start font-mono text-[13px] leading-[1.4]">
         <PromptPrefix prefix={promptPrefix} />
         <span className="text-[#d4d4d4] break-all font-semibold">{content}</span>
       </div>
@@ -42,7 +42,7 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'error') {
     return (
-      <div className="text-[#f48771] whitespace-pre-wrap break-words leading-[1.45] font-mono text-[13px] my-1">
+      <div className="text-[#f48771] whitespace-pre-wrap break-words leading-[1.4] font-mono text-[13px] my-0.5">
         {content}
       </div>
     );
@@ -50,7 +50,7 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'processing') {
     return (
-      <div className="text-[#888] leading-[1.45] font-mono text-[13px] my-1">
+      <div className="text-[#888] leading-[1.4] font-mono text-[13px] my-0.5">
         <ProcessingDots />
       </div>
     );
@@ -58,7 +58,7 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'interrupt') {
     return (
-      <div className="text-[#888] leading-[1.45] font-mono text-[13px]">
+      <div className="text-[#888] leading-[1.4] font-mono text-[13px]">
         {content}
       </div>
     );
@@ -66,14 +66,14 @@ const TerminalLine = memo(({ line, promptPrefix }) => {
 
   if (line.type === 'abort') {
     return (
-      <div className="text-[#f48771] leading-[1.45] font-mono text-[13px] my-1">
+      <div className="text-[#f48771] leading-[1.4] font-mono text-[13px] my-0.5">
         {content}
       </div>
     );
   }
 
   return (
-    <div className="text-[#c0c0c0] whitespace-pre-wrap break-words leading-[1.45] font-mono text-[13px] my-1">
+    <div className="text-[#c0c0c0] whitespace-pre-wrap break-words leading-[1.4] font-mono text-[13px] my-0.5">
       {content}
     </div>
   );
