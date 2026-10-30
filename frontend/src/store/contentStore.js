@@ -203,7 +203,7 @@ export const defaultContent = {
       id: 'cert-4',
       name: 'Responsive Web Design',
       issuer: 'freeCodeCamp',
-      issuerColor: '#3b82f6',
+      issuerColor: '#FF4D00',
       date: '2023',
       image: '/certificates/fcc-responsive.svg',
       credentialUrl: '#',

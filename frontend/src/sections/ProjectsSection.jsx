@@ -254,7 +254,7 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
             <pointLight
               position={[-3, -2, 1]}
               intensity={0.4}
-              color={isDarkMode ? '#3b82f6' : '#2563eb'}
+              color={isDarkMode ? '#FF4D00' : '#E04400'}
             />
           </Suspense>
         </Canvas>

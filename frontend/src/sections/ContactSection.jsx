@@ -95,7 +95,7 @@ function ConnectionScene({ hoveredChannel, isDarkMode }) {
     {
       id: 'email',
       angle: -Math.PI / 2,
-      color: '#3b82f6',
+      color: '#FF4D00',
       label: 'Email',
       x: Math.cos(-Math.PI / 2) * RADIUS,
       y: Math.sin(-Math.PI / 2) * RADIUS * 0.6,
@@ -141,7 +141,7 @@ function ConnectionScene({ hoveredChannel, isDarkMode }) {
     };
   }, [bgPoints]);
 
-  const centerColor = isDarkMode ? '#3b82f6' : '#2563eb';
+  const centerColor = isDarkMode ? '#FF4D00' : '#E04400';
 
   return (
     <group ref={groupRef}>
@@ -273,7 +273,7 @@ function ConnectionGraph({ hoveredChannel, isDarkMode }) {
           gl={{ antialias: true, alpha: true }}
           style={{ width: '100%', height: '100%' }}
         >
-          <color attach="background" args={[isDarkMode ? '#07080b' : '#f3f4f7']} />
+          <color attach="background" args={[isDarkMode ? '#080A0E' : '#F5F5F0']} />
           <Suspense fallback={null}>
             <ConnectionScene
               hoveredChannel={hoveredChannel}
@@ -283,7 +283,7 @@ function ConnectionGraph({ hoveredChannel, isDarkMode }) {
             <pointLight
               position={[3, 3, 2]}
               intensity={0.8}
-              color={isDarkMode ? '#3b82f6' : '#2563eb'}
+              color={isDarkMode ? '#FF4D00' : '#E04400'}
             />
           </Suspense>
         </Canvas>
@@ -320,7 +320,7 @@ function ChannelTile({ tile, onHover, onLeave, isDarkMode, index }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: EASINGS.editorial }}
-      className="contact-tile group flex flex-col justify-between p-4 sm:p-5 md:p-6 rounded-[6px] border border-border-default no-underline cursor-pointer relative overflow-hidden transition-all duration-200 bg-white dark:bg-surface-base"
+      className="contact-tile group flex flex-col justify-between p-4 sm:p-5 md:p-6 rounded-[6px] border border-border-default no-underline cursor-pointer relative overflow-hidden transition-all duration-200 bg-surface-raised dark:bg-surface-base"
       style={{
         borderColor: isHovered ? tile.color : undefined,
         backgroundColor: isHovered
@@ -847,12 +847,12 @@ export const ContactSection = () => {
       value: email,
       href: `mailto:${email}`,
       target: '_self',
-      color: '#3b82f6',
+      color: '#FF4D00',
       actionChip: 'One Click',
       bottom: 'Direct inbox · < 4h reply',
       ariaLabel: 'Contact via Email',
       icon: (
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#FF4D00" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
           <rect width="20" height="16" x="2" y="4" rx="2" />
           <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
         </svg>

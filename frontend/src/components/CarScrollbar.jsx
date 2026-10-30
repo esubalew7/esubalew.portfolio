@@ -19,9 +19,9 @@ const getAvailableTravel = (height) => {
  * Top-down miniature vector SVG of the car driving along the road track
  */
 function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
-  const accentColor = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
+  const accentColor = isDarkMode ? 'var(--orange, #FF4D00)' : '#E04400';
   const bodyFill = isDarkMode ? '#1e293b' : '#334155';
-  const bodyStroke = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
+  const bodyStroke = isDarkMode ? 'var(--orange, #FF4D00)' : '#E04400';
   const windowFill = isDarkMode
     ? 'rgba(147, 197, 253, 0.3)'
     : 'rgba(186, 230, 253, 0.45)';

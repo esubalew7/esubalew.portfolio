@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 import { useContentStore } from '../../store/contentStore';
 import { scrollToSectionById } from '../../utils/sectionNavigation';
 
@@ -10,6 +11,8 @@ import { scrollToSectionById } from '../../utils/sectionNavigation';
  */
 export const AvailabilityTicker = () => {
   const { content } = useContentStore();
+  const themeContext = useTheme();
+  const isDarkMode = themeContext?.isDarkMode ?? true;
   const [dismissed, setDismissed] = useState(false);
 
   const available = content?.hero?.available ?? true;
@@ -48,10 +51,13 @@ export const AvailabilityTicker = () => {
           position: 'relative',
           width: '100%',
           zIndex: 1001,
-          background: 'rgba(8, 10, 14, 0.75)',
+          background: isDarkMode ? 'rgba(8, 10, 14, 0.88)' : 'rgba(237, 237, 232, 0.95)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           borderBottom: '1px solid var(--border-subtle)',
           padding: '6px 16px',
           overflow: 'hidden',
+          transition: 'background-color 0.3s ease, border-color 0.3s ease',
         }}
       >
         <div
@@ -112,7 +118,7 @@ export const AvailabilityTicker = () => {
               <strong style={{ color: available ? '#10b981' : '#f59e0b', fontWeight: 600 }}>
                 {badgeText}
               </strong>
-              <span style={{ color: 'var(--border-subtle)', margin: '0 8px' }}>—</span>
+              <span style={{ color: 'var(--border-default)', margin: '0 8px' }}>—</span>
               <span className="hidden-xs" style={{ color: 'var(--text-primary)' }}>
                 {subText}
               </span>
@@ -137,17 +143,17 @@ export const AvailabilityTicker = () => {
                 fontWeight: 600,
                 padding: '2px 8px',
                 borderRadius: 2,
-                border: '1px solid rgba(255, 77, 0, 0.25)',
-                background: 'rgba(255, 77, 0, 0.05)',
+                border: '1px solid rgba(255, 77, 0, 0.35)',
+                background: 'var(--orange-dim)',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--orange)';
-                e.currentTarget.style.background = 'rgba(255, 77, 0, 0.15)';
+                e.currentTarget.style.background = 'rgba(255, 77, 0, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255, 77, 0, 0.25)';
-                e.currentTarget.style.background = 'rgba(255, 77, 0, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 77, 0, 0.35)';
+                e.currentTarget.style.background = 'var(--orange-dim)';
               }}
             >
               {buttonText}

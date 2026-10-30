@@ -260,7 +260,7 @@ function Nucleus({ isDarkMode }) {
         // Wireframe Icosahedron
         const icoGeo = new THREE.IcosahedronGeometry(1.1, 1);
         const icoMat = new THREE.MeshBasicMaterial({
-          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          color: isDarkMode ? 0xFF4D00 : 0xE04400,
           wireframe: true,
           transparent: true,
           opacity: isDarkMode ? 0.35 : 0.25,
@@ -271,7 +271,7 @@ function Nucleus({ isDarkMode }) {
         // Outer glow Torus ring
         const torusGeo = new THREE.TorusGeometry(1.3, 0.03, 16, 64);
         const torusMat = new THREE.MeshBasicMaterial({
-          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          color: isDarkMode ? 0xFF4D00 : 0xE04400,
           transparent: true,
           opacity: 0.18,
           blending: THREE.AdditiveBlending,
@@ -335,16 +335,16 @@ function Nucleus({ isDarkMode }) {
     >
       {hasError ? (
         <div
-          className="w-20 h-20 rounded-full flex items-center justify-center border border-blue-500/30"
+          className="w-20 h-20 rounded-full flex items-center justify-center border border-accent/30"
           style={{
             background: isDarkMode
               ? 'radial-gradient(circle, #1a2030 0%, #0e1017 70%)'
               : 'radial-gradient(circle, #ffffff 0%, #e2e8f0 70%)',
-            boxShadow: '0 0 24px rgba(59,130,246,0.2)',
+            boxShadow: '0 0 24px rgba(255,77,0,0.2)',
           }}
         >
           <div
-            className="w-14 h-14 rounded-full border border-dashed border-blue-400/40 animate-spin"
+            className="w-14 h-14 rounded-full border border-dashed border-accent/40 animate-spin"
             style={{ animationDuration: '10s' }}
           />
         </div>
@@ -360,7 +360,7 @@ function Nucleus({ isDarkMode }) {
       )}
       <span
         className="font-mono text-[9px] tracking-[0.22em] uppercase font-bold text-center mt-[-4px] opacity-80"
-        style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+        style={{ color: isDarkMode ? '#FF4D00' : '#E04400' }}
       >
         FULL STACK
       </span>
@@ -700,7 +700,7 @@ function SkillFocusCard({
             className="h-full rounded-full"
             style={{
               width: '100%',
-              background: `linear-gradient(90deg, ${color}, #3b82f6, #60a5fa)`,
+              background: `linear-gradient(90deg, ${color}, #FF4D00)`,
             }}
           />
         </div>
@@ -1373,11 +1373,11 @@ export const SkillsSection = () => {
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-7 h-[1px]"
-              style={{ backgroundColor: isDarkMode ? '#3b82f6' : '#2563eb' }}
+              style={{ backgroundColor: isDarkMode ? '#FF4D00' : '#E04400' }}
             />
             <span
               className="font-mono text-[11px] tracking-[0.18em] uppercase font-bold"
-              style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+              style={{ color: isDarkMode ? '#FF4D00' : '#E04400' }}
             >
               {content?.skills?.title || 'Technical Arsenal'}
             </span>
@@ -1507,7 +1507,7 @@ export const SkillsSection = () => {
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -20%)',
-                      background: `radial-gradient(circle, ${dynamicBrandMap[activeSkill] || '#38BDF8'} 0%, #3b82f6 50%, transparent 70%)`,
+                      background: `radial-gradient(circle, ${dynamicBrandMap[activeSkill] || '#FF4D00'} 0%, ${dynamicBrandMap[activeSkill] || '#FF4D00'} 50%, transparent 70%)`,
                       filter: 'blur(48px)',
                     }}
                     aria-hidden="true"

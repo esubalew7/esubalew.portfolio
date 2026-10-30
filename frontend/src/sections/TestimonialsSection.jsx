@@ -13,7 +13,7 @@ function StarRating({ rating = 5 }) {
           height="14"
           viewBox="0 0 24 24"
           fill={i < rating ? '#FF4D00' : 'none'}
-          stroke={i < rating ? '#FF4D00' : 'rgba(255, 255, 255, 0.2)'}
+          stroke={i < rating ? '#FF4D00' : 'var(--border-default)'}
           strokeWidth={1.5}
           className="shrink-0"
         >
@@ -293,7 +293,7 @@ export const TestimonialsSection = () => {
               type="button"
               onClick={() => scrollBy(-380)}
               aria-label="Scroll left"
-              className="p-2.5 rounded border border-[var(--border-subtle)] text-white/60 hover:text-white hover:border-[var(--orange)] hover:bg-white/5 transition-all cursor-pointer"
+              className="p-2.5 rounded border border-border-default text-content-muted hover:text-content-primary hover:border-accent hover:bg-surface-raised transition-all cursor-pointer"
             >
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -303,7 +303,7 @@ export const TestimonialsSection = () => {
               type="button"
               onClick={() => scrollBy(380)}
               aria-label="Scroll right"
-              className="p-2.5 rounded border border-[var(--border-subtle)] text-white/60 hover:text-white hover:border-[var(--orange)] hover:bg-white/5 transition-all cursor-pointer"
+              className="p-2.5 rounded border border-border-default text-content-muted hover:text-content-primary hover:border-accent hover:bg-surface-raised transition-all cursor-pointer"
             >
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

@@ -48,7 +48,7 @@ function IcosahedronMesh({ isDarkMode }) {
     <mesh ref={meshRef} scale={2.2}>
       <icosahedronGeometry args={[1, 1]} />
       <meshBasicMaterial
-        color={isDarkMode ? '#3b82f6' : '#2563eb'}
+        color={isDarkMode ? '#FF4D00' : '#E04400'}
         wireframe
         transparent
         opacity={isDarkMode ? 0.07 : 0.05}
