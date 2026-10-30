@@ -440,16 +440,69 @@ function CompetenciesTicker({ competencies }) {
 }
 
 /**
- * Statement block with the signature redaction sweep reveal
+ * Enhanced default statement formatted with multiple coherent lines/paragraphs
+ */
+const DEFAULT_STATEMENT = `I'm Esubalew Molla — a full-stack engineer based in Ethiopia and a Computer Science student at Bahir Dar University, currently interning at Askuala Link.
+
+I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.
+
+My approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales and doesn't break at 3 AM.`;
+
+/**
+ * Parses statement text into clean multi-line paragraphs.
+ * Handles both explicit linebreaks (\n) and multi-sentence single strings gracefully.
+ */
+function formatStatementParagraphs(rawText) {
+  if (!rawText || typeof rawText !== 'string') return [];
+  const trimmed = rawText.trim();
+  if (!trimmed) return [];
+
+  // If text already has explicit line breaks, preserve them
+  if (trimmed.includes('\n')) {
+    return trimmed
+      .split(/\r?\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
+
+  // Split on sentence boundaries (". ", "! ", "? " followed by capital letter)
+  const rawParts = trimmed.split(/([.!?])\s+(?=[A-Z])/);
+  const sentences = [];
+  for (let i = 0; i < rawParts.length; i += 2) {
+    const textPart = rawParts[i];
+    const punct = rawParts[i + 1] || '';
+    const fullSentence = (textPart + punct).trim();
+    if (fullSentence) {
+      if (
+        sentences.length > 0 &&
+        /\b(?:[A-Za-z]|B\.Sc|M\.Sc|Ph\.D|e\.g|i\.e|vs|Dr|Mr|Mrs)\.$/i.test(sentences[sentences.length - 1])
+      ) {
+        sentences[sentences.length - 1] += ' ' + fullSentence;
+      } else {
+        sentences.push(fullSentence);
+      }
+    }
+  }
+
+  if (sentences.length <= 1) return [trimmed];
+  if (sentences.length === 2) return [sentences[0], sentences[1]];
+  if (sentences.length === 3) return [sentences[0], sentences[1], sentences[2]];
+
+  // 4 or more sentences: group into 3 natural paragraphs (intro, tech systems, philosophy/conclusion)
+  return [sentences[0], sentences[1], sentences.slice(2).join(' ')];
+}
+
+/**
+ * Statement block with the signature redaction sweep reveal and multi-line support
  */
 function StatementBlock({ description, inView }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const text =
-    description ||
-    "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards. My approach is architecture first: I think in event flows, caching layers, and separation of concerns before writing the first line of code. The result is software that scales and doesn't break at 3 AM.";
+  const text = description?.trim() ? description : DEFAULT_STATEMENT;
+  const paragraphs = formatStatementParagraphs(text);
 
-  const isLong = text.length > 280;
-  const displayText = isLong && !isExpanded ? text.slice(0, 280) + '...' : text;
+  // Keep all contents visible; only offer toggle for extraordinarily long content (> 850 chars)
+  const isVeryLong = text.length > 850;
+  const visibleParagraphs = isVeryLong && !isExpanded ? paragraphs.slice(0, 3) : paragraphs;
 
   return (
     <div className="mb-8 relative">
@@ -478,17 +531,24 @@ function StatementBlock({ description, inView }) {
         }}
       />
 
-      {/* Description paragraph */}
-      <p className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10">
-        {displayText}
-      </p>
+      {/* Description paragraphs — fully visible across multiple lines */}
+      <div className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10 space-y-3.5">
+        {visibleParagraphs.map((paragraph, idx) => (
+          <p
+            key={idx}
+            className={idx === 0 ? 'text-content-primary font-medium' : 'text-content-secondary'}
+          >
+            {paragraph}
+          </p>
+        ))}
+      </div>
 
-      {/* Read more toggle link */}
-      {isLong && (
+      {/* Read more toggle link only for exceptionally long essays */}
+      {isVeryLong && (
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="font-code text-[10px] text-accent uppercase tracking-[0.1em] cursor-pointer mt-2 inline-block bg-transparent border-none p-0 relative z-10 hover:underline"
+          className="font-code text-[10px] text-accent uppercase tracking-[0.1em] cursor-pointer mt-3 inline-block bg-transparent border-none p-0 relative z-10 hover:underline"
         >
           {isExpanded ? 'Read less ↑' : 'Read more ↓'}
         </button>
