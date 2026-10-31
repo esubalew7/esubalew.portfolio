@@ -643,9 +643,9 @@ function SectionHeader({ totalCount, eyebrow, title }) {
     if (!title) {
       return (
         <>
-          <span className="text-content-primary">What I've built</span>
+          <span className="text-content-primary">What I've Built</span>
           <br />
-          <span className="text-content-secondary">for production.</span>
+          <span className="text-content-secondary">for Production.</span>
         </>
       );
     }

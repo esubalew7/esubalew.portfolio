@@ -437,7 +437,7 @@ const SKILL_DETAILS = {
   'Tailwind CSS': {
     category: 'Design Systems & UI',
     level: 'Advanced',
-    description: 'Utility-first CSS framework for building ultra-fast, responsive, and custom design systems.',
+    description: 'Utility-first CSS framework for building responsive, maintainable custom design systems.',
     tags: ['Utility CSS', 'Design Tokens', 'Dark Mode', 'Responsive', 'Flexbox'],
   },
   'Node.js': {
@@ -461,7 +461,7 @@ const SKILL_DETAILS = {
   Redis: {
     category: 'In-Memory Data Store',
     level: 'Intermediate',
-    description: 'Ultra-fast in-memory data cache for high-speed session storage, rate limiting, and pub/sub queues.',
+    description: 'In-memory data store for caching, session management, rate limiting, and pub/sub messaging.',
     tags: ['In-Memory', 'Pub/Sub', 'TTL Caching', 'Session Store', 'Key-Value'],
   },
   RabbitMQ: {
@@ -491,7 +491,7 @@ const SKILL_DETAILS = {
   Microservices: {
     category: 'Distributed Systems',
     level: 'Advanced',
-    description: 'Decoupled service mesh architecture communicating via lightweight API gateways and event buses.',
+    description: 'Decoupled service architecture communicating via lightweight API gateways and event channels.',
     tags: ['Service Mesh', 'API Gateway', 'Decoupled', 'RPC', 'Resilience'],
   },
   Flutter: {
@@ -1470,10 +1470,10 @@ export const SkillsSection = () => {
             ) : (
               <>
                 <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
-                  The stack I ship{' '}
+                  Technologies and tools{' '}
                 </span>
                 <span style={{ color: isDarkMode ? '#8B939E' : '#52596A' }}>
-                  to production.
+                  I use to build production systems.
                 </span>
               </>
             )}

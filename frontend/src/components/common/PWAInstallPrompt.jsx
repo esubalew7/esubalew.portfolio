@@ -107,7 +107,7 @@ export function PWAInstallPrompt() {
       {shouldShow && (
         <motion.aside
           role="dialog"
-          aria-label="Add portfolio to homescreen"
+          aria-label="Add portfolio to home screen"
           aria-modal="false"
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -130,10 +130,10 @@ export function PWAInstallPrompt() {
           {/* Banner Text */}
           <div className="flex-1 min-w-0 pr-1">
             <h3 className="text-sm font-semibold text-white tracking-tight leading-snug">
-              Add to homescreen
+              Add to Home Screen
             </h3>
             <p className="text-xs text-white/70 line-clamp-1 font-mono">
-              Fast, offline-ready portfolio
+              Fast, offline-capable portfolio app
             </p>
           </div>
 

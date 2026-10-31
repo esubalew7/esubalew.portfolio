@@ -570,7 +570,7 @@ function CompactForm() {
             onChange={handleChange}
             onFocus={() => setFocusedField('name')}
             onBlur={() => handleBlur('name')}
-            placeholder="Esubalew Molla"
+            placeholder="Your name"
             className="contact-input w-full bg-transparent border-none py-2.5 text-content-primary font-sans text-[0.95rem] outline-none caret-accent transition-[border-color] duration-200"
             style={{
               borderBottom: `1px solid ${getBorderColor('name')}`,
@@ -866,7 +866,7 @@ export const ContactSection = () => {
       target: '_self',
       color: '#FF4D00',
       actionChip: 'One Click',
-      bottom: 'Direct inbox · < 4h reply',
+      bottom: 'Direct inbox · < 24h reply',
       ariaLabel: 'Contact via Email',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#FF4D00" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -944,7 +944,7 @@ export const ContactSection = () => {
                 Ready to connect.
               </span>
               <span className="block text-[clamp(1.6rem,3vw,2.2rem)] font-normal text-content-secondary mt-1">
-                Reach me directly — no waiting.
+                Direct channels for projects, inquiries, and technical collaboration.
               </span>
             </h2>
           </div>
@@ -953,7 +953,7 @@ export const ContactSection = () => {
           <div className="flex-shrink-0">
             <div className="inline-flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.1em] border border-border-default rounded-sm px-3 py-1.5 bg-success-subtle text-success border-success/30 dark:border-success/20">
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-              <span>Available · &lt; 4h response</span>
+              <span>Available · &lt; 24h response</span>
             </div>
           </div>
         </motion.div>
@@ -986,7 +986,7 @@ export const ContactSection = () => {
           <div className="flex items-center gap-4 mb-8" aria-hidden="true">
             <div className="flex-1 h-px bg-border-subtle" />
             <span className="font-code text-[9px] uppercase tracking-[0.16em] text-content-muted px-2 whitespace-nowrap">
-              or leave a message
+              Or Send a Message
             </span>
             <div className="flex-1 h-px bg-border-subtle" />
           </div>

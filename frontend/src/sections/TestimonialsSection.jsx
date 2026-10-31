@@ -147,7 +147,7 @@ function TestimonialCard({ item, index }) {
               letterSpacing: '-0.01em',
             }}
           >
-            {item.name || 'Anonymous client'}
+            {item.name || 'Anonymous Client'}
           </h4>
           {(item.role || item.company) && (
             <p
@@ -207,7 +207,7 @@ export const TestimonialsSection = () => {
       enabled: true,
     },
     {
-      name: 'Anonymous client',
+      name: 'Anonymous Client',
       role: 'Product Lead',
       company: 'FinTech Enterprise',
       platform: 'Direct',
@@ -222,7 +222,7 @@ export const TestimonialsSection = () => {
       company: 'CloudScale SaaS',
       platform: 'LinkedIn',
       rating: 5,
-      text: 'Rare engineer who masters high-throughput Node.js microservices as well as sleek, pixel-perfect frontend interfaces. He hit every single milestone ahead of schedule with production-grade code quality.',
+      text: 'A rare engineer who masters high-throughput Node.js microservices as well as sleek, responsive frontend interfaces. He hit every milestone on schedule with production-grade code quality.',
       date: 'December 2024',
       enabled: true,
     },

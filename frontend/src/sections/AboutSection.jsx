@@ -432,7 +432,7 @@ const DEFAULT_STATEMENT = `I'm Esubalew Molla — a full-stack engineer based in
 
 I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.
 
-My approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales and doesn't break at 3 AM.`;
+My approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales reliably under production workloads.`;
 
 /**
  * Parses statement text into clean multi-line paragraphs.
@@ -517,7 +517,7 @@ function AssignmentBlock({ assignments }) {
   const defaultAssignments = [
     {
       id: 'asg-1',
-      organization: 'Askuala Link Software Co.',
+      organization: 'Askuala Link Software Company',
       role: 'Frontend Developer Intern',
       period: '2024 — Present',
       status: 'active',

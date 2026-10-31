@@ -8,10 +8,10 @@ const SITE_URL = 'https://portfolio-mern-one-rho.vercel.app';
 export function SEOHead() {
   const content = useContentStore((state) => state.content);
 
-  const title = content.seo?.title || 'Esubalew Molla | Full Stack Developer';
+  const title = content.seo?.title || 'Esubalew Molla | Full-Stack Software Engineer';
   const description =
     content.seo?.description ||
-    'Portfolio of Esubalew Molla — Full Stack Developer & Software Engineer based in Ethiopia. Specializing in React, Node.js, MERN stack, distributed systems, and real-time web architecture.';
+    'Portfolio of Esubalew Molla — Full-Stack Software Engineer based in Ethiopia. Specializing in React, Node.js, MERN stack, distributed systems, and real-time web architecture.';
   const keywords =
     content.seo?.keywords ||
     'Esubalew Molla, developer Ethiopia, Full Stack Developer, MERN Stack Developer, Software Engineer Ethiopia, Bahir Dar University, React Developer, Node.js, Web Developer Ethiopia, Upwork';

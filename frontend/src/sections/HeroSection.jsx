@@ -356,11 +356,11 @@ function ScrollCue({ isDarkMode = true }) {
 
 // ─── HERO SECTION ─────────────────────────────────────────────────────────
 const TYPEWRITER_ROLES = [
-  'Full Stack Engineer.',
-  'System Architect.',
-  'MERN Specialist.',
-  'Distributed Systems.',
-  'Real-Time Platforms.',
+  'Full-Stack Engineer.',
+  'Systems Architect.',
+  'MERN Stack Specialist.',
+  'Distributed Systems Engineer.',
+  'Real-Time Web Architect.',
 ];
 
 export const HeroSection = () => {
@@ -377,7 +377,7 @@ export const HeroSection = () => {
 
   const name = hero?.name || 'Esubalew Molla';
   const desc = hero?.description ||
-    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
+    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to production deployment.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
   const heroTitles = Array.isArray(hero?.titles) && hero.titles.length > 0 ? hero.titles : TYPEWRITER_ROLES;
