@@ -523,7 +523,7 @@ export const CarScrollbar = () => {
       aria-label="Page scroll position"
         style={{
           position: 'fixed',
-          right: 0,
+          right: 8,
           top: 0,
           width: TRACK_WIDTH,
           height: '100vh',

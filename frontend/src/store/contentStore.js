@@ -20,10 +20,10 @@ export const defaultContent = {
       'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.',
     available: true,
     metrics: [
-      { id: 'metric-1', value: '3+', label: 'Years building', suffix: '', order: 1, visible: true },
-      { id: 'metric-2', value: '15+', label: 'Systems shipped', suffix: '', order: 2, visible: true },
-      { id: 'metric-3', value: '3', label: 'Production stacks', suffix: '', order: 3, visible: true },
-      { id: 'metric-4', value: '2FA', label: 'Auth architecture', suffix: '', order: 4, visible: true },
+      { id: 'metric-1', value: '15+', label: 'Systems shipped', suffix: '', order: 1, visible: true },
+      { id: 'metric-2', value: '3+', label: 'Years building', suffix: '', order: 2, visible: true },
+      { id: 'metric-3', value: '<100ms', label: 'API response focus', suffix: '', order: 3, visible: true },
+      { id: 'metric-4', value: '2FA', label: 'Zero-trust auth', suffix: '', order: 4, visible: true },
     ],
     availabilityBanner: {
       enabled: true,

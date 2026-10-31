@@ -5,7 +5,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { useContentStore } from '../../store/contentStore';
 import { useTerminalModal } from '../../context/TerminalContext';
 import { scrollToSectionById, getSectionHref, SECTION_IDS } from '../../utils/sectionNavigation';
-import { AvailabilityTicker } from '../common/AvailabilityTicker';
 
 const NAV_LINKS = [
   { id: SECTION_IDS.HOME, label: 'Home' },
@@ -23,19 +22,20 @@ const DesktopLink = memo(function DesktopLink({ link, isActive, pathname, onNavi
       href={getSectionHref(link.id, pathname)}
       onClick={e => onNavigate(e, link.id)}
       aria-current={isActive ? 'page' : undefined}
+      className="focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--orange)] rounded-xs"
       style={{
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: 11,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
         textDecoration: 'none',
-        color: isActive ? 'var(--orange)' : 'var(--text-muted)',
+        color: isActive ? 'var(--orange)' : 'var(--text-secondary)',
         padding: '4px 0',
         position: 'relative',
         transition: 'color 0.2s',
       }}
       onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
-      onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-muted)'; }}
+      onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
     >
       {link.label}
       {isActive && (
@@ -155,7 +155,6 @@ export const Navbar = () => {
         WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
       }}
     >
-      <AvailabilityTicker />
       <div
         className="container-main"
         style={{
@@ -212,6 +211,7 @@ export const Navbar = () => {
               onClick={toggleTerminal}
               aria-label="Open Developer Terminal"
               title={`Developer Terminal (${terminalShortcut})`}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)]"
               style={{
                 width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'transparent', border: '1px solid var(--border-subtle)',
@@ -232,6 +232,7 @@ export const Navbar = () => {
           <button
             onClick={toggleTheme}
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)]"
             style={{
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'transparent', border: '1px solid var(--border-subtle)',
@@ -271,7 +272,7 @@ export const Navbar = () => {
             }}
             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 20px var(--orange-glow)'; }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
-            className="hidden-mobile"
+            className="hidden-mobile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)] focus-visible:ring-offset-2"
           >
             {ctaText}
           </a>
@@ -281,6 +282,7 @@ export const Navbar = () => {
             onClick={() => setMenuOpen(v => !v)}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
+            className="show-mobile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)]"
             style={{
               width: 36, height: 36, background: 'transparent', border: 'none', cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,

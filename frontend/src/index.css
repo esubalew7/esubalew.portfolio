@@ -19,6 +19,9 @@
   --ink-raised:  #141921;       /* raised panels */
   --ink-float:   #1A2030;       /* floating elements */
 
+  /* ── Layout ── */
+  --navbar-total-height: 4.5rem;
+
   /* ── Typography ── */
   --text-primary:   #F0F2F5;
   --text-secondary: #8B939E;
@@ -169,9 +172,24 @@ svg {
 .w-1\.5 { width: 6px !important; }
 .h-1\.5 { height: 6px !important; }
 
-/* Native scrollbar hidden — replaced by CarScrollbar component */
-::-webkit-scrollbar { width: 0px; }
-* { scrollbar-width: none; }   /* Firefox */
+/* Accessible native scrollbar — fully interactive beneath CarScrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange) transparent;
+}
+html::-webkit-scrollbar {
+  width: 6px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--orange);
+}
 
 /* ─── Selection ─── */
 ::selection { background: var(--orange-dim); color: var(--orange); }
@@ -529,10 +547,7 @@ body::before {
   * { scrollbar-width: thin; }
 }
 
-/* Hide car scrollbar on touch / mobile devices */
-@media (pointer: coarse) {
-  ::-webkit-scrollbar { width: 0px; }
-}
+/* On touch / mobile devices CarScrollbar is unmounted */
 
 .exhaust-puff-hidden {
   opacity: 0;

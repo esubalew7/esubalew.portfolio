@@ -14,12 +14,22 @@ export function useCursor() {
 
   const setInteraction = useCallback(state => {
     interactionState.current = state;
-    if (coreRef.current) coreRef.current.dataset.interaction = state;
-    if (ringRef.current) ringRef.current.dataset.interaction = state;
+    if (coreRef.current) {
+      coreRef.current.dataset.interaction = state;
+      if (state === 'text') coreRef.current.style.opacity = '0';
+    }
+    if (ringRef.current) {
+      ringRef.current.dataset.interaction = state;
+      if (state === 'text') ringRef.current.style.opacity = '0';
+    }
   }, []);
 
   const resetInteraction = useCallback(() => {
     setInteraction('default');
+    if (isVisible.current) {
+      if (coreRef.current) coreRef.current.style.opacity = '1';
+      if (ringRef.current) ringRef.current.style.opacity = '1';
+    }
   }, [setInteraction]);
 
   useEffect(() => {
@@ -58,7 +68,7 @@ export function useCursor() {
       }
 
       if (ringRef.current && isVisible.current) {
-        const lerpFactor = 0.18;
+        const lerpFactor = 0.28;
         const dx = mousePos.current.x - ringPos.current.x;
         const dy = mousePos.current.y - ringPos.current.y;
 
@@ -84,11 +94,15 @@ export function useCursor() {
 
     const onMouseMove = (e) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
+      const isText = interactionState.current === 'text';
       if (!isVisible.current) {
         isVisible.current = true;
         ringPos.current = { x: e.clientX, y: e.clientY };
-        if (coreRef.current) coreRef.current.style.opacity = '1';
-        if (ringRef.current) ringRef.current.style.opacity = '1';
+        if (coreRef.current) coreRef.current.style.opacity = isText ? '0' : '1';
+        if (ringRef.current) ringRef.current.style.opacity = isText ? '0' : '1';
+      } else if (!isText) {
+        if (coreRef.current && coreRef.current.style.opacity === '0') coreRef.current.style.opacity = '1';
+        if (ringRef.current && ringRef.current.style.opacity === '0') ringRef.current.style.opacity = '1';
       }
       if (coreRef.current) {
         coreRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;

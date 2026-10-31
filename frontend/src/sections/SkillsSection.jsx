@@ -530,6 +530,7 @@ function SkillFocusCard({
   isMobile,
   slugMap = SLUG_MAP,
   brandMap = BRAND_MAP,
+  onClose,
 }) {
   if (!skill) return null;
   const slug = (slugMap && slugMap[skill]) || SLUG_MAP[skill] || 'javascript';
@@ -554,22 +555,22 @@ function SkillFocusCard({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : 10 }}
       transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className={`absolute z-50 pointer-events-none select-none ${isMobile
-          ? 'bottom-4 left-4 right-4 w-auto rounded-[20px]'
-          : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px]'
+      className={`z-50 select-none ${isMobile
+          ? 'fixed bottom-4 left-4 right-4 w-auto rounded-[20px] pointer-events-auto shadow-2xl'
+          : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px] pointer-events-none'
         }`}
       style={{
-        backgroundColor: isDark ? 'rgba(12, 16, 24, 0.78)' : 'rgba(255, 255, 255, 0.92)',
-        border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: isDark ? 'rgba(12, 16, 24, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)',
         boxShadow: isDark
           ? '0 24px 60px rgba(0, 0, 0, 0.75), 0 0 32px rgba(59, 130, 246, 0.18)'
-          : '0 20px 50px rgba(15, 23, 42, 0.12)',
+          : '0 20px 50px rgba(15, 23, 42, 0.15)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
         padding: '20px',
       }}
     >
-      {/* ── TOP ROW: Icon + Tech Name + Orbit Badge ── */}
+      {/* ── TOP ROW: Icon + Tech Name + Orbit Badge + Close ── */}
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
@@ -601,16 +602,32 @@ function SkillFocusCard({
           </div>
         </div>
 
-        <span
-          className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold shrink-0"
-          style={{
-            backgroundColor: `${color}18`,
-            border: `1px solid ${color}35`,
-            color: color,
-          }}
-        >
-          {orbitBadge}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold"
+            style={{
+              backgroundColor: `${color}18`,
+              border: `1px solid ${color}35`,
+              color: color,
+            }}
+          >
+            {orbitBadge}
+          </span>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close skill details"
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors cursor-pointer pointer-events-auto"
+              style={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                color: isDark ? '#F0F2F5' : '#0D1117',
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── SHORT PROFESSIONAL DESCRIPTION ── */}
@@ -1154,7 +1171,7 @@ function SkillsList({
   );
 }
 
-// ─── 11. MOBILE FLAT SKILL GRID (< 640px) ───────────────────────────────────
+// ─── 11. MOBILE FLAT SKILL GRID (< 768px) ───────────────────────────────────
 function MobileSkillGrid({
   activeSkill,
   setActiveSkill,
@@ -1162,9 +1179,12 @@ function MobileSkillGrid({
   orbitConfigs = ORBIT_CONFIGS,
   slugMap = SLUG_MAP,
   brandMap = BRAND_MAP,
+  skillDetails = {},
+  skillMeta = {},
+  skillToOrbit = {},
 }) {
   return (
-    <div className="block lg:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
+    <div className="block md:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
       {orbitConfigs.map((orbit) => (
         <div key={orbit.id}>
           <div
@@ -1220,6 +1240,24 @@ function MobileSkillGrid({
           </div>
         </div>
       ))}
+
+      {/* Interactive Focus Card on Mobile */}
+      <AnimatePresence>
+        {activeSkill && (
+          <SkillFocusCard
+            skill={activeSkill}
+            orbitLabel={skillToOrbit[activeSkill]}
+            brandColor={brandMap[activeSkill]}
+            meta={skillMeta[activeSkill]}
+            details={skillDetails[activeSkill]}
+            isDark={isDark}
+            isMobile={true}
+            slugMap={slugMap}
+            brandMap={brandMap}
+            onClose={() => setActiveSkill(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1265,7 +1303,7 @@ export const SkillsSection = () => {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      setIsMobile(window.innerWidth < 768);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -1479,12 +1517,12 @@ export const SkillsSection = () => {
 
         {/* ─── MAIN CONTENT: ORBITAL CANVAS + RIGHT PANEL ─── */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-10">
-          {/* ORBITAL CANVAS CONTAINER */}
+          {/* ORBITAL CANVAS CONTAINER (Hidden on mobile <768px, preserved in full 3D interactive orbit on tablet & desktop) */}
           <div
-            className={`relative w-full max-w-[820px] mx-auto select-none ${isPaused ? 'orbits-paused' : ''
+            className={`hidden md:block relative w-full max-w-[820px] mx-auto select-none ${isPaused ? 'orbits-paused' : ''
               }`}
             style={{
-              height: isMobile ? 400 : 820,
+              height: 820,
               perspective: '1000px',
               perspectiveOrigin: '50% 50%',
             }}
@@ -1497,7 +1535,6 @@ export const SkillsSection = () => {
               className="absolute inset-0 flex items-center justify-center"
               style={{
                 transformStyle: 'preserve-3d',
-                transform: isMobile ? 'scale(0.65)' : 'none',
                 transformOrigin: '50% 50%',
               }}
             >
@@ -1560,7 +1597,7 @@ export const SkillsSection = () => {
                     meta={dynamicSkillMeta[activeSkill]}
                     details={dynamicSkillDetails[activeSkill]}
                     isDark={isDarkMode}
-                    isMobile={isMobile}
+                    isMobile={false}
                     slugMap={dynamicSlugMap}
                     brandMap={dynamicBrandMap}
                   />
@@ -1585,7 +1622,7 @@ export const SkillsSection = () => {
           />
         </div>
 
-        {/* MOBILE FLAT SKILL GRID (< 640px) */}
+        {/* MOBILE FLAT SKILL GRID (< 768px) */}
         <MobileSkillGrid
           activeSkill={activeSkill}
           setActiveSkill={(skill) => {
@@ -1596,6 +1633,9 @@ export const SkillsSection = () => {
           orbitConfigs={resolvedOrbits}
           slugMap={dynamicSlugMap}
           brandMap={dynamicBrandMap}
+          skillDetails={dynamicSkillDetails}
+          skillMeta={dynamicSkillMeta}
+          skillToOrbit={dynamicSkillToOrbit}
         />
       </div>
     </section>

@@ -87,12 +87,12 @@ function ProjectMesh({ project, isDarkMode, inView, liveUrl, hasLiveLink }) {
       meshRef.current.position.z = initialZRef.current;
     }
 
-    // Mouse parallax — smooth lerp toward mouse position (amplified on hover)
-    const multiplier = hovered ? 1.3 : 1.0;
+    // Mouse parallax — toned down for screenshot legibility
+    const multiplier = hovered ? 1.2 : 1.0;
     meshRef.current.rotation.y +=
-      (state.mouse.x * 0.18 * multiplier - meshRef.current.rotation.y) * 0.06;
+      (state.mouse.x * 0.08 * multiplier - meshRef.current.rotation.y) * 0.06;
     meshRef.current.rotation.x +=
-      (-state.mouse.y * 0.12 * multiplier - meshRef.current.rotation.x) * 0.06;
+      (-state.mouse.y * 0.05 * multiplier - meshRef.current.rotation.x) * 0.06;
 
     // Update scanline time uniform
     if (scanlineMatRef.current?.uniforms?.uTime) {
@@ -109,10 +109,10 @@ function ProjectMesh({ project, isDarkMode, inView, liveUrl, hasLiveLink }) {
 
   return (
     <Float
-      speed={hovered ? 0.7 : 1.2}
-      rotationIntensity={0.08}
-      floatIntensity={0.15}
-      floatingRange={[-0.04, 0.04]}
+      speed={hovered ? 0.6 : 1.0}
+      rotationIntensity={0.04}
+      floatIntensity={0.08}
+      floatingRange={[-0.02, 0.02]}
     >
       <group
         ref={meshRef}
@@ -151,7 +151,7 @@ function ProjectMesh({ project, isDarkMode, inView, liveUrl, hasLiveLink }) {
             depthWrite={false}
             uniforms={{
               uTime: { value: 0 },
-              uOpacity: { value: 0.06 },
+              uOpacity: { value: 0.02 },
             }}
             vertexShader={`
               varying vec2 vUv;
@@ -230,7 +230,7 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
       role={hasLiveLink ? 'link' : undefined}
       tabIndex={hasLiveLink ? 0 : undefined}
       title={hasLiveLink ? `Open ${project.title} live demo` : project.title}
-      className={`w-full h-[clamp(300px,45vw,520px)] relative group select-none ${hasLiveLink ? 'cursor-pointer' : ''
+      className={`w-full h-[clamp(300px,45vw,520px)] relative group select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-md ${hasLiveLink ? 'cursor-pointer' : ''
         }`}
     >
       <CanvasErrorBoundary fallback={fallbackStaticImage}>
@@ -278,51 +278,17 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
 
 // ─── Sticky Filter Dock ──────────────────────────────────────────────────────
 function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalCount, isDarkMode, filters = FILTERS }) {
-  const [dockVisible, setDockVisible] = useState(true);
-  const lastScrollYRef = useRef(0);
-
-  useEffect(() => {
-    let ticking = false;
-    let rafId = null;
-
-    const updateDock = () => {
-      const currentScrollY = window.scrollY || window.pageYOffset;
-      if (currentScrollY > lastScrollYRef.current + 8) {
-        setDockVisible(prev => (prev ? false : prev));
-      } else if (currentScrollY < lastScrollYRef.current - 8) {
-        setDockVisible(prev => (!prev ? true : prev));
-      }
-      lastScrollYRef.current = currentScrollY;
-      ticking = false;
-    };
-
-    const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        rafId = requestAnimationFrame(updateDock);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, []);
-
   return (
     <div
       style={{
         position: 'sticky',
-        top: 0,
+        top: 'var(--navbar-total-height, 4.5rem)',
         zIndex: 40,
-        transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        transform: dockVisible ? 'translateY(0)' : 'translateY(-100%)',
       }}
       className={
         isDarkMode
-          ? 'bg-surface-base/80 backdrop-blur-md border-b border-border-subtle'
-          : 'bg-canvas/80 backdrop-blur-md border-b border-border-subtle'
+          ? 'bg-surface-base/90 backdrop-blur-md border-b border-border-subtle'
+          : 'bg-canvas/90 backdrop-blur-md border-b border-border-subtle'
       }
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
@@ -342,8 +308,8 @@ function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalC
                 onClick={() => setActiveFilter(chip.value)}
                 className={
                   isActive
-                    ? 'bg-accent text-accent-foreground font-code text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-sm whitespace-nowrap cursor-pointer transition-colors duration-150'
-                    : 'border border-border-default text-content-muted font-code text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-sm hover:border-accent hover:text-content-primary whitespace-nowrap cursor-pointer transition-colors duration-150'
+                    ? 'bg-accent text-accent-foreground font-code text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-sm whitespace-nowrap cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent'
+                    : 'border border-border-default text-content-muted font-code text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-sm hover:border-accent hover:text-content-primary whitespace-nowrap cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent'
                 }
               >
                 {chip.label}
