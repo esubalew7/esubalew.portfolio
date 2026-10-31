@@ -252,16 +252,18 @@ svg {
   height: 6px !important;
 }
 
-/* Hide default native scrollbars — CarScrollbar is the sole visual scroller */
-::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
-  background: transparent;
-}
-
-* {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE / Edge */
+/* Document window scrollbar styling — CarScrollbar is the sole custom desktop scroller.
+   Global wildcard (*) hiding rules removed so native scrolling remains fully accessible in modals, terminal, and sub-containers. */
+@media (pointer: fine) {
+  html::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+  }
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 }
 
 
