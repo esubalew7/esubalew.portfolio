@@ -281,10 +281,19 @@ function Nucleus({ isDarkMode }) {
         coreGroup.add(torusMesh);
 
         let lastTime = performance.now();
+
+        const stopLoop = () => {
+          if (animId) {
+            cancelAnimationFrame(animId);
+            animId = null;
+          }
+        };
+
         const animate = (time) => {
-          if (!isMounted) return;
-          animId = requestAnimationFrame(animate);
-          if (!isIntersecting) return;
+          if (!isMounted || !isIntersecting || document.hidden) {
+            stopLoop();
+            return;
+          }
 
           const dt = Math.min((time - lastTime) * 0.001, 0.1);
           lastTime = time;
@@ -299,14 +308,28 @@ function Nucleus({ isDarkMode }) {
           }
 
           renderer.render(scene, camera);
+          animId = requestAnimationFrame(animate);
         };
-        animId = requestAnimationFrame(animate);
+
+        const startLoop = () => {
+          if (!animId && isMounted && isIntersecting && !document.hidden) {
+            lastTime = performance.now();
+            animId = requestAnimationFrame(animate);
+          }
+        };
+
+        startLoop();
 
         // Viewport intersection observer to pause rendering when off-screen
         observer = new IntersectionObserver(
           (entries) => {
             if (entries[0]) {
               isIntersecting = entries[0].isIntersecting;
+              if (isIntersecting) {
+                startLoop();
+              } else {
+                stopLoop();
+              }
             }
           },
           { threshold: 0.05 }
@@ -314,17 +337,34 @@ function Nucleus({ isDarkMode }) {
         if (canvas.parentElement) {
           observer.observe(canvas.parentElement);
         }
+
+        let cleanupVisibility = () => {
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+
+        const onVisibilityChange = () => {
+          if (document.hidden) {
+            stopLoop();
+          } else if (isIntersecting) {
+            startLoop();
+          }
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        stateRefCleanup = cleanupVisibility;
       })
       .catch((err) => {
         console.warn('Three.js failed to initialize in Nucleus:', err);
         if (isMounted) setHasError(true);
       });
 
+    let stateRefCleanup = null;
+
     return () => {
       isMounted = false;
       if (animId) cancelAnimationFrame(animId);
       if (observer) observer.disconnect();
       if (renderer) renderer.dispose();
+      if (stateRefCleanup) stateRefCleanup();
     };
   }, [isDarkMode]);
 

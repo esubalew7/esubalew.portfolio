@@ -4,6 +4,7 @@ import { useContentStore } from '../store/contentStore';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useTheme } from '../context/ThemeContext';
 import { scrollToSectionById } from '../utils/sectionNavigation';
+import { TECH_ICON_PATHS } from '../components/hero/techIconPaths';
 
 // Lazy-load the WebGL canvas so critical text renders in <100ms
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
@@ -160,19 +161,40 @@ function TechBadgeRow({ badges = TECH_BADGES, isDarkMode = true }) {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
             }}
           >
-            <img
-              src={`https://cdn.simpleicons.org/${badge.slug}/${iconColor}`}
-              alt={badge.name}
-              width={24}
-              height={24}
-              loading="lazy"
-              decoding="async"
-              style={{
-                width: 24,
-                height: 24,
-                display: 'block',
-              }}
-            />
+            {TECH_ICON_PATHS[badge.slug] ? (
+              <svg
+                viewBox="0 0 24 24"
+                width={24}
+                height={24}
+                aria-hidden="true"
+                style={{
+                  width: 24,
+                  height: 24,
+                  display: 'block',
+                  fill: iconColor === 'white'
+                    ? (isDarkMode ? '#FFFFFF' : '#111827')
+                    : iconColor === '000000'
+                      ? (isDarkMode ? '#FFFFFF' : '#000000')
+                      : (iconColor.startsWith('#') ? iconColor : `#${iconColor}`),
+                }}
+              >
+                <path d={TECH_ICON_PATHS[badge.slug]} />
+              </svg>
+            ) : (
+              <img
+                src={`https://cdn.simpleicons.org/${badge.slug}/${iconColor}`}
+                alt={badge.name}
+                width={24}
+                height={24}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: 24,
+                  height: 24,
+                  display: 'block',
+                }}
+              />
+            )}
           </span>
         );
       })}

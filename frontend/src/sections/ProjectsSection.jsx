@@ -235,9 +235,10 @@ function ProjectCanvas({ project, index, isDarkMode, inView, liveUrl, hasLiveLin
     >
       <CanvasErrorBoundary fallback={fallbackStaticImage}>
         <Canvas
+          frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 0, 3.5], fov: 45 }}
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, alpha: true }}
+          dpr={[1, 1.2]}
+          gl={{ antialias: false, alpha: true }}
           style={{ background: 'transparent' }}
         >
           <Suspense fallback={null}>
@@ -281,18 +282,32 @@ function StickyFilterDock({ activeFilter, setActiveFilter, filteredCount, totalC
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false;
+    let rafId = null;
+
+    const updateDock = () => {
       const currentScrollY = window.scrollY || window.pageYOffset;
       if (currentScrollY > lastScrollYRef.current + 8) {
-        setDockVisible(false);
+        setDockVisible(prev => (prev ? false : prev));
       } else if (currentScrollY < lastScrollYRef.current - 8) {
-        setDockVisible(true);
+        setDockVisible(prev => (!prev ? true : prev));
       }
       lastScrollYRef.current = currentScrollY;
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(updateDock);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
@@ -387,8 +402,8 @@ function ProgressRail({ count, activeIndex, isVisible }) {
           <div
             key={i}
             className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isActive
-                ? 'bg-accent scale-150 shadow-[0_0_8px_var(--orange-glow)]'
-                : 'bg-border-default'
+              ? 'bg-accent scale-150 shadow-[0_0_8px_var(--orange-glow)]'
+              : 'bg-border-default'
               }`}
           />
         );
@@ -409,6 +424,18 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
   const stageRef = useRef(null);
   const rightColRef = useRef(null);
   const [touchTilt, setTouchTilt] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 768
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const stageInView = useInView(stageRef, { amount: 0.4 });
   const rightColInView = useInView(rightColRef, { once: true, margin: '-80px' });
@@ -451,16 +478,18 @@ function ProjectStage({ project, index, isDarkMode, onVisible }) {
         {/* ── LEFT COLUMN: 3D Canvas (Desktop) / Static Image (Mobile) ── */}
         <div className="w-full">
           {/* Desktop R3F Canvas */}
-          <div className="hidden md:block">
-            <ProjectCanvas
-              project={project}
-              index={index}
-              isDarkMode={isDarkMode}
-              inView={stageInView}
-              liveUrl={liveUrl}
-              hasLiveLink={hasLiveLink}
-            />
-          </div>
+          {isDesktop && (
+            <div className="hidden md:block">
+              <ProjectCanvas
+                project={project}
+                index={index}
+                isDarkMode={isDarkMode}
+                inView={stageInView}
+                liveUrl={liveUrl}
+                hasLiveLink={hasLiveLink}
+              />
+            </div>
+          )}
 
           {/* Mobile Static Image with Touch Tilt & Link */}
           <div className="block md:hidden">

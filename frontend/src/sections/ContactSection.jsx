@@ -261,16 +261,50 @@ function ConnectionScene({ hoveredChannel, isDarkMode }) {
    CONNECTION GRAPH CANVAS (Desktop Sticky Widget)
    ═══════════════════════════════════════════════════════════════ */
 function ConnectionGraph({ hoveredChannel, isDarkMode }) {
+  const containerRef = useRef(null);
+  const [inView, setInView] = useState(false);
+  const [isLg, setIsLg] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = (e) => setIsLg(e.matches);
+    setIsLg(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isLg || !containerRef.current || typeof IntersectionObserver === 'undefined') {
+      setInView(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [isLg]);
+
+  if (!isLg) return null;
+
   return (
     <div
+      ref={containerRef}
       className="hidden lg:block w-[380px] h-[380px] sticky top-32 rounded-lg overflow-hidden border border-border-subtle bg-surface-base/20 backdrop-blur-sm self-start"
       aria-hidden="true"
     >
       <CanvasErrorBoundary>
         <Canvas
+          frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 0, 5], fov: 50 }}
-          dpr={[1, 1.4]}
-          gl={{ antialias: true, alpha: true }}
+          dpr={[1, 1.2]}
+          gl={{ antialias: false, alpha: true }}
           style={{ width: '100%', height: '100%' }}
         >
           <color attach="background" args={[isDarkMode ? '#080A0E' : '#F5F5F0']} />

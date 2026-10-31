@@ -102,19 +102,39 @@ export const Navbar = () => {
   }, [content?.navbar?.navItems]);
 
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 40);
+    let ticking = false;
+    let rafId = null;
+
+    const updateActiveSection = () => {
+      const scrollY = window.scrollY;
+      const isScrolled = scrollY > 40;
+      setScrolled(prev => (prev !== isScrolled ? isScrolled : prev));
+
       // Active section detection
       for (const link of [...dynamicNavLinks].reverse()) {
         const el = document.getElementById(link.id);
-        if (el && window.scrollY >= el.offsetTop - 120) {
-          setActive(link.id);
+        if (el && scrollY >= el.offsetTop - 120) {
+          setActive(prev => (prev !== link.id ? link.id : prev));
           break;
         }
       }
+      ticking = false;
     };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(updateActiveSection);
+      }
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    updateActiveSection();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [dynamicNavLinks]);
 
   const onNavigate = useCallback((e, id) => {

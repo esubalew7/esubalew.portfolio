@@ -930,6 +930,7 @@ function ObservatoryCanvas({
       }}
     >
       <Canvas
+        frameloop={inView ? 'always' : 'never'}
         camera={{
           position: [0, 0, isMobile ? 12.0 : isTablet ? 9.8 : 8.4],
           fov: 50,
@@ -1652,23 +1653,46 @@ export const ExperienceSection = () => {
   ]);
   const stationCount = stations.length;
 
-  // Scroll listener for 3D camera travel
+  // Scroll listener for 3D camera travel (desktop/tablet only, RAF throttled)
   useEffect(() => {
-    const handleScroll = () => {
-      if (!scrollContainerRef.current) return;
+    if (isMobile || !inView) return;
+
+    let ticking = false;
+    let rafId = null;
+
+    const updateScrollProgress = () => {
+      if (!scrollContainerRef.current) {
+        ticking = false;
+        return;
+      }
       const el = scrollContainerRef.current;
       const rect = el.getBoundingClientRect();
       const totalScrollable = el.offsetHeight - window.innerHeight;
-      if (totalScrollable <= 0) return;
+      if (totalScrollable <= 0) {
+        ticking = false;
+        return;
+      }
       const scrolled = -rect.top;
       const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
       setScrollProgress(progress);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(updateScrollProgress);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [stationCount]);
+    updateScrollProgress();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [stationCount, isMobile, inView]);
 
   if (stationCount === 0) {
     return (
@@ -1689,6 +1713,28 @@ export const ExperienceSection = () => {
             Career record is currently being updated.
           </p>
         </div>
+      </section>
+    );
+  }
+
+  // Mobile layout: render lightweight dedicated mobile experience list directly
+  // Avoids mounting expensive 3D Canvas, 600vh scroll container, and Drei <Html> projections
+  if (isMobile) {
+    return (
+      <section
+        id="experience"
+        ref={sectionRef}
+        className="bg-canvas relative"
+        style={{ isolation: 'isolate' }}
+      >
+        <MobileExperienceList
+          stations={stations}
+          eyebrow={eyebrow}
+          title={title}
+          resumeUrl={resumeUrl}
+          resumeText={resumeText}
+          isDarkMode={isDarkMode}
+        />
       </section>
     );
   }

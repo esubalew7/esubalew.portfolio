@@ -63,10 +63,22 @@ function IcosahedronMesh({ isDarkMode }) {
 function IcosahedronBg({ isDarkMode }) {
   const containerRef = useRef(null);
   const [isOnScreen, setIsOnScreen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 768
+  );
 
   useEffect(() => {
-    if (!containerRef.current || typeof IntersectionObserver === 'undefined') {
-      setIsOnScreen(true);
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop || !containerRef.current || typeof IntersectionObserver === 'undefined') {
+      setIsOnScreen(false);
       return;
     }
     const observer = new IntersectionObserver(
@@ -77,7 +89,9 @@ function IcosahedronBg({ isDarkMode }) {
     );
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [isDesktop]);
+
+  if (!isDesktop) return null;
 
   return (
     <div
