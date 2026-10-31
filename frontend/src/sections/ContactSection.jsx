@@ -462,10 +462,13 @@ function ChannelTile({ tile, onHover, onLeave, isDarkMode, index }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COMPACT MESSAGE FORM
-   Secondary contact path — streamlined bottom-border inputs
+   COMPACT MESSAGE FORM (HIGH CLARITY & ACCESSIBILITY)
+   Primary contact form with high-contrast input surfaces,
+   accessible persistent labels, clear focus/error rings,
+   and responsive validation.
    ═══════════════════════════════════════════════════════════════ */
 function CompactForm() {
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -478,13 +481,13 @@ function CompactForm() {
     let err = '';
     const val = (value || '').trim();
     if (field === 'name') {
-      if (!val) err = 'Name is required';
+      if (!val) err = 'Please enter your name (minimum 2 characters)';
       else if (val.length < 2) err = 'Name must be at least 2 characters';
     } else if (field === 'email') {
-      if (!val) err = 'Email is required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) err = 'Please enter a valid email address';
+      if (!val) err = 'Please enter your email address';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) err = 'Please enter a valid email address (e.g. name@company.com)';
     } else if (field === 'message') {
-      if (!val) err = 'Message is required';
+      if (!val) err = 'Please enter a message';
       else if (val.length < 5) err = 'Message must be at least 5 characters';
       else if (val.length > 400) err = 'Message must not exceed 400 characters';
     }
@@ -534,140 +537,165 @@ function CompactForm() {
 
       setTimeout(() => {
         setSubmitStatus('idle');
-      }, 4000);
+      }, 5000);
     } catch (err) {
       setSubmitStatus('error');
-      setErrorMessage(err.message || 'Failed to send message. Please try again.');
+      setErrorMessage(err.message || 'Failed to send message. Please try again or reach out directly via email.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getBorderColor = (field) => {
-    if (errors[field] && touched[field]) return '#ef4444';
-    if (focusedField === field) return 'var(--accent)';
-    return 'var(--border-default)';
-  };
-
   return (
     <form onSubmit={handleSubmit} noValidate className="w-full">
       {/* Row 1: Name & Email */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {/* Name */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+        {/* Name Input */}
         <div>
           <label
             htmlFor="contact-name"
-            className="font-code text-[9px] uppercase tracking-[0.14em] text-content-muted mb-1 block"
+            className="font-mono text-xs font-semibold tracking-wider text-content-primary mb-2 flex items-center justify-between"
           >
-            Your Name *
+            <span>
+              Your Name <span className="text-accent ml-0.5" aria-hidden="true">*</span>
+            </span>
+            <span className="font-mono text-[10px] text-content-muted font-normal">Required</span>
           </label>
           <input
             id="contact-name"
             name="name"
             type="text"
+            required
+            aria-required="true"
+            aria-invalid={Boolean(errors.name && touched.name)}
+            aria-describedby={errors.name && touched.name ? 'contact-name-error' : undefined}
             autoComplete="name"
             value={formData.name}
             onChange={handleChange}
             onFocus={() => setFocusedField('name')}
             onBlur={() => handleBlur('name')}
-            placeholder="Your name"
-            className="contact-input w-full bg-transparent border-none py-2.5 text-content-primary font-sans text-[0.95rem] outline-none caret-accent transition-[border-color] duration-200"
-            style={{
-              borderBottom: `1px solid ${getBorderColor('name')}`,
-            }}
+            placeholder="e.g. Alex Morgan"
+            className="contact-form-input"
           />
           <AnimatePresence>
             {errors.name && touched.name && (
-              <motion.p
+              <motion.div
+                id="contact-name-error"
+                role="alert"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="font-code text-[9px] text-red-500 dark:text-red-400 mt-1"
+                className="flex items-center gap-1.5 font-code text-[11px] text-red-500 dark:text-red-400 mt-1.5"
               >
-                {errors.name}
-              </motion.p>
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{errors.name}</span>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Email */}
+        {/* Email Input */}
         <div>
           <label
             htmlFor="contact-email"
-            className="font-code text-[9px] uppercase tracking-[0.14em] text-content-muted mb-1 block"
+            className="font-mono text-xs font-semibold tracking-wider text-content-primary mb-2 flex items-center justify-between"
           >
-            Your Email *
+            <span>
+              Your Email <span className="text-accent ml-0.5" aria-hidden="true">*</span>
+            </span>
+            <span className="font-mono text-[10px] text-content-muted font-normal">Required</span>
           </label>
           <input
             id="contact-email"
             name="email"
             type="email"
+            required
+            aria-required="true"
+            aria-invalid={Boolean(errors.email && touched.email)}
+            aria-describedby={errors.email && touched.email ? 'contact-email-error' : undefined}
             autoComplete="email"
             value={formData.email}
             onChange={handleChange}
             onFocus={() => setFocusedField('email')}
             onBlur={() => handleBlur('email')}
-            placeholder="you@example.com"
-            className="contact-input w-full bg-transparent border-none py-2.5 text-content-primary font-sans text-[0.95rem] outline-none caret-accent transition-[border-color] duration-200"
-            style={{
-              borderBottom: `1px solid ${getBorderColor('email')}`,
-            }}
+            placeholder="alex@company.com"
+            className="contact-form-input"
           />
           <AnimatePresence>
             {errors.email && touched.email && (
-              <motion.p
+              <motion.div
+                id="contact-email-error"
+                role="alert"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="font-code text-[9px] text-red-500 dark:text-red-400 mt-1"
+                className="flex items-center gap-1.5 font-code text-[11px] text-red-500 dark:text-red-400 mt-1.5"
               >
-                {errors.email}
-              </motion.p>
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{errors.email}</span>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Row 2: Message */}
-      <div className="mb-4">
+      {/* Row 2: Message Textarea */}
+      <div className="mb-5">
         <label
           htmlFor="contact-message"
-          className="font-code text-[9px] uppercase tracking-[0.14em] text-content-muted mb-1 block"
+          className="font-mono text-xs font-semibold tracking-wider text-content-primary mb-2 flex items-center justify-between"
         >
-          Your Message *
+          <span>
+            Your Message <span className="text-accent ml-0.5" aria-hidden="true">*</span>
+          </span>
+          <span className="font-mono text-[10px] text-content-muted font-normal">5–400 characters</span>
         </label>
         <textarea
           id="contact-message"
           name="message"
-          rows={3}
+          rows={4}
           maxLength={400}
+          required
+          aria-required="true"
+          aria-invalid={Boolean(errors.message && touched.message)}
+          aria-describedby={
+            errors.message && touched.message ? 'contact-message-error' : 'contact-message-counter'
+          }
           value={formData.message}
           onChange={handleChange}
           onFocus={() => setFocusedField('message')}
           onBlur={() => handleBlur('message')}
-          placeholder="Tell me about your project, timeline, or just say hello..."
-          className="contact-textarea w-full bg-transparent border-none py-2.5 text-content-primary font-sans text-[0.95rem] outline-none resize-none caret-accent transition-[border-color] duration-200"
-          style={{
-            borderBottom: `1px solid ${getBorderColor('message')}`,
-          }}
+          placeholder="Describe your project requirements, architecture goals, timeline, or send a technical inquiry..."
+          className="contact-form-textarea min-h-[120px] max-h-[260px] resize-y"
         />
-        <div className="flex justify-between items-center mt-1">
+        <div className="flex justify-between items-center mt-1.5">
           <div>
             <AnimatePresence>
               {errors.message && touched.message && (
-                <motion.p
+                <motion.div
+                  id="contact-message-error"
+                  role="alert"
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
-                  className="font-code text-[9px] text-red-500 dark:text-red-400"
+                  className="flex items-center gap-1.5 font-code text-[11px] text-red-500 dark:text-red-400"
                 >
-                  {errors.message}
-                </motion.p>
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errors.message}</span>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
           <span
-            className={`font-code text-[8px] transition-colors duration-200 ${
+            id="contact-message-counter"
+            aria-live="polite"
+            className={`font-mono text-[11px] transition-colors duration-200 ${
               formData.message.length > 380
                 ? 'text-red-500 dark:text-red-400 font-semibold'
                 : 'text-content-muted'
@@ -679,9 +707,13 @@ function CompactForm() {
       </div>
 
       {/* Row 3: Submit Row */}
-      <div className="flex items-center justify-between flex-wrap gap-4 pt-1">
-        <span className="font-code text-[8px] text-content-muted uppercase tracking-wider select-none">
-          🔒 Private · Never shared
+      <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
+        <span className="font-mono text-[11px] text-content-muted flex items-center gap-1.5 select-none">
+          <svg className="w-3.5 h-3.5 text-content-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Direct transmission · Never shared
         </span>
 
         <div className="w-full sm:w-auto">
@@ -694,12 +726,12 @@ function CompactForm() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="inline-flex items-center gap-2 text-success font-code text-[11px] uppercase tracking-[0.1em] py-2.5 px-4"
+                className="inline-flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-xs uppercase tracking-wider font-bold py-3 px-5 rounded-md bg-emerald-500/10 border border-emerald-500/30"
               >
-                <svg className="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>Message Sent</span>
+                <span>Message Sent Successfully</span>
               </motion.div>
             ) : isSubmitting ? (
               <motion.button
@@ -707,15 +739,17 @@ function CompactForm() {
                 type="button"
                 disabled
                 aria-disabled="true"
+                aria-busy="true"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-accent opacity-70 text-accent-foreground font-code text-[11px] uppercase tracking-[0.1em] rounded-sm cursor-not-allowed w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-accent opacity-80 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-md cursor-not-allowed w-full sm:w-auto min-h-[44px]"
               >
-                <div className="flex items-center gap-1.5 py-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-foreground animate-pulse" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-foreground animate-pulse [animation-delay:150ms]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-foreground animate-pulse [animation-delay:300ms]" />
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse [animation-delay:150ms]" />
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse [animation-delay:300ms]" />
+                  <span className="ml-1">Sending...</span>
                 </div>
               </motion.button>
             ) : (
@@ -725,10 +759,10 @@ function CompactForm() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 bg-accent hover:bg-accent-hover text-accent-foreground font-code text-[11px] uppercase tracking-[0.1em] rounded-sm transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,77,0,0.3)] cursor-pointer w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-3 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white font-mono text-xs uppercase tracking-wider font-bold rounded-md transition-all duration-200 hover:shadow-[0_0_24px_rgba(255,77,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent cursor-pointer w-full sm:w-auto min-h-[44px]"
               >
                 <span>Send Message</span>
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
@@ -745,9 +779,15 @@ function CompactForm() {
           aria-live="assertive"
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="border-l-[3px] border-red-500 bg-red-500/10 px-3 py-2 mt-3 font-code text-[10px] text-red-500 dark:text-red-400 rounded-r-sm"
+          className="border-l-[4px] border-red-500 bg-red-500/10 px-4 py-3 mt-4 font-mono text-xs text-red-500 dark:text-red-400 rounded-r-md flex items-start gap-2"
         >
-          {errorMessage}
+          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.486 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <div className="font-bold">Submission Failed</div>
+            <div className="text-[11px] mt-0.5 opacity-90">{errorMessage}</div>
+          </div>
         </motion.div>
       )}
     </form>
@@ -991,10 +1031,19 @@ export const ContactSection = () => {
             <div className="flex-1 h-px bg-border-subtle" />
           </div>
 
-          {/* COMPACT FORM */}
-          <div>
-            <div className="font-code text-[9px] uppercase tracking-[0.18em] text-content-muted mb-5">
-              02 — Send a Message
+          {/* MESSAGE FORM CARD */}
+          <div className="rounded-lg p-5 sm:p-7 border border-border-default bg-surface-base/70 dark:bg-surface-raised/40 backdrop-blur-sm shadow-sm transition-colors duration-200">
+            <div className="mb-6">
+              <div className="font-code text-[10px] uppercase tracking-[0.18em] text-accent font-semibold mb-1.5 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                <span>02 — Direct Message</span>
+              </div>
+              <h3 className="font-sans font-bold text-xl sm:text-2xl text-content-primary">
+                Send a Detailed Brief
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-content-secondary mt-1 leading-relaxed">
+                Prefer text over direct email? Fill out the brief below with your project goals, stack requirements, or collaboration details.
+              </p>
             </div>
             <CompactForm />
           </div>
