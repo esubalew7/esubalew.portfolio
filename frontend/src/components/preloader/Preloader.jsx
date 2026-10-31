@@ -16,65 +16,49 @@ import { useContentStore } from '../../store/contentStore';
 import { useProjects } from '../../context/ProjectContext';
 
 const NAME = 'ESUBALEW';
+const MIN_MS = 3200;
 
 function useLoaderState() {
-  const contentLoading = useContentStore(s => s.loading);
+  const contentLoading  = useContentStore(s => s.loading);
   const { loading: projLoading } = useProjects();
 
-  const [counter, setCounter] = useState(0);
+  const [counter,   setCounter]   = useState(0);
   const [nameChars, setNameChars] = useState(0);
-  const [done, setDone] = useState(false);
+  const [done,      setDone]      = useState(false);
+  const startRef    = useRef(Date.now());
   const completedRef = useRef(false);
 
-  const reducedMotion = typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
-
+  // Counter tick — jittery random increment, reaches ~95 quickly then stalls
   useEffect(() => {
-    if (reducedMotion) {
+    let raf;
+    const tick = () => {
+      setCounter(prev => {
+        if (prev >= 95) return prev;
+        const step = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 1 : 0;
+        return Math.min(prev + step, 95);
+      });
+      raf = setTimeout(tick, 40 + Math.random() * 60);
+    };
+    raf = setTimeout(tick, 40);
+    return () => clearTimeout(raf);
+  }, []);
+
+  // Stamp name letters after 600ms
+  useEffect(() => {
+    if (nameChars >= NAME.length) return;
+    const t = setTimeout(() => setNameChars(p => p + 1), nameChars === 0 ? 600 : 90 + Math.random() * 60);
+    return () => clearTimeout(t);
+  }, [nameChars]);
+
+  // Keep the intro bounded even when optional content sources are unavailable.
+  useEffect(() => {
+    const elapsed   = Date.now() - startRef.current;
+    const remaining = Math.max(0, MIN_MS - elapsed);
+    const t = setTimeout(() => {
       setCounter(100);
-      setNameChars(NAME.length);
-      setDone(true);
-      return;
-    }
-
-    let animId;
-    const startTime = performance.now();
-    const duration = 380; // Snappy branded intro duration (replaces artificial 4.2s delay)
-
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      
-      const currentCount = Math.round(progress * 100);
-      setCounter(currentCount);
-
-      const charsCount = Math.min(
-        NAME.length,
-        Math.floor(progress * (NAME.length + 1))
-      );
-      setNameChars(charsCount);
-
-      if (progress < 1) {
-        animId = requestAnimationFrame(tick);
-      } else {
-        // Exit swiftly once animation and critical initialization complete
-        completedRef.current = true;
-        setDone(true);
-      }
-    };
-
-    animId = requestAnimationFrame(tick);
-    return () => {
-      if (animId) cancelAnimationFrame(animId);
-    };
-  }, [reducedMotion]);
-
-  // Safety: If external content was pending, ensure exit as soon as it resolves
-  useEffect(() => {
-    if (!contentLoading && !projLoading && completedRef.current) {
-      setDone(true);
-    }
+      setTimeout(() => setDone(true), 400);
+    }, remaining);
+    return () => clearTimeout(t);
   }, [contentLoading, projLoading]);
 
   return { counter, nameChars, done };
@@ -100,7 +84,7 @@ export const Preloader = ({ onComplete }) => {
 
   useEffect(() => {
     if (done && onComplete) {
-      const t = setTimeout(onComplete, 200);
+      const t = setTimeout(onComplete, 600);
       return () => clearTimeout(t);
     }
   }, [done, onComplete]);

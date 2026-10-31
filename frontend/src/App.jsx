@@ -29,19 +29,28 @@ const App = () => {
           <ContentProvider>
             <TerminalProvider>
               <SEOHead />
-              <Cursor>
-                <BrowserRouter>
-                  <Routes>
-                    <Route element={<MainLayout />}>
-                      <Route path="/" element={<Home />} />
-                    </Route>
-                  </Routes>
-                  <CarScrollbar />
-                  <ScrollToTop />
-                  <PWAInstallPrompt />
-                </BrowserRouter>
-              </Cursor>
-              {showPreloader && <Preloader onComplete={handleComplete} />}
+              {showPreloader ? (
+                <Preloader onComplete={handleComplete} />
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Cursor>
+                    <BrowserRouter>
+                      <Routes>
+                        <Route element={<MainLayout />}>
+                          <Route path="/" element={<Home />} />
+                        </Route>
+                      </Routes>
+                      <CarScrollbar />
+                      <ScrollToTop />
+                      <PWAInstallPrompt />
+                    </BrowserRouter>
+                  </Cursor>
+                </motion.div>
+              )}
             </TerminalProvider>
           </ContentProvider>
         </ProjectProvider>
