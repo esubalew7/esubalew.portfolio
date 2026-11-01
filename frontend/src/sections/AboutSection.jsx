@@ -48,7 +48,7 @@ function IcosahedronMesh({ isDarkMode }) {
     <mesh ref={meshRef} scale={2.2}>
       <icosahedronGeometry args={[1, 1]} />
       <meshBasicMaterial
-        color={isDarkMode ? '#3b82f6' : '#2563eb'}
+        color={isDarkMode ? '#FF4D00' : '#E04400'}
         wireframe
         transparent
         opacity={isDarkMode ? 0.07 : 0.05}
@@ -63,10 +63,22 @@ function IcosahedronMesh({ isDarkMode }) {
 function IcosahedronBg({ isDarkMode }) {
   const containerRef = useRef(null);
   const [isOnScreen, setIsOnScreen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 768
+  );
 
   useEffect(() => {
-    if (!containerRef.current || typeof IntersectionObserver === 'undefined') {
-      setIsOnScreen(true);
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop || !containerRef.current || typeof IntersectionObserver === 'undefined') {
+      setIsOnScreen(false);
       return;
     }
     const observer = new IntersectionObserver(
@@ -77,7 +89,9 @@ function IcosahedronBg({ isDarkMode }) {
     );
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [isDesktop]);
+
+  if (!isDesktop) return null;
 
   return (
     <div
@@ -128,9 +142,9 @@ function PersonnelFileBar({ available = true, dossierRef, clearanceLevel }) {
         background: 'var(--panel-subtle-bg, rgba(255, 255, 255, 0.015))',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
         {/* LEFT: monospace text row */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           <span className="font-code text-[9px] uppercase tracking-[0.2em] text-accent font-semibold">
             Personnel File
           </span>
@@ -174,26 +188,26 @@ function PhotoBlock({ image, name, isDarkMode, clearanceLevel, personnelId }) {
   });
 
   return (
-    <div className="relative w-full max-w-full md:max-w-[340px] mx-auto md:mx-0">
+    <div className="relative w-full max-w-full md:max-w-[340px] mx-auto md:mx-0 p-1 sm:p-0">
       {/* 4 Corner Brackets (no rounded borders, dossier technical frame) */}
       <div
         aria-hidden="true"
-        className="absolute -top-2 -left-2 w-5 h-5 border-t-2 border-l-2 pointer-events-none z-10"
+        className="absolute top-0 left-0 sm:-top-2 sm:-left-2 w-5 h-5 border-t-2 border-l-2 pointer-events-none z-10"
         style={{ borderColor: 'var(--accent, #FF4D00)' }}
       />
       <div
         aria-hidden="true"
-        className="absolute -top-2 -right-2 w-5 h-5 border-t-2 border-r-2 pointer-events-none z-10"
+        className="absolute top-0 right-0 sm:-top-2 sm:-right-2 w-5 h-5 border-t-2 border-r-2 pointer-events-none z-10"
         style={{ borderColor: 'var(--accent, #FF4D00)' }}
       />
       <div
         aria-hidden="true"
-        className="absolute -bottom-2 -left-2 w-5 h-5 border-b-2 border-l-2 pointer-events-none z-10"
+        className="absolute bottom-0 left-0 sm:-bottom-2 sm:-left-2 w-5 h-5 border-b-2 border-l-2 pointer-events-none z-10"
         style={{ borderColor: 'var(--accent, #FF4D00)' }}
       />
       <div
         aria-hidden="true"
-        className="absolute -bottom-2 -right-2 w-5 h-5 border-b-2 border-r-2 pointer-events-none z-10"
+        className="absolute bottom-0 right-0 sm:-bottom-2 sm:-right-2 w-5 h-5 border-b-2 border-r-2 pointer-events-none z-10"
         style={{ borderColor: 'var(--accent, #FF4D00)' }}
       />
 
@@ -257,7 +271,7 @@ function MetricsTable({
   location,
   resumeUrl = '/resume.pdf',
   education = 'Bahir Dar University',
-  academicYear = '3rd Year · CS',
+  academicYear = 'B.Sc. Computer Science',
 }) {
   const defaultStats = [
     { value: 3, suffix: '+', label: 'Years of production code' },
@@ -307,12 +321,12 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Education
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
+          <span className="font-sans text-[0.85rem] text-content-secondary font-medium text-right">
             {education || 'Bahir Dar University'}
           </span>
         </motion.div>
@@ -327,13 +341,13 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Year
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            {academicYear || '3rd Year · CS'}
+          <span className="font-sans text-[0.85rem] text-content-primary font-semibold text-right">
+            {academicYear || 'B.Sc. Computer Science'}
           </span>
         </motion.div>
 
@@ -347,43 +361,15 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Based
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
+          <span className="font-sans text-[0.85rem] text-content-secondary font-medium text-right">
             {location || 'Bahir Dar, Ethiopia'}
           </span>
         </motion.div>
-      </div>
-
-      {/* Resume File Link */}
-      <div className="mt-6">
-        <a
-          href={resumeUrl || '/resume.pdf'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.14em] text-content-muted hover:text-accent cursor-pointer transition-colors duration-150"
-        >
-          <svg
-            className="w-3.5 h-3.5 flex-shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          <span>Download Resume ↗</span>
-        </a>
       </div>
     </div>
   );
@@ -422,7 +408,7 @@ function CompetenciesTicker({ competencies }) {
 
   return (
     <div
-      className="overflow-hidden border-t border-b border-border-subtle py-2 mb-8 select-none"
+      className="w-full min-w-0 overflow-hidden border-t border-b border-border-subtle py-2 mb-8 select-none"
       aria-hidden="true"
     >
       <div className="about-ticker-track">
@@ -440,59 +426,86 @@ function CompetenciesTicker({ competencies }) {
 }
 
 /**
- * Statement block with the signature redaction sweep reveal
+ * Enhanced default statement formatted with multiple coherent lines/paragraphs
  */
-function StatementBlock({ description, inView }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const text =
-    description ||
-    "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards. My approach is architecture first: I think in event flows, caching layers, and separation of concerns before writing the first line of code. The result is software that scales and doesn't break at 3 AM.";
+const DEFAULT_STATEMENT = `I'm Esubalew Molla — a full-stack engineer based in Ethiopia and a Computer Science student at Bahir Dar University, currently interning at Askuala Link.
 
-  const isLong = text.length > 280;
-  const displayText = isLong && !isExpanded ? text.slice(0, 280) + '...' : text;
+I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.
+
+My approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales reliably under production workloads.`;
+
+/**
+ * Parses statement text into clean multi-line paragraphs.
+ * Handles both explicit linebreaks (\n) and multi-sentence single strings gracefully.
+ */
+function formatStatementParagraphs(rawText) {
+  if (!rawText || typeof rawText !== 'string') return [];
+  const trimmed = rawText.trim();
+  if (!trimmed) return [];
+
+  // If text already has explicit line breaks, preserve them
+  if (trimmed.includes('\n')) {
+    return trimmed
+      .split(/\r?\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
+
+  // Split on sentence boundaries (". ", "! ", "? " followed by capital letter)
+  const rawParts = trimmed.split(/([.!?])\s+(?=[A-Z])/);
+  const sentences = [];
+  for (let i = 0; i < rawParts.length; i += 2) {
+    const textPart = rawParts[i];
+    const punct = rawParts[i + 1] || '';
+    const fullSentence = (textPart + punct).trim();
+    if (fullSentence) {
+      if (
+        sentences.length > 0 &&
+        /\b(?:[A-Za-z]|B\.Sc|M\.Sc|Ph\.D|e\.g|i\.e|vs|Dr|Mr|Mrs)\.$/i.test(sentences[sentences.length - 1])
+      ) {
+        sentences[sentences.length - 1] += ' ' + fullSentence;
+      } else {
+        sentences.push(fullSentence);
+      }
+    }
+  }
+
+  if (sentences.length <= 1) return [trimmed];
+  if (sentences.length === 2) return [sentences[0], sentences[1]];
+  if (sentences.length === 3) return [sentences[0], sentences[1], sentences[2]];
+
+  // 4 or more sentences: group into 3 natural paragraphs (intro, tech systems, philosophy/conclusion)
+  return [sentences[0], sentences[1], sentences.slice(2).join(' ')];
+}
+
+/**
+ * Statement block with multi-line support and clear readability across all devices
+ */
+function StatementBlock({ description }) {
+  const text = description?.trim() ? description : DEFAULT_STATEMENT;
+  const paragraphs = formatStatementParagraphs(text);
 
   return (
-    <div className="mb-8 relative">
+    <div className="mb-8 relative max-w-prose lg:max-w-2xl">
       {/* Large opening quote mark */}
       <span
         aria-hidden="true"
-        className="font-sans font-extrabold text-[3.5rem] md:text-[5rem] leading-none text-accent opacity-20 absolute -top-5 -left-3 md:-top-6 md:-left-4 select-none pointer-events-none"
+        className="font-sans font-extrabold text-[2.75rem] md:text-[4.5rem] leading-none text-accent opacity-20 absolute -top-4 left-0 md:-top-6 md:-left-4 select-none pointer-events-none"
       >
         &ldquo;
       </span>
 
-      {/* Redaction Reveal Overlay */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute inset-0 z-20 pointer-events-none"
-        style={{
-          background: 'var(--accent, #FF4D00)',
-          transformOrigin: 'right',
-        }}
-        initial={{ scaleX: 1 }}
-        animate={inView ? { scaleX: 0 } : { scaleX: 1 }}
-        transition={{
-          delay: 0.6,
-          duration: 0.8,
-          ease: [0.76, 0, 0.24, 1],
-        }}
-      />
-
-      {/* Description paragraph */}
-      <p className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10">
-        {displayText}
-      </p>
-
-      {/* Read more toggle link */}
-      {isLong && (
-        <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="font-code text-[10px] text-accent uppercase tracking-[0.1em] cursor-pointer mt-2 inline-block bg-transparent border-none p-0 relative z-10 hover:underline"
-        >
-          {isExpanded ? 'Read less ↑' : 'Read more ↓'}
-        </button>
-      )}
+      {/* Description paragraphs — fully visible across multiple lines without obstruction */}
+      <div className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10 space-y-4 break-words">
+        {paragraphs.map((paragraph, idx) => (
+          <p
+            key={idx}
+            className={idx === 0 ? 'text-content-primary font-medium' : 'text-content-secondary'}
+          >
+            {paragraph}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }
@@ -504,7 +517,7 @@ function AssignmentBlock({ assignments }) {
   const defaultAssignments = [
     {
       id: 'asg-1',
-      organization: 'Askuala Link Software Co.',
+      organization: 'Askuala Link Software Company',
       role: 'Frontend Developer Intern',
       period: '2024 — Present',
       status: 'active',
@@ -525,7 +538,7 @@ function AssignmentBlock({ assignments }) {
     : defaultAssignments;
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 max-w-prose lg:max-w-2xl">
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-content-muted mb-3 font-semibold">
         02 — Current Assignment
       </div>
@@ -536,16 +549,16 @@ function AssignmentBlock({ assignments }) {
         return (
           <div
             key={item.id || item._id || idx}
-            className={`flex items-start justify-between py-3 ${!isLast ? 'border-b border-border-subtle' : ''}`}
+            className={`flex items-start justify-between gap-3 py-3 min-w-0 ${!isLast ? 'border-b border-border-subtle' : ''}`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
               <span
                 className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                   isActive ? 'bg-success animate-pulse' : 'bg-border-strong'
                 }`}
               />
-              <div>
-                <div className="font-sans font-semibold text-[0.9rem] text-content-primary">
+              <div className="min-w-0">
+                <div className="font-sans font-semibold text-[0.9rem] text-content-primary truncate sm:whitespace-normal">
                   {item.organization || item.company}
                 </div>
                 <div className="font-code text-[9px] text-content-muted mt-0.5">
@@ -553,7 +566,7 @@ function AssignmentBlock({ assignments }) {
                 </div>
               </div>
             </div>
-            <div className="font-code text-[9px] text-content-muted">
+            <div className="font-code text-[9px] text-content-muted shrink-0 text-right">
               {item.period || item.duration}
             </div>
           </div>
@@ -569,11 +582,11 @@ function AssignmentBlock({ assignments }) {
 function LeftColumn({ about, hero, contactInfo, isDarkMode, education, academicYear }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -32 }}
+      initial={{ opacity: 0, x: -16 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ delay: 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full"
+      className="w-full min-w-0"
     >
       <PhotoBlock
         image={about?.image}
@@ -618,11 +631,11 @@ function RightColumn({ about, hero, inView, socialLinks = [], education }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 32 }}
+      initial={{ opacity: 0, x: 16 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full"
+      className="w-full min-w-0 pr-2 sm:pr-4 lg:pr-6"
     >
       {/* SECTION INDEX LABEL */}
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-accent mb-6 md:mb-8 font-semibold">
@@ -735,14 +748,19 @@ export const AboutSection = () => {
 
   const resolvedEducation =
     about?.education?.institution ||
+    about?.education?.school ||
+    about?.education?.university ||
     eduAssignment?.organization ||
     'Bahir Dar University';
 
   const resolvedAcademicYear =
     about?.education?.degree ||
     about?.education?.year ||
+    about?.education?.academicYear ||
+    about?.academicYear ||
+    about?.degree ||
     eduAssignment?.role ||
-    '3rd Year · CS';
+    'B.Sc. Computer Science';
 
   return (
     <section
@@ -761,7 +779,7 @@ export const AboutSection = () => {
 
       {/* Two-Column Grid Inner Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-10 md:gap-14 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)] gap-8 md:gap-10 lg:gap-14 items-start">
           <LeftColumn
             about={{ ...about, resume }}
             hero={hero}

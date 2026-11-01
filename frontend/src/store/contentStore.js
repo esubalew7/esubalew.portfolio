@@ -10,20 +10,20 @@ export const defaultContent = {
   hero: {
     name: 'Esubalew Molla',
     titles: [
-      'Full Stack Developer.',
-      'MERN Specialist.',
-      'PERN Architect.',
-      'Flutter Engineer.',
-      'Distributed Systems.',
+      'Full-Stack Engineer.',
+      'Systems Architect.',
+      'MERN Stack Specialist.',
+      'Distributed Systems Engineer.',
+      'Real-Time Web Architect.',
     ],
     description:
-      'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.',
+      'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to production deployment.',
     available: true,
     metrics: [
-      { id: 'metric-1', value: '3+', label: 'Years building', suffix: '', order: 1, visible: true },
-      { id: 'metric-2', value: '15+', label: 'Systems shipped', suffix: '', order: 2, visible: true },
-      { id: 'metric-3', value: '3', label: 'Production stacks', suffix: '', order: 3, visible: true },
-      { id: 'metric-4', value: '2FA', label: 'Auth architecture', suffix: '', order: 4, visible: true },
+      { id: 'metric-1', value: '15+', label: 'Systems shipped', suffix: '', order: 1, visible: true },
+      { id: 'metric-2', value: '3+', label: 'Years building', suffix: '', order: 2, visible: true },
+      { id: 'metric-3', value: '<100ms', label: 'API response focus', suffix: '', order: 3, visible: true },
+      { id: 'metric-4', value: '2FA', label: 'Zero-trust auth', suffix: '', order: 4, visible: true },
     ],
     availabilityBanner: {
       enabled: true,
@@ -47,8 +47,13 @@ export const defaultContent = {
     clearanceLevel: 'Clearance: Senior Engineer',
     personnelId: 'ESU-001',
     description:
-      "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.",
+      "I'm Esubalew Molla — a full-stack engineer based in Ethiopia and a Computer Science student at Bahir Dar University, currently interning at Askuala Link.\n\nI architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.\n\nMy approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales reliably under production workloads.",
     image: '/images/esu.png',
+    education: {
+      institution: 'Bahir Dar University',
+      degree: 'B.Sc. Computer Science',
+      year: 'B.Sc. Computer Science',
+    },
     stats: [
       { value: 3, suffix: '+', label: 'Years of production code' },
       { value: 15, suffix: '+', label: 'Full-stack systems shipped' },
@@ -63,7 +68,7 @@ export const defaultContent = {
     assignments: [
       {
         id: 'asg-1',
-        organization: 'Askuala Link Software Co.',
+        organization: 'Askuala Link Software Company',
         role: 'Frontend Developer Intern',
         period: '2024 — Present',
         status: 'active',
@@ -85,13 +90,13 @@ export const defaultContent = {
   },
   skills: {
     title: 'Technical Arsenal',
-    subtitle: 'The stack I ship to production.',
+    subtitle: 'Technologies and tools I use to build production systems.',
     categories: [],
   },
   projectsSection: {
     eyebrow: 'Selected Work',
-    title: "What I've built\nfor production.",
-    subtitle: 'Production-grade applications architected for reliability, sub-100ms API response times, and resilient state synchronization.',
+    title: "What I've Built\nfor Production.",
+    subtitle: 'Production-grade applications architected for reliability, responsive API performance, and resilient state synchronization.',
     filters: [
       { id: 'all', label: 'All', order: 1 },
       { id: 'mern', label: 'MERN', order: 2 },
@@ -203,7 +208,7 @@ export const defaultContent = {
       id: 'cert-4',
       name: 'Responsive Web Design',
       issuer: 'freeCodeCamp',
-      issuerColor: '#3b82f6',
+      issuerColor: '#FF4D00',
       date: '2023',
       image: '/certificates/fcc-responsive.svg',
       credentialUrl: '#',
@@ -217,7 +222,7 @@ export const defaultContent = {
     formTitle: 'What are we building?',
     formDescription: 'Select your project type',
     formButtonText: 'Send Brief',
-    successMessage: "I'll review your project and respond within 4 hours.",
+    successMessage: "I'll review your inquiry and respond within 24 hours.",
     wizard: {
       steps: [
         { stepNumber: 1, title: 'What are we building?', description: 'Select your project type' },
@@ -237,7 +242,7 @@ export const defaultContent = {
       ],
       submitButtonText: 'Send Brief',
       submittingButtonText: 'Sending...',
-      responseTimeText: 'Response within 4 hours',
+      responseTimeText: 'Response within 24 hours',
       privacyText: 'Your data is never shared',
     },
   },
@@ -322,7 +327,7 @@ Ready to explore? Let's go!`,
       enabled: true,
     },
     {
-      name: 'Anonymous client',
+      name: 'Anonymous Client',
       role: 'Product Lead',
       company: 'FinTech Enterprise',
       platform: 'Direct',
@@ -337,7 +342,7 @@ Ready to explore? Let's go!`,
       company: 'CloudScale SaaS',
       platform: 'LinkedIn',
       rating: 5,
-      text: 'Rare engineer who masters high-throughput Node.js microservices as well as sleek, pixel-perfect frontend interfaces. He hit every single milestone ahead of schedule with production-grade code quality.',
+      text: 'A rare engineer who masters high-throughput Node.js microservices as well as sleek, responsive frontend interfaces. He hit every milestone on schedule with production-grade code quality.',
       date: 'December 2024',
       enabled: true,
     },
@@ -348,9 +353,9 @@ Ready to explore? Let's go!`,
     attribution: 'Built with React + Three.js',
   },
   seo: {
-    title: 'Esubalew Molla | Full Stack Developer',
+    title: 'Esubalew Molla | Full-Stack Software Engineer',
     description:
-      'Portfolio of Esubalew Molla — Full Stack Developer & Software Engineer based in Ethiopia. Specializing in React, Node.js, MERN stack, distributed systems, and high-performance web architecture.',
+      'Portfolio of Esubalew Molla — Full-Stack Software Engineer based in Ethiopia. Specializing in React, Node.js, MERN stack, distributed systems, and high-performance web architecture.',
     keywords:
       'Esubalew Molla, developer Ethiopia, Full Stack Developer, MERN Stack Developer, Software Engineer Ethiopia, Bahir Dar University, React Developer, Node.js, Web Developer Ethiopia, Upwork',
     ogImage: '',
@@ -376,8 +381,8 @@ function mapExperienceItem(item) {
     Array.isArray(item.skills) && item.skills.length
       ? item.skills
       : Array.isArray(item.tags)
-      ? item.tags
-      : [];
+        ? item.tags
+        : [];
 
   const bullets = Array.isArray(item.bullets)
     ? item.bullets
@@ -428,8 +433,8 @@ export function mapBackendContent(raw) {
   const rawCertificates = Array.isArray(data.certificates)
     ? data.certificates
     : Array.isArray(data.experience?.certificates)
-    ? data.experience.certificates
-    : [];
+      ? data.experience.certificates
+      : [];
 
   const mappedCertificates = rawCertificates
     .filter((cert) => cert.published !== false)
@@ -451,8 +456,8 @@ export function mapBackendContent(raw) {
   const resolvedSocialLinks = Array.isArray(data.socialLinks) && data.socialLinks.length
     ? data.socialLinks
     : Array.isArray(data.footer?.socials)
-    ? data.footer.socials
-    : defaultContent.socialLinks;
+      ? data.footer.socials
+      : defaultContent.socialLinks;
 
   return {
     hero: {
@@ -488,6 +493,7 @@ export function mapBackendContent(raw) {
       personnelId: data.about?.personnelId || defaultContent.about.personnelId,
       description: data.about?.description || defaultContent.about.description,
       image: data.about?.image || defaultContent.about.image,
+      education: data.about?.education || defaultContent.about.education,
       stats: Array.isArray(data.about?.stats) && data.about.stats.length
         ? data.about.stats
         : defaultContent.about.stats,
@@ -578,8 +584,8 @@ export function mapBackendContent(raw) {
       (Array.isArray(data.testimonials) && data.testimonials.length > 0
         ? data.testimonials
         : Array.isArray(data.testimonials?.items) && data.testimonials.items.length > 0
-        ? data.testimonials.items
-        : defaultContent.testimonials) || defaultContent.testimonials
+          ? data.testimonials.items
+          : defaultContent.testimonials) || defaultContent.testimonials
     ).map((t) => ({
       name: t.name || 'Anonymous client',
       role: t.role || '',

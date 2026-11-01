@@ -23,12 +23,16 @@ export function Cursor({ children }) {
   const onMouseOver = useCallback(e => {
     const target = e.target;
     if (!target) return;
+    if (target.closest('input, textarea')) {
+      setInteraction('text');
+      return;
+    }
     const explicit = getInteractionState(target);
     if (explicit) {
       setInteraction(explicit.state);
       return;
     }
-    if (target.closest('a, button, [role="button"], input, textarea, select, [data-cursor], .interactive')) {
+    if (target.closest('a, button, [role="button"], select, [data-cursor], .interactive')) {
       setInteraction('hover');
     }
   }, [setInteraction]);

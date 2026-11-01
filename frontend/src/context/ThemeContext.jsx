@@ -1,9 +1,13 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
 const ThemeContext = createContext(null);
 
+// SSR-safe layout effect
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export function ThemeProvider({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return true;
     try {
       const saved = localStorage.getItem('portfolio_theme');
       if (saved) return saved === 'dark';
@@ -13,8 +17,16 @@ export function ThemeProvider({ children }) {
     return true;
   });
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('light', !isDarkMode);
+  // Synchronize document classes immediately to prevent theme flickering
+  useIsomorphicLayoutEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    }
     try {
       localStorage.setItem('portfolio_theme', isDarkMode ? 'dark' : 'light');
     } catch {
@@ -24,7 +36,7 @@ export function ThemeProvider({ children }) {
 
   const value = {
     isDarkMode,
-    toggleTheme: () => setIsDarkMode(current => !current),
+    toggleTheme: () => setIsDarkMode((current) => !current),
   };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

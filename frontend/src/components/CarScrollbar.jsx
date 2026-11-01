@@ -19,9 +19,9 @@ const getAvailableTravel = (height) => {
  * Top-down miniature vector SVG of the car driving along the road track
  */
 function CarSVG({ isDarkMode, isScrolling, scrollDir }) {
-  const accentColor = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
+  const accentColor = isDarkMode ? 'var(--orange, #FF4D00)' : '#E04400';
   const bodyFill = isDarkMode ? '#1e293b' : '#334155';
-  const bodyStroke = isDarkMode ? 'var(--accent, #3b82f6)' : '#475569';
+  const bodyStroke = isDarkMode ? 'var(--orange, #FF4D00)' : '#E04400';
   const windowFill = isDarkMode
     ? 'rgba(147, 197, 253, 0.3)'
     : 'rgba(186, 230, 253, 0.45)';
@@ -253,57 +253,13 @@ export const CarScrollbar = () => {
     return Math.max(0, Math.min(1, window.scrollY / scrollable));
   }, []);
 
-  // Scroll listener (updates targetProgressRef directly with zero state re-renders)
-  useEffect(() => {
-    if (isTouch) return;
+  const isScrollingRef = useRef(false);
 
-    const onScroll = () => {
-      const prog = computeProgress();
-      const dir  = window.scrollY >= lastScrollY.current ? 1 : -1;
-      lastScrollY.current = window.scrollY;
-
-      targetProgressRef.current = prog;
-      scrollDirRef.current = dir;
-      setIsScrolling(true);
-
-      clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-        scrollDirRef.current = 0;
-      }, 150);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    const initialProg = computeProgress();
-    targetProgressRef.current   = initialProg;
-    renderedProgressRef.current = initialProg;
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      clearTimeout(scrollTimeoutRef.current);
-    };
-  }, [computeProgress, isTouch]);
-
-  // Track height measurement (spans full viewport window.innerHeight)
-  useEffect(() => {
-    const measure = () => {
-      if (typeof window !== 'undefined') {
-        const height = window.innerHeight;
-        trackHeightRef.current = height;
-        setTrackHeight(height);
-      }
-    };
-    measure();
-    window.addEventListener('resize', measure, { passive: true });
-    return () => window.removeEventListener('resize', measure);
-  }, []);
-
-  // RAF Lerp Animation Loop (runs smoothly at 60/120fps with direct DOM positioning)
-  useEffect(() => {
-    if (isTouch) return;
+  // On-demand RAF loop: runs only while moving/scrolling, sleeps when idle
+  const startAnimation = useCallback(() => {
+    if (isTouch || document.hidden || rafRef.current) return;
 
     const animate = () => {
-      // When dragging, pointer move updates DOM directly for instantaneous 0-lag cursor lock
       if (!isDraggingRef.current) {
         const target  = targetProgressRef.current;
         const current = renderedProgressRef.current;
@@ -312,7 +268,6 @@ export const CarScrollbar = () => {
         if (Math.abs(delta) < 0.0001) {
           renderedProgressRef.current = target;
         } else {
-          // Snappy 0.25 lerp factor for instant responsive response without jitter
           renderedProgressRef.current = current + delta * 0.25;
         }
 
@@ -341,8 +296,12 @@ export const CarScrollbar = () => {
                 ? `${clampedY - 8}px`
                 : `${clampedY + CAR_HEIGHT + 2}px`;
           }
+        }
 
-
+        // Settle into sleep when target reached and scroll stopped
+        if (Math.abs(delta) < 0.0001 && !isScrollingRef.current) {
+          rafRef.current = null;
+          return;
         }
       }
 
@@ -350,8 +309,76 @@ export const CarScrollbar = () => {
     };
 
     rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
   }, [isTouch]);
+
+  // Scroll listener (updates targetProgressRef directly with zero state re-renders)
+  useEffect(() => {
+    if (isTouch) return;
+
+    const onScroll = () => {
+      const prog = computeProgress();
+      const dir  = window.scrollY >= lastScrollY.current ? 1 : -1;
+      lastScrollY.current = window.scrollY;
+
+      targetProgressRef.current = prog;
+      scrollDirRef.current = dir;
+      isScrollingRef.current = true;
+      setIsScrolling(true);
+      startAnimation();
+
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+        setIsScrolling(false);
+        scrollDirRef.current = 0;
+      }, 150);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      } else {
+        if (Math.abs(targetProgressRef.current - renderedProgressRef.current) > 0.0001) {
+          startAnimation();
+        }
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    const initialProg = computeProgress();
+    targetProgressRef.current   = initialProg;
+    renderedProgressRef.current = initialProg;
+    startAnimation();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearTimeout(scrollTimeoutRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [computeProgress, isTouch, startAnimation]);
+
+  // Track height measurement (spans full viewport window.innerHeight)
+  useEffect(() => {
+    const measure = () => {
+      if (typeof window !== 'undefined') {
+        const height = window.innerHeight;
+        trackHeightRef.current = height;
+        setTrackHeight(height);
+        startAnimation();
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+    return () => window.removeEventListener('resize', measure);
+  }, [startAnimation]);
 
   // Click on track to jump directly to target position (like native scrollbar)
   const handleTrackClick = (e) => {
@@ -364,6 +391,7 @@ export const CarScrollbar = () => {
     const targetProg = Math.max(0, Math.min(1, clickY / travel));
 
     targetProgressRef.current = targetProg;
+    startAnimation();
     const scrollable =
       document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo({ top: targetProg * scrollable, behavior: 'smooth' });
@@ -418,6 +446,7 @@ export const CarScrollbar = () => {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch (_) {}
     setIsDragging(false);
+    startAnimation();
   };
 
   if (isTouch) return null;

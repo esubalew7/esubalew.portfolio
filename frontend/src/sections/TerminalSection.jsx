@@ -24,33 +24,33 @@ export const TerminalSection = () => {
       id="terminal"
       role="region"
       aria-label="Interactive Developer Terminal"
-      className="bg-surface-raised dark:bg-canvas py-20 md:py-28 overflow-hidden relative border-t border-border-subtle"
+      className="bg-surface-raised dark:bg-canvas py-2.5 sm:py-3 overflow-hidden relative border-t border-border-subtle"
+      style={{ scrollMarginTop: '6.5rem' }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
+      <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header: Sleek single-line bar */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: EASINGS.editorial }}
-          className="mb-10 md:mb-12"
+          viewport={{ once: true, margin: '-20px' }}
+          transition={{ duration: 0.4, ease: EASINGS.editorial }}
+          className="mb-2 sm:mb-2.5"
         >
-          {/* Eyebrow */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="w-7 h-px bg-accent flex-shrink-0" />
-            <span className="font-code text-[11px] tracking-[0.18em] uppercase text-accent font-medium">
-              Developer CLI
-            </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-4 h-px bg-accent flex-shrink-0" />
+              <span className="font-code text-[10px] tracking-[0.16em] uppercase text-accent font-medium shrink-0">
+                Developer CLI
+              </span>
+              <span className="text-border-default text-xs shrink-0">/</span>
+              <h2 className="font-sans font-extrabold text-sm sm:text-base lg:text-lg text-content-primary truncate">
+                {title}
+              </h2>
+            </div>
+            <p className="font-sans text-content-secondary text-[11px] sm:text-xs text-right hidden sm:block truncate max-w-md">
+              {subtitle}
+            </p>
           </div>
-
-          {/* Heading */}
-          <h2 className="font-sans font-extrabold text-[clamp(2rem,4vw,3.2rem)] leading-tight text-content-primary mb-3">
-            {title}
-          </h2>
-
-          <p className="font-sans text-content-secondary max-w-2xl text-[0.95rem] leading-relaxed">
-            {subtitle}
-          </p>
         </motion.div>
 
         {/* Dynamic Presentation Based on Window State */}
@@ -69,7 +69,7 @@ export const TerminalSection = () => {
 
           {/* 2. Maximized State: Section Placeholder Frame (Layout Stability) */}
           {windowState === 'maximized' && (
-            <div className="w-full h-[360px] sm:h-[440px] rounded-xl border border-dashed border-[#2a2a2a] bg-[#0c0c0c]/60 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-full h-[280px] sm:h-[340px] rounded-xl border border-dashed border-[#2a2a2a] bg-[#0c0c0c]/60 flex flex-col items-center justify-center p-6 text-center">
               <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-[#569cd6] mb-3 shadow-md">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -94,20 +94,20 @@ export const TerminalSection = () => {
 
           {/* 3. Minimized State: Section Placeholder Frame */}
           {windowState === 'minimized' && (
-            <div className="w-full h-[280px] sm:h-[340px] rounded-xl border border-dashed border-[#2a2a2a] bg-[#0c0c0c]/40 flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-emerald-400 mb-3 shadow-md">
-                <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-full h-[220px] sm:h-[260px] rounded-xl border border-dashed border-[#2a2a2a] bg-[#0c0c0c]/40 flex flex-col items-center justify-center p-5 text-center">
+              <div className="w-10 h-10 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-emerald-400 mb-2.5 shadow-md">
+                <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
               </div>
               <p className="font-mono text-sm text-[#ccc] mb-1 font-semibold">
                 Terminal is minimized to bottom-right dock
               </p>
-              <p className="font-mono text-xs text-[#777] mb-5 max-w-sm leading-relaxed">
+              <p className="font-mono text-xs text-[#777] mb-4 max-w-sm leading-relaxed">
                 Click the floating card in the corner of your screen or click below to restore it here.
               </p>
               <button
                 type="button"
                 onClick={restoreTerminal}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] border border-[#333] hover:border-[#569cd6] text-white font-mono text-xs rounded-xl transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#252525] border border-[#333] hover:border-[#569cd6] text-white font-mono text-xs rounded-xl transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
               >
                 <span>&gt;_</span>
                 <span>Restore Terminal Here</span>
@@ -121,7 +121,7 @@ export const TerminalSection = () => {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35, ease: EASINGS.editorial }}
-              className="w-full rounded-2xl border border-[#2a2a2a] bg-gradient-to-b from-[#141414] to-[#0c0c0c] shadow-[0_16px_48px_rgba(0,0,0,0.5)] p-8 sm:p-14 text-center flex flex-col items-center justify-center relative overflow-hidden group"
+              className="w-full rounded-2xl border border-[#2a2a2a] bg-gradient-to-b from-[#141414] to-[#0c0c0c] shadow-[0_16px_48px_rgba(0,0,0,0.5)] p-6 sm:p-10 text-center flex flex-col items-center justify-center relative overflow-hidden group"
             >
               {/* Subtle decorative background code grid */}
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none font-mono text-[10px] leading-3 overflow-hidden select-none p-4" aria-hidden="true">

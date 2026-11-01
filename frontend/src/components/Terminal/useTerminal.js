@@ -5,24 +5,29 @@ import { createLineId } from './terminalConstants';
 
 export function useTerminal({ content = {}, projects = [] } = {}) {
   const terminalConfig = content.terminal || {};
-  const welcomeMessage = terminalConfig.welcomeMessage || `        WELCOME TO MY INTERACTIVE DEVELOPER TERMINAL        
+  const configuredWelcome = (terminalConfig.welcomeMessage || '').trim();
+  const defaultWelcome = `╔══════════════════════════════════════════════════════════════════╗
+║           WELCOME TO ESUBALEW'S DEVELOPER TERMINAL           ║
+╚══════════════════════════════════════════════════════════════════╝
 
-Hi, I'm an interactive terminal that lets you explore my portfolio,
-projects, and professional journey.
+Welcome! This interactive terminal allows you to explore my engineering
+background, production projects, and distributed system stack.
 
 Getting Started:
-   • Type 'help' to see all available commands
-   • Use Arrow Keys ↑↓ to navigate command history
-   • Click links to open external profiles
+   • Type 'help' to view the complete list of available commands.
+   • Use Arrow Keys ↑ / ↓ to navigate command history.
+   • Press Tab to autocomplete commands.
 
-Quick Commands:
-   • about        → Learn about me
-   • experience   → View my work history
-   • projects     → Browse portfolio projects
-   • skills       → See my technical skills
-   • contact      → Get in touch
+Quick Navigation:
+   • about          → Overview, background, and competencies
+   • skills         → Technical stack and production arsenal
+   • projects       → Production applications and repositories
+   • experience     → Work history and engineering roles
+   • contact        → Direct communication channels
 
-Ready to explore? Let's go!`;
+Type 'help' and press Enter to begin exploring.`;
+
+  const welcomeMessage = configuredWelcome || defaultWelcome;
 
   const registry = useMemo(() => {
     return buildCommandRegistry({ content, projects });

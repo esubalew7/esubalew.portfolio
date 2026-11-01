@@ -2,6 +2,8 @@
 
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ═══════════════════════════════════════════════════════════════
    DESIGN SYSTEM — "ENGINEER'S FIELD NOTES"
    Direction: Senior engineer's manifesto. Obsidian + Electric Orange.
@@ -9,61 +11,69 @@
    centered layouts, rotating anything, floating bobbing, AI-look.
    ═══════════════════════════════════════════════════════════════ */
 
-:root {
+:root,
+.dark {
   /* ── Core Canvas ── */
-  --void:        #080A0E;       /* deepest background */
-  --ink:         #0D1117;       /* primary surface */
-  --ink-raised:  #141921;       /* raised panels */
-  --ink-float:   #1A2030;       /* floating elements */
+  --void: #080A0E;
+  /* deepest background */
+  --ink: #0D1117;
+  /* primary surface */
+  --ink-raised: #141921;
+  /* raised panels */
+  --ink-float: #1A2030;
+  /* floating elements */
+
+  /* ── Layout ── */
+  --navbar-total-height: 4.5rem;
 
   /* ── Typography ── */
-  --text-primary:   #F0F2F5;
+  --text-primary: #F0F2F5;
   --text-secondary: #8B939E;
-  --text-muted:     #4A5260;
-  --text-inverse:   #0D1117;
+  --text-muted: #4A5260;
+  --text-inverse: #0D1117;
 
   /* ── Signature Accent — Electric Orange (single, used with surgical restraint) ── */
-  --orange:         #FF4D00;
-  --orange-dim:     rgba(255, 77, 0, 0.12);
-  --orange-glow:    rgba(255, 77, 0, 0.25);
+  --orange: #FF4D00;
+  --orange-dim: rgba(255, 77, 0, 0.12);
+  --orange-glow: rgba(255, 77, 0, 0.25);
 
   /* ── Borders ── */
-  --border-faint:   rgba(255, 255, 255, 0.05);
-  --border-subtle:  rgba(255, 255, 255, 0.08);
+  --border-faint: rgba(255, 255, 255, 0.05);
+  --border-subtle: rgba(255, 255, 255, 0.08);
   --border-default: rgba(255, 255, 255, 0.14);
 
   /* ── Utility ── */
-  --radius-sm:  4px;
-  --radius-md:  8px;
-  --radius-lg:  16px;
-  --radius-xl:  24px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 
   /* ── Typography Scale ── */
-  --display:    clamp(3.5rem, 9vw, 8rem);
-  --h1:         clamp(2.5rem, 5.5vw, 5rem);
-  --h2:         clamp(1.75rem, 3vw, 2.75rem);
-  --h3:         clamp(1.25rem, 2vw, 1.6rem);
-  --body-lg:    clamp(1.05rem, 1.3vw, 1.2rem);
-  --body:       1rem;
-  --caption:    0.8125rem;
-  --mono:       0.875rem;
+  --display: clamp(3.5rem, 9vw, 8rem);
+  --h1: clamp(2.5rem, 5.5vw, 5rem);
+  --h2: clamp(1.75rem, 3vw, 2.75rem);
+  --h3: clamp(1.25rem, 2vw, 1.6rem);
+  --body-lg: clamp(1.05rem, 1.3vw, 1.2rem);
+  --body: 1rem;
+  --caption: 0.8125rem;
+  --mono: 0.875rem;
 }
 
 /* ─── Light mode (minimal — dark is primary) ─── */
 .light {
-  --void:        #F5F5F0;
-  --ink:         #FAFAF8;
-  --ink-raised:  #EDEDE8;
-  --ink-float:   #E4E4DF;
-  --text-primary:   #0D1117;
+  --void: #F5F5F0;
+  --ink: #FAFAF8;
+  --ink-raised: #EDEDE8;
+  --ink-float: #E4E4DF;
+  --text-primary: #0D1117;
   --text-secondary: #52596A;
-  --text-muted:     #9CA3AF;
-  --text-inverse:   #F0F2F5;
-  --border-faint:   rgba(0, 0, 0, 0.04);
-  --border-subtle:  rgba(0, 0, 0, 0.07);
-  --border-default: rgba(0, 0, 0, 0.12);
-  --orange-dim:     rgba(255, 77, 0, 0.07);
-  --orange-glow:    rgba(255, 77, 0, 0.15);
+  --text-muted: #6B7280;
+  --text-inverse: #F0F2F5;
+  --border-faint: rgba(0, 0, 0, 0.05);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-default: rgba(0, 0, 0, 0.14);
+  --orange-dim: rgba(255, 77, 0, 0.08);
+  --orange-glow: rgba(255, 77, 0, 0.18);
 }
 
 /* ─── Base ─── */
@@ -82,23 +92,64 @@ body {
   overflow-x: hidden;
 }
 
-section[id] { scroll-margin-top: 5rem; }
+section[id] {
+  scroll-margin-top: 5rem;
+}
 
 /* ─── Typography ─── */
 .font-display {
   font-family: 'Syne', 'Space Grotesk', sans-serif;
 }
+
 .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-.text-display  { font-size: var(--display); line-height: 0.92; letter-spacing: -0.04em; font-weight: 800; }
-.text-h1       { font-size: var(--h1);      line-height: 1.0;  letter-spacing: -0.03em; font-weight: 700; }
-.text-h2       { font-size: var(--h2);      line-height: 1.1;  letter-spacing: -0.025em; font-weight: 700; }
-.text-h3       { font-size: var(--h3);      line-height: 1.2;  letter-spacing: -0.015em; font-weight: 600; }
-.text-body-lg  { font-size: var(--body-lg); line-height: 1.7;  font-weight: 400; }
-.text-caption  { font-size: var(--caption); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
-.text-mono     { font-family: 'JetBrains Mono', monospace; font-size: var(--mono); }
+.text-display {
+  font-size: var(--display);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.text-h1 {
+  font-size: var(--h1);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.text-h2 {
+  font-size: var(--h2);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+.text-h3 {
+  font-size: var(--h3);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.text-body-lg {
+  font-size: var(--body-lg);
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.text-caption {
+  font-size: var(--caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.text-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--mono);
+}
 
 /* ─── Layout ─── */
 .container-main {
@@ -109,10 +160,21 @@ section[id] { scroll-margin-top: 5rem; }
 }
 
 /* ─── Orange accent utilities ─── */
-.text-accent   { color: var(--orange); }
-.bg-accent     { background-color: var(--orange); }
-.border-accent { border-color: var(--orange); }
-.glow-accent   { box-shadow: 0 0 32px var(--orange-glow); }
+.text-accent {
+  color: var(--orange);
+}
+
+.bg-accent {
+  background-color: var(--orange);
+}
+
+.border-accent {
+  border-color: var(--orange);
+}
+
+.glow-accent {
+  box-shadow: 0 0 32px var(--orange-glow);
+}
 
 /* ─── Horizontal rule style ─── */
 .rule {
@@ -136,6 +198,7 @@ section[id] { scroll-margin-top: 5rem; }
   font-weight: 500;
   margin-bottom: 1.5rem;
 }
+
 .section-eyebrow::before {
   content: '';
   display: block;
@@ -146,11 +209,22 @@ section[id] { scroll-margin-top: 5rem; }
 }
 
 /* ─── Cursor ─── */
-body { cursor: default; }
-a, button, [role="button"], input[type="submit"], input[type="button"], select {
+body {
+  cursor: default;
+}
+
+a,
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+select {
   cursor: pointer;
 }
-input[type="text"], input[type="email"], textarea {
+
+input[type="text"],
+input[type="email"],
+textarea {
   cursor: text;
 }
 
@@ -161,17 +235,43 @@ svg {
   flex-shrink: 0;
   max-width: 100%;
 }
-.w-4 { width: 16px !important; }
-.h-4 { height: 16px !important; }
-.w-1\.5 { width: 6px !important; }
-.h-1\.5 { height: 6px !important; }
 
-/* Native scrollbar hidden — replaced by CarScrollbar component */
-::-webkit-scrollbar { width: 0px; }
-* { scrollbar-width: none; }   /* Firefox */
+.w-4 {
+  width: 16px !important;
+}
+
+.h-4 {
+  height: 16px !important;
+}
+
+.w-1\.5 {
+  width: 6px !important;
+}
+
+.h-1\.5 {
+  height: 6px !important;
+}
+
+/* Document window scrollbar styling — CarScrollbar is the sole custom desktop scroller.
+   Global wildcard (*) hiding rules removed so native scrolling remains fully accessible in modals, terminal, and sub-containers. */
+@media (pointer: fine) {
+  html::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+  }
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+}
+
 
 /* ─── Selection ─── */
-::selection { background: var(--orange-dim); color: var(--orange); }
+::selection {
+  background: var(--orange-dim);
+  color: var(--orange);
+}
 
 /* ─── Noise grain overlay (global, very subtle) ─── */
 body::before {
@@ -186,34 +286,52 @@ body::before {
 
 /* ─── Horizontal marquee ─── */
 @keyframes marquee-left {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
+
 .marquee-track {
   display: flex;
   width: max-content;
   animation: marquee-left 28s linear infinite;
 }
-.marquee-track:hover { animation-play-state: paused; }
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
 
 /* ─── Orange underline link ─── */
 .link-underline {
   position: relative;
   text-decoration: none;
 }
+
 .link-underline::after {
   content: '';
   position: absolute;
-  left: 0; bottom: -2px;
-  width: 0; height: 1px;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
   background: var(--orange);
-  transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.link-underline:hover::after { width: 100%; }
+
+.link-underline:hover::after {
+  width: 100%;
+}
 
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
@@ -223,8 +341,9 @@ body::before {
 /* ─── Project card hover reveal ─── */
 .project-card-reveal {
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 0.5s cubic-bezier(0.16,1,0.3,1);
+  transition: clip-path 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .project-card:hover .project-card-reveal {
   clip-path: inset(0 0% 0 0);
 }
@@ -235,48 +354,88 @@ body::before {
   background: var(--orange);
   transform-origin: left;
   transform: scaleX(0);
-  transition: transform 1s cubic-bezier(0.16,1,0.3,1);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .skill-bar-fill.in-view {
   transform: scaleX(1);
 }
 
 /* ─── Number counter ─── */
 @keyframes count-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─── 3D Orbital Skills Section ─── */
 @keyframes orbitSpin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
+
 @keyframes orbitSpinReverse {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
+
 @keyframes nodeRingPulse {
-  0%   { transform: scale(1);   opacity: 0.5; }
-  100% { transform: scale(2.2); opacity: 0;   }
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
+
 @keyframes coreGlow {
-  0%, 100% { filter: drop-shadow(0 0 18px rgba(59,130,246,0.18)); }
-  50%       { filter: drop-shadow(0 0 32px rgba(59,130,246,0.32)); }
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.18));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 32px rgba(59, 130, 246, 0.32));
+  }
 }
 
 .orbit-spinner {
   animation: orbitSpin var(--orbit-duration, 30s) linear infinite;
 }
+
 .orbit-counter {
   animation: orbitSpinReverse var(--orbit-duration, 30s) linear infinite;
 }
+
 .orbits-paused .orbit-spinner,
 .orbits-paused .orbit-counter {
   animation-play-state: paused !important;
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .orbit-spinner, .orbit-counter {
+
+  .orbit-spinner,
+  .orbit-counter {
     animation: none !important;
   }
 }
@@ -286,6 +445,7 @@ body::before {
   --color-canvas: var(--void);
   --color-surface-base: var(--ink);
   --color-surface-raised: var(--ink-raised);
+  --color-surface-elevated: var(--ink-float);
   --color-content-primary: var(--text-primary);
   --color-content-secondary: var(--text-secondary);
   --color-content-muted: var(--text-muted);
@@ -294,25 +454,71 @@ body::before {
   --color-accent-foreground: #ffffff;
   --color-border-default: var(--border-default);
   --color-border-subtle: var(--border-subtle);
+  --color-border-faint: var(--border-faint);
   --font-code: 'JetBrains Mono', monospace;
   --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
 }
 
-.bg-canvas { background-color: var(--void); }
-.bg-surface-base { background-color: var(--ink); }
-.bg-surface-raised { background-color: var(--ink-raised); }
-.text-content-primary { color: var(--text-primary); }
-.text-content-secondary { color: var(--text-secondary); }
-.text-content-muted { color: var(--text-muted); }
-.border-border-default { border-color: var(--border-default); }
-.border-border-subtle { border-color: var(--border-subtle); }
-.text-accent-foreground { color: #ffffff; }
-.hover\:bg-accent-hover:hover { background-color: #e04400; }
-.font-code { font-family: 'JetBrains Mono', monospace; }
+.bg-canvas {
+  background-color: var(--void);
+}
+
+.bg-surface-base {
+  background-color: var(--ink);
+}
+
+.bg-surface-raised {
+  background-color: var(--ink-raised);
+}
+
+.bg-surface-elevated {
+  background-color: var(--ink-float);
+}
+
+.text-content-primary {
+  color: var(--text-primary);
+}
+
+.text-content-secondary {
+  color: var(--text-secondary);
+}
+
+.text-content-muted {
+  color: var(--text-muted);
+}
+
+.border-border-default {
+  border-color: var(--border-default);
+}
+
+.border-border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.border-border-faint {
+  border-color: var(--border-faint);
+}
+
+.text-accent-foreground {
+  color: #ffffff;
+}
+
+.hover\:bg-accent-hover:hover {
+  background-color: #e04400;
+}
+
+.font-code {
+  font-family: 'JetBrains Mono', monospace;
+}
 
 @keyframes projectMarquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .project-marquee-track {
@@ -330,6 +536,7 @@ body::before {
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -342,13 +549,11 @@ body::before {
 
 /* Scanline effect for 3D canvas overlay */
 .scanline-overlay {
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px);
   pointer-events: none;
   position: absolute;
   inset: 0;
@@ -358,6 +563,7 @@ body::before {
   .project-marquee-track {
     animation: none;
   }
+
   .project-stage-enter {
     animation: none;
     opacity: 1;
@@ -370,8 +576,15 @@ body::before {
 }
 
 @keyframes tabIndicatorSlide {
-  from { opacity: 0; transform: scaleX(0.6); }
-  to   { opacity: 1; transform: scaleX(1); }
+  from {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
 }
 
 .cert-card {
@@ -384,14 +597,27 @@ body::before {
 
 /* ── Experience Section — The Observatory ───────────── */
 @keyframes stationPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(1.5); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
 }
+
 .station-pulse-dot {
   animation: stationPulse 2s ease-in-out infinite;
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .station-pulse-dot { animation: none; }
+  .station-pulse-dot {
+    animation: none;
+  }
 }
 
 /* ── Contact Section — Signal Transmission ──────── */
@@ -427,10 +653,21 @@ body::before {
 
 /* Transmitting text scan animation */
 @keyframes transmitScan {
-  0%   { content: "Transmitting."; }
-  33%  { content: "Transmitting.."; }
-  66%  { content: "Transmitting..."; }
-  100% { content: "Transmitting."; }
+  0% {
+    content: "Transmitting.";
+  }
+
+  33% {
+    content: "Transmitting..";
+  }
+
+  66% {
+    content: "Transmitting...";
+  }
+
+  100% {
+    content: "Transmitting.";
+  }
 }
 
 /* Noise overlay for contact section */
@@ -443,13 +680,16 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dispatch-input { transition: none; }
+  .dispatch-input {
+    transition: none;
+  }
 }
 
 /* ── Contact Section — The Briefing Room ───────── */
 :root {
   --accent-subtle: rgba(255, 77, 0, 0.15);
 }
+
 .light {
   --accent-subtle: rgba(255, 77, 0, 0.1);
 }
@@ -460,14 +700,20 @@ body::before {
   opacity: 0.35;
   font-weight: 400;
 }
-.brief-input:focus { outline: none; }
+
+.brief-input:focus {
+  outline: none;
+}
 
 /* Description/message textarea placeholder */
 .brief-textarea::placeholder {
   color: var(--content-muted);
   opacity: 0.5;
 }
-.brief-textarea:focus { outline: none; }
+
+.brief-textarea:focus {
+  outline: none;
+}
 
 /* Checkmark draw-on animation for success state */
 @keyframes drawCheck {
@@ -475,22 +721,23 @@ body::before {
     stroke-dashoffset: 100;
     opacity: 0;
   }
+
   to {
     stroke-dashoffset: 0;
     opacity: 1;
   }
 }
+
 .check-draw {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1)
-             0.2s forwards;
+  animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
 /* Tile selection glow */
 .briefing-tile-selected {
   box-shadow: 0 0 0 1px var(--accent),
-              0 0 20px var(--accent-subtle);
+    0 0 20px var(--accent-subtle);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -503,9 +750,20 @@ body::before {
 
 /* ── Car Scrollbar — exhaust puff animation ──────── */
 @keyframes exhaustPuff {
-  0%   { opacity: 0.7; transform: scale(0.4) translateY(0px);    }
-  60%  { opacity: 0.3; transform: scale(0.9) translateY(-8px);   }
-  100% { opacity: 0.0; transform: scale(1.3) translateY(-16px);  }
+  0% {
+    opacity: 0.7;
+    transform: scale(0.4) translateY(0px);
+  }
+
+  60% {
+    opacity: 0.3;
+    transform: scale(0.9) translateY(-8px);
+  }
+
+  100% {
+    opacity: 0.0;
+    transform: scale(1.3) translateY(-16px);
+  }
 }
 
 .exhaust-puff {
@@ -517,15 +775,10 @@ body::before {
     animation: none;
     display: none;
   }
-  /* Restore native scrollbar for reduced-motion users */
-  ::-webkit-scrollbar { width: 6px; }
-  * { scrollbar-width: thin; }
+
 }
 
-/* Hide car scrollbar on touch / mobile devices */
-@media (pointer: coarse) {
-  ::-webkit-scrollbar { width: 0px; }
-}
+/* On touch / mobile devices CarScrollbar is unmounted */
 
 .exhaust-puff-hidden {
   opacity: 0;
@@ -534,8 +787,13 @@ body::before {
 
 /* ── About Section — The Dossier ────────────────── */
 @keyframes aboutMarquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .about-ticker-track {
@@ -554,26 +812,98 @@ body::before {
   }
 }
 
-/* ── Contact Section — Direct Channels ─────────── */
+/* ── Contact Section — Direct Channels & High-Clarity Form Inputs ─────────── */
 .bg-success-subtle {
   background-color: rgba(16, 185, 129, 0.08);
 }
 
-.contact-input::placeholder {
-  color: var(--content-muted);
-  opacity: 0.6;
-}
-.contact-input:focus {
+.contact-form-input,
+.contact-form-textarea {
+  display: block;
+  width: 100%;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-default, rgba(255, 255, 255, 0.14));
+  background-color: var(--ink, #0D1117);
+  color: var(--text-primary, #F0F2F5);
+  padding: 12px 14px;
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-.contact-textarea::placeholder {
-  color: var(--content-muted);
-  opacity: 0.5;
+
+.light .contact-form-input,
+.light .contact-form-textarea {
+  background-color: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  color: #0D1117;
 }
-.contact-textarea:focus {
-  outline: none;
+
+.contact-form-input:hover:not(:focus):not([aria-invalid="true"]),
+.contact-form-textarea:hover:not(:focus):not([aria-invalid="true"]) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #121722;
+}
+
+.light .contact-form-input:hover:not(:focus):not([aria-invalid="true"]),
+.light .contact-form-textarea:hover:not(:focus):not([aria-invalid="true"]) {
+  border-color: #94A3B8;
+  background-color: #FFFFFF;
+}
+
+.contact-form-input:focus,
+.contact-form-textarea:focus {
+  border-color: var(--orange, #FF4D00) !important;
+  box-shadow: 0 0 0 3px var(--orange-glow, rgba(255, 77, 0, 0.22)) !important;
+  background-color: #111622;
+}
+
+.light .contact-form-input:focus,
+.light .contact-form-textarea:focus {
+  border-color: var(--orange, #FF4D00) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.2) !important;
+  background-color: #FFFFFF;
+}
+
+.contact-form-input[aria-invalid="true"],
+.contact-form-textarea[aria-invalid="true"] {
+  border-color: #EF4444 !important;
+  background-color: rgba(239, 68, 68, 0.04) !important;
+}
+
+.contact-form-input[aria-invalid="true"]:focus,
+.contact-form-textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
+}
+
+.contact-form-input::placeholder,
+.contact-form-textarea::placeholder {
+  color: var(--text-muted, #8B939E);
+  opacity: 0.75;
+}
+
+.light .contact-form-input::placeholder,
+.light .contact-form-textarea::placeholder {
+  color: #64748B;
+  opacity: 0.85;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contact-tile { transform: none !important; }
+  .contact-tile {
+    transform: none !important;
+  }
+}
+
+/* ── Floating Controls — Scroll to Top ─────────────────────────────────────── */
+.scroll-to-top-btn {
+  bottom: max(1.25rem, calc(1.25rem + env(safe-area-inset-bottom, 0px)));
+  right: max(1.75rem, calc(1.75rem + env(safe-area-inset-right, 0px)));
+}
+
+@media (min-width: 768px) {
+  .scroll-to-top-btn {
+    bottom: max(2rem, calc(2rem + env(safe-area-inset-bottom, 0px)));
+    right: max(2.25rem, calc(2.25rem + env(safe-area-inset-right, 0px)));
+  }
 }

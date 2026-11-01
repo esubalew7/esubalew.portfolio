@@ -212,7 +212,8 @@ export default function CircuitCanvas({ isDarkMode = true }) {
 
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    const isMobileDevice = W < 768;
+    const DPR = isMobileDevice ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
 
     // ── Renderer ──
     const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
@@ -242,11 +243,21 @@ export default function CircuitCanvas({ isDarkMode = true }) {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // ── Animate ──
-    let visible = true;
+    // ── Animate (stops completely when offscreen or tab hidden) ──
+    let isIntersecting = true;
+
+    const stopLoop = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+
     const animate = () => {
-      rafRef.current = requestAnimationFrame(animate);
-      if (!visible) return;
+      if (!isIntersecting || document.hidden) {
+        stopLoop();
+        return;
+      }
 
       const { clock } = stateRef.current;
       const t = reducedMotion ? 0 : clock.getElapsedTime();
@@ -262,12 +273,36 @@ export default function CircuitCanvas({ isDarkMode = true }) {
       nodeMat.uniforms.uIntensity.value = s.intensity;
 
       renderer.render(scene, camera);
+      rafRef.current = requestAnimationFrame(animate);
     };
-    animate();
+
+    const startLoop = () => {
+      if (!rafRef.current && isIntersecting && !document.hidden) {
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    startLoop();
 
     // ── Visibility ──
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
+    const io = new IntersectionObserver(([e]) => {
+      isIntersecting = e.isIntersecting;
+      if (isIntersecting) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    }, { threshold: 0 });
     io.observe(el);
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (isIntersecting) {
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     // ── Resize ──
     const onResize = () => {
@@ -281,9 +316,10 @@ export default function CircuitCanvas({ isDarkMode = true }) {
     window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      stopLoop();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       io.disconnect();
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);

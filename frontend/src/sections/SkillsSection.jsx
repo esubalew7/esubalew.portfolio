@@ -260,7 +260,7 @@ function Nucleus({ isDarkMode }) {
         // Wireframe Icosahedron
         const icoGeo = new THREE.IcosahedronGeometry(1.1, 1);
         const icoMat = new THREE.MeshBasicMaterial({
-          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          color: isDarkMode ? 0xFF4D00 : 0xE04400,
           wireframe: true,
           transparent: true,
           opacity: isDarkMode ? 0.35 : 0.25,
@@ -271,7 +271,7 @@ function Nucleus({ isDarkMode }) {
         // Outer glow Torus ring
         const torusGeo = new THREE.TorusGeometry(1.3, 0.03, 16, 64);
         const torusMat = new THREE.MeshBasicMaterial({
-          color: isDarkMode ? 0x3b82f6 : 0x2563eb,
+          color: isDarkMode ? 0xFF4D00 : 0xE04400,
           transparent: true,
           opacity: 0.18,
           blending: THREE.AdditiveBlending,
@@ -281,10 +281,19 @@ function Nucleus({ isDarkMode }) {
         coreGroup.add(torusMesh);
 
         let lastTime = performance.now();
+
+        const stopLoop = () => {
+          if (animId) {
+            cancelAnimationFrame(animId);
+            animId = null;
+          }
+        };
+
         const animate = (time) => {
-          if (!isMounted) return;
-          animId = requestAnimationFrame(animate);
-          if (!isIntersecting) return;
+          if (!isMounted || !isIntersecting || document.hidden) {
+            stopLoop();
+            return;
+          }
 
           const dt = Math.min((time - lastTime) * 0.001, 0.1);
           lastTime = time;
@@ -299,14 +308,28 @@ function Nucleus({ isDarkMode }) {
           }
 
           renderer.render(scene, camera);
+          animId = requestAnimationFrame(animate);
         };
-        animId = requestAnimationFrame(animate);
+
+        const startLoop = () => {
+          if (!animId && isMounted && isIntersecting && !document.hidden) {
+            lastTime = performance.now();
+            animId = requestAnimationFrame(animate);
+          }
+        };
+
+        startLoop();
 
         // Viewport intersection observer to pause rendering when off-screen
         observer = new IntersectionObserver(
           (entries) => {
             if (entries[0]) {
               isIntersecting = entries[0].isIntersecting;
+              if (isIntersecting) {
+                startLoop();
+              } else {
+                stopLoop();
+              }
             }
           },
           { threshold: 0.05 }
@@ -314,17 +337,34 @@ function Nucleus({ isDarkMode }) {
         if (canvas.parentElement) {
           observer.observe(canvas.parentElement);
         }
+
+        let cleanupVisibility = () => {
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+
+        const onVisibilityChange = () => {
+          if (document.hidden) {
+            stopLoop();
+          } else if (isIntersecting) {
+            startLoop();
+          }
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        stateRefCleanup = cleanupVisibility;
       })
       .catch((err) => {
         console.warn('Three.js failed to initialize in Nucleus:', err);
         if (isMounted) setHasError(true);
       });
 
+    let stateRefCleanup = null;
+
     return () => {
       isMounted = false;
       if (animId) cancelAnimationFrame(animId);
       if (observer) observer.disconnect();
       if (renderer) renderer.dispose();
+      if (stateRefCleanup) stateRefCleanup();
     };
   }, [isDarkMode]);
 
@@ -335,16 +375,16 @@ function Nucleus({ isDarkMode }) {
     >
       {hasError ? (
         <div
-          className="w-20 h-20 rounded-full flex items-center justify-center border border-blue-500/30"
+          className="w-20 h-20 rounded-full flex items-center justify-center border border-accent/30"
           style={{
             background: isDarkMode
               ? 'radial-gradient(circle, #1a2030 0%, #0e1017 70%)'
               : 'radial-gradient(circle, #ffffff 0%, #e2e8f0 70%)',
-            boxShadow: '0 0 24px rgba(59,130,246,0.2)',
+            boxShadow: '0 0 24px rgba(255,77,0,0.2)',
           }}
         >
           <div
-            className="w-14 h-14 rounded-full border border-dashed border-blue-400/40 animate-spin"
+            className="w-14 h-14 rounded-full border border-dashed border-accent/40 animate-spin"
             style={{ animationDuration: '10s' }}
           />
         </div>
@@ -360,7 +400,7 @@ function Nucleus({ isDarkMode }) {
       )}
       <span
         className="font-mono text-[9px] tracking-[0.22em] uppercase font-bold text-center mt-[-4px] opacity-80"
-        style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+        style={{ color: isDarkMode ? '#FF4D00' : '#E04400' }}
       >
         FULL STACK
       </span>
@@ -397,7 +437,7 @@ const SKILL_DETAILS = {
   'Tailwind CSS': {
     category: 'Design Systems & UI',
     level: 'Advanced',
-    description: 'Utility-first CSS framework for building ultra-fast, responsive, and custom design systems.',
+    description: 'Utility-first CSS framework for building responsive, maintainable custom design systems.',
     tags: ['Utility CSS', 'Design Tokens', 'Dark Mode', 'Responsive', 'Flexbox'],
   },
   'Node.js': {
@@ -421,7 +461,7 @@ const SKILL_DETAILS = {
   Redis: {
     category: 'In-Memory Data Store',
     level: 'Intermediate',
-    description: 'Ultra-fast in-memory data cache for high-speed session storage, rate limiting, and pub/sub queues.',
+    description: 'In-memory data store for caching, session management, rate limiting, and pub/sub messaging.',
     tags: ['In-Memory', 'Pub/Sub', 'TTL Caching', 'Session Store', 'Key-Value'],
   },
   RabbitMQ: {
@@ -451,7 +491,7 @@ const SKILL_DETAILS = {
   Microservices: {
     category: 'Distributed Systems',
     level: 'Advanced',
-    description: 'Decoupled service mesh architecture communicating via lightweight API gateways and event buses.',
+    description: 'Decoupled service architecture communicating via lightweight API gateways and event channels.',
     tags: ['Service Mesh', 'API Gateway', 'Decoupled', 'RPC', 'Resilience'],
   },
   Flutter: {
@@ -490,6 +530,7 @@ function SkillFocusCard({
   isMobile,
   slugMap = SLUG_MAP,
   brandMap = BRAND_MAP,
+  onClose,
 }) {
   if (!skill) return null;
   const slug = (slugMap && slugMap[skill]) || SLUG_MAP[skill] || 'javascript';
@@ -514,22 +555,22 @@ function SkillFocusCard({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : 10 }}
       transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className={`absolute z-50 pointer-events-none select-none ${isMobile
-          ? 'bottom-4 left-4 right-4 w-auto rounded-[20px]'
-          : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px]'
+      className={`z-50 select-none ${isMobile
+          ? 'fixed bottom-4 left-4 right-4 w-auto rounded-[20px] pointer-events-auto shadow-2xl'
+          : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%] w-[300px] md:w-[340px] rounded-[20px] pointer-events-none'
         }`}
       style={{
-        backgroundColor: isDark ? 'rgba(12, 16, 24, 0.78)' : 'rgba(255, 255, 255, 0.92)',
-        border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: isDark ? 'rgba(12, 16, 24, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)',
         boxShadow: isDark
           ? '0 24px 60px rgba(0, 0, 0, 0.75), 0 0 32px rgba(59, 130, 246, 0.18)'
-          : '0 20px 50px rgba(15, 23, 42, 0.12)',
+          : '0 20px 50px rgba(15, 23, 42, 0.15)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
         padding: '20px',
       }}
     >
-      {/* ── TOP ROW: Icon + Tech Name + Orbit Badge ── */}
+      {/* ── TOP ROW: Icon + Tech Name + Orbit Badge + Close ── */}
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
@@ -561,16 +602,32 @@ function SkillFocusCard({
           </div>
         </div>
 
-        <span
-          className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold shrink-0"
-          style={{
-            backgroundColor: `${color}18`,
-            border: `1px solid ${color}35`,
-            color: color,
-          }}
-        >
-          {orbitBadge}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold"
+            style={{
+              backgroundColor: `${color}18`,
+              border: `1px solid ${color}35`,
+              color: color,
+            }}
+          >
+            {orbitBadge}
+          </span>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close skill details"
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors cursor-pointer pointer-events-auto"
+              style={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                color: isDark ? '#F0F2F5' : '#0D1117',
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── SHORT PROFESSIONAL DESCRIPTION ── */}
@@ -700,7 +757,7 @@ function SkillFocusCard({
             className="h-full rounded-full"
             style={{
               width: '100%',
-              background: `linear-gradient(90deg, ${color}, #3b82f6, #60a5fa)`,
+              background: `linear-gradient(90deg, ${color}, #FF4D00)`,
             }}
           />
         </div>
@@ -1114,7 +1171,7 @@ function SkillsList({
   );
 }
 
-// ─── 11. MOBILE FLAT SKILL GRID (< 640px) ───────────────────────────────────
+// ─── 11. MOBILE FLAT SKILL GRID (< 768px) ───────────────────────────────────
 function MobileSkillGrid({
   activeSkill,
   setActiveSkill,
@@ -1122,9 +1179,12 @@ function MobileSkillGrid({
   orbitConfigs = ORBIT_CONFIGS,
   slugMap = SLUG_MAP,
   brandMap = BRAND_MAP,
+  skillDetails = {},
+  skillMeta = {},
+  skillToOrbit = {},
 }) {
   return (
-    <div className="block lg:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
+    <div className="block md:hidden w-full max-w-lg mx-auto mt-8 px-4 space-y-6">
       {orbitConfigs.map((orbit) => (
         <div key={orbit.id}>
           <div
@@ -1180,6 +1240,24 @@ function MobileSkillGrid({
           </div>
         </div>
       ))}
+
+      {/* Interactive Focus Card on Mobile */}
+      <AnimatePresence>
+        {activeSkill && (
+          <SkillFocusCard
+            skill={activeSkill}
+            orbitLabel={skillToOrbit[activeSkill]}
+            brandColor={brandMap[activeSkill]}
+            meta={skillMeta[activeSkill]}
+            details={skillDetails[activeSkill]}
+            isDark={isDark}
+            isMobile={true}
+            slugMap={slugMap}
+            brandMap={brandMap}
+            onClose={() => setActiveSkill(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1225,7 +1303,7 @@ export const SkillsSection = () => {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      setIsMobile(window.innerWidth < 768);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -1373,11 +1451,11 @@ export const SkillsSection = () => {
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-7 h-[1px]"
-              style={{ backgroundColor: isDarkMode ? '#3b82f6' : '#2563eb' }}
+              style={{ backgroundColor: isDarkMode ? '#FF4D00' : '#E04400' }}
             />
             <span
               className="font-mono text-[11px] tracking-[0.18em] uppercase font-bold"
-              style={{ color: isDarkMode ? '#3b82f6' : '#2563eb' }}
+              style={{ color: isDarkMode ? '#FF4D00' : '#E04400' }}
             >
               {content?.skills?.title || 'Technical Arsenal'}
             </span>
@@ -1392,10 +1470,10 @@ export const SkillsSection = () => {
             ) : (
               <>
                 <span style={{ color: isDarkMode ? '#F0F2F5' : '#0D1117' }}>
-                  The stack I ship{' '}
+                  Technologies and tools{' '}
                 </span>
                 <span style={{ color: isDarkMode ? '#8B939E' : '#52596A' }}>
-                  to production.
+                  I use to build production systems.
                 </span>
               </>
             )}
@@ -1439,12 +1517,12 @@ export const SkillsSection = () => {
 
         {/* ─── MAIN CONTENT: ORBITAL CANVAS + RIGHT PANEL ─── */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-10">
-          {/* ORBITAL CANVAS CONTAINER */}
+          {/* ORBITAL CANVAS CONTAINER (Hidden on mobile <768px, preserved in full 3D interactive orbit on tablet & desktop) */}
           <div
-            className={`relative w-full max-w-[820px] mx-auto select-none ${isPaused ? 'orbits-paused' : ''
+            className={`hidden md:block relative w-full max-w-[820px] mx-auto select-none ${isPaused ? 'orbits-paused' : ''
               }`}
             style={{
-              height: isMobile ? 400 : 820,
+              height: 820,
               perspective: '1000px',
               perspectiveOrigin: '50% 50%',
             }}
@@ -1457,7 +1535,6 @@ export const SkillsSection = () => {
               className="absolute inset-0 flex items-center justify-center"
               style={{
                 transformStyle: 'preserve-3d',
-                transform: isMobile ? 'scale(0.65)' : 'none',
                 transformOrigin: '50% 50%',
               }}
             >
@@ -1507,7 +1584,7 @@ export const SkillsSection = () => {
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -20%)',
-                      background: `radial-gradient(circle, ${dynamicBrandMap[activeSkill] || '#38BDF8'} 0%, #3b82f6 50%, transparent 70%)`,
+                      background: `radial-gradient(circle, ${dynamicBrandMap[activeSkill] || '#FF4D00'} 0%, ${dynamicBrandMap[activeSkill] || '#FF4D00'} 50%, transparent 70%)`,
                       filter: 'blur(48px)',
                     }}
                     aria-hidden="true"
@@ -1520,7 +1597,7 @@ export const SkillsSection = () => {
                     meta={dynamicSkillMeta[activeSkill]}
                     details={dynamicSkillDetails[activeSkill]}
                     isDark={isDarkMode}
-                    isMobile={isMobile}
+                    isMobile={false}
                     slugMap={dynamicSlugMap}
                     brandMap={dynamicBrandMap}
                   />
@@ -1545,7 +1622,7 @@ export const SkillsSection = () => {
           />
         </div>
 
-        {/* MOBILE FLAT SKILL GRID (< 640px) */}
+        {/* MOBILE FLAT SKILL GRID (< 768px) */}
         <MobileSkillGrid
           activeSkill={activeSkill}
           setActiveSkill={(skill) => {
@@ -1556,6 +1633,9 @@ export const SkillsSection = () => {
           orbitConfigs={resolvedOrbits}
           slugMap={dynamicSlugMap}
           brandMap={dynamicBrandMap}
+          skillDetails={dynamicSkillDetails}
+          skillMeta={dynamicSkillMeta}
+          skillToOrbit={dynamicSkillToOrbit}
         />
       </div>
     </section>

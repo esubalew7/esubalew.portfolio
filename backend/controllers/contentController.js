@@ -119,7 +119,7 @@ const getDefaultContent = () => ({
     title: "About Me",
     subtitle: "Full Stack Engineer & 3rd-year CS Student at Bahir Dar University",
     description:
-      "I'm Esubalew — a full-stack engineer based in Ethiopia, currently interning at Askuala Link. I architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards. My approach is architecture first: I think in event flows, caching layers, and separation of concerns before writing the first line of code. The result is software that scales and doesn't break at 3 AM.",
+      "I'm Esubalew Molla — a full-stack engineer based in Ethiopia and a Computer Science student at Bahir Dar University, currently interning at Askuala Link.\n\nI architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.\n\nMy approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales and doesn't break at 3 AM.",
     image: "/images/esu.png",
     dossierRef: "Ref: ESU-2024",
     clearanceLevel: "Senior Engineer",

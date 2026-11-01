@@ -4,6 +4,8 @@ import { useContentStore } from '../store/contentStore';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useTheme } from '../context/ThemeContext';
 import { scrollToSectionById } from '../utils/sectionNavigation';
+import { TECH_ICON_PATHS } from '../components/hero/techIconPaths';
+import { AvailabilityTicker } from '../components/common/AvailabilityTicker';
 
 // Lazy-load the WebGL canvas so critical text renders in <100ms
 const CircuitCanvas = lazy(() => import('../components/hero/CircuitCanvas'));
@@ -160,19 +162,40 @@ function TechBadgeRow({ badges = TECH_BADGES, isDarkMode = true }) {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
             }}
           >
-            <img
-              src={`https://cdn.simpleicons.org/${badge.slug}/${iconColor}`}
-              alt={badge.name}
-              width={24}
-              height={24}
-              loading="lazy"
-              decoding="async"
-              style={{
-                width: 24,
-                height: 24,
-                display: 'block',
-              }}
-            />
+            {TECH_ICON_PATHS[badge.slug] ? (
+              <svg
+                viewBox="0 0 24 24"
+                width={24}
+                height={24}
+                aria-hidden="true"
+                style={{
+                  width: 24,
+                  height: 24,
+                  display: 'block',
+                  fill: iconColor === 'white'
+                    ? (isDarkMode ? '#FFFFFF' : '#111827')
+                    : iconColor === '000000'
+                      ? (isDarkMode ? '#FFFFFF' : '#000000')
+                      : (iconColor.startsWith('#') ? iconColor : `#${iconColor}`),
+                }}
+              >
+                <path d={TECH_ICON_PATHS[badge.slug]} />
+              </svg>
+            ) : (
+              <img
+                src={`https://cdn.simpleicons.org/${badge.slug}/${iconColor}`}
+                alt={badge.name}
+                width={24}
+                height={24}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: 24,
+                  height: 24,
+                  display: 'block',
+                }}
+              />
+            )}
           </span>
         );
       })}
@@ -333,11 +356,11 @@ function ScrollCue({ isDarkMode = true }) {
 
 // ─── HERO SECTION ─────────────────────────────────────────────────────────
 const TYPEWRITER_ROLES = [
-  'Full Stack Engineer.',
-  'System Architect.',
-  'MERN Specialist.',
-  'Distributed Systems.',
-  'Real-Time Platforms.',
+  'Full-Stack Engineer.',
+  'Systems Architect.',
+  'MERN Stack Specialist.',
+  'Distributed Systems Engineer.',
+  'Real-Time Web Architect.',
 ];
 
 export const HeroSection = () => {
@@ -354,7 +377,7 @@ export const HeroSection = () => {
 
   const name = hero?.name || 'Esubalew Molla';
   const desc = hero?.description ||
-    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to deployment pipeline.';
+    'Building production-grade distributed systems, MERN platforms, and real-time web architecture — from API design to production deployment.';
   const resumeUrl = resume?.url || '/resume.pdf';
 
   const heroTitles = Array.isArray(hero?.titles) && hero.titles.length > 0 ? hero.titles : TYPEWRITER_ROLES;
@@ -378,6 +401,11 @@ export const HeroSection = () => {
         transition: 'background-color 0.3s ease',
       }}
     >
+      {/* ── Availability Ticker mounted at top of Hero ── */}
+      <div style={{ position: 'relative', zIndex: 20, paddingTop: '4.5rem' }}>
+        <AvailabilityTicker />
+      </div>
+
       {/* ── Full-bleed WebGL circuit canvas ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         {canvasReady && (
@@ -429,25 +457,15 @@ export const HeroSection = () => {
           style={{
             position: 'relative',
             zIndex: 10,
-            minHeight: '100svh',
+            minHeight: 'calc(100svh - 4.5rem)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            paddingTop: '7rem',
-            paddingBottom: '7rem',
+            paddingTop: '2.5rem',
+            paddingBottom: '5rem',
             maxWidth: 780,
           }}
         >
-          {/* Status Availability Pill (Visitor Pill removed) */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-            <StatusPill
-              available={hero?.available}
-              isDarkMode={isDarkMode}
-              badgeText={hero?.availabilityBanner?.badgeText}
-              bookedBadgeText={hero?.availabilityBanner?.bookedBadgeText}
-            />
-          </div>
-
           {/* ── Name — display-scale ── */}
           <motion.h1
             initial={{ opacity: 0, y: 32 }}
@@ -456,7 +474,7 @@ export const HeroSection = () => {
             className="font-display text-display"
             style={{
               color: isDarkMode ? '#F0F2F5' : '#0D1117',
-              marginTop: '1.5rem',
+              marginTop: '0.5rem',
               marginBottom: 0,
               transition: 'color 0.3s ease',
             }}
@@ -467,11 +485,11 @@ export const HeroSection = () => {
               style={{
                 color: isDarkMode ? 'var(--text-secondary)' : '#0D1117',
                 WebkitTextStroke: isDarkMode
-                  ? '1px rgba(240,242,245,0.25)'
-                  : '1.5px rgba(13,17,23,0.35)',
+                  ? '1.5px rgba(240,242,245,0.85)'
+                  : '1.5px rgba(13,17,23,0.85)',
                 WebkitTextFillColor: isDarkMode
-                  ? 'transparent'
-                  : 'rgba(13,17,23,0.03)',
+                  ? 'rgba(240,242,245,0.12)'
+                  : 'rgba(13,17,23,0.08)',
                 transition: 'all 0.3s ease',
               }}
             >
@@ -556,10 +574,10 @@ export const HeroSection = () => {
             {(Array.isArray(hero?.metrics) && hero.metrics.length > 0
               ? hero.metrics.filter((m) => m.visible !== false)
               : [
-                  { id: 'm-1', value: '3+', label: 'Years building' },
-                  { id: 'm-2', value: '15+', label: 'Systems shipped' },
-                  { id: 'm-3', value: '3', label: 'Production stacks' },
-                  { id: 'm-4', value: '2FA', label: 'Auth architecture' },
+                  { id: 'm-1', value: '15+', label: 'Systems shipped' },
+                  { id: 'm-2', value: '3+', label: 'Years building' },
+                  { id: 'm-3', value: '<100ms', label: 'API response focus' },
+                  { id: 'm-4', value: '2FA', label: 'Zero-trust auth' },
                 ]
             ).map((metric, idx) => (
               <MetricChip

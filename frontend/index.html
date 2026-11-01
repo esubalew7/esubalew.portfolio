@@ -8,6 +8,24 @@
   <link rel="icon" type="image/png" href="/images/esu.png" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   
+  <!-- Immediate Theme Initializer: prevents flash of unstyled theme on load -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('portfolio_theme');
+        var isDark = saved ? saved === 'dark' : true;
+        var root = document.documentElement;
+        if (isDark) {
+          root.classList.add('dark');
+          root.classList.remove('light');
+        } else {
+          root.classList.add('light');
+          root.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  
   <!-- Performance Hints -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

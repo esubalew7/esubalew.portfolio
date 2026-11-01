@@ -21,18 +21,18 @@ const TerminalViewport = forwardRef(
       if (e.target.closest('input') || e.target.closest('button') || e.target.closest('a')) return;
       const sel = window.getSelection()?.toString();
       if (sel) return;
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     };
 
     return (
       <div
         ref={viewportRef}
         onClick={handleClick}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3 font-mono text-[13px] leading-[1.5rem] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent select-text cursor-text"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3.5 sm:px-4 py-2.5 font-mono text-[13px] leading-[1.4] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent select-text cursor-text"
         style={{ scrollBehavior: 'smooth' }}
       >
         <div className="min-h-full flex flex-col justify-start">
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {lines.map((line) => (
               <TerminalLine
                 key={line.id}
@@ -41,7 +41,7 @@ const TerminalViewport = forwardRef(
               />
             ))}
           </div>
-          <div className="pt-2 pb-1">
+          <div className="pt-1.5 pb-1">
             <TerminalPrompt
               ref={inputRef}
               value={input}
