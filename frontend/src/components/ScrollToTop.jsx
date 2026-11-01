@@ -30,32 +30,59 @@ export const ScrollToTop = () => {
     };
   }, []);
 
+  const handleScrollToTop = () => {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  };
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   return (
     <AnimatePresence>
       {visible && (
         <motion.button
-          className="fixed bottom-6 left-6 md:bottom-10 md:left-10"
-          initial={{ opacity: 0, y: 12 }}
+          className="fixed scroll-to-top-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#080A0E] focus-visible:ring-offset-white"
+          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 12 }}
-          transition={{ duration: 0.3, ease: [0.16,1,0.3,1] }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 12 }}
+          transition={{ duration: prefersReducedMotion ? 0.05 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+          onClick={handleScrollToTop}
           aria-label="Scroll to top"
+          title="Scroll to top"
           style={{
-            position: 'fixed', bottom: '1.5rem', left: '1.5rem',
+            position: 'fixed',
             zIndex: 500,
-            width: 44, height: 44,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--orange)', border: 'none',
-            borderRadius: 4, cursor: 'pointer',
+            width: 44,
+            height: 44,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--orange)',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer',
             color: '#fff',
             boxShadow: '0 4px 20px rgba(255,77,0,0.3)',
             transition: 'box-shadow 0.2s, transform 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 32px rgba(255,77,0,0.55)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-          onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(255,77,0,0.3)'; e.currentTarget.style.transform = 'none'; }}
+          onMouseEnter={e => {
+            e.currentTarget.style.boxShadow = '0 4px 32px rgba(255,77,0,0.55)';
+            if (!prefersReducedMotion) e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.boxShadow = '0 4px 20px rgba(255,77,0,0.3)';
+            if (!prefersReducedMotion) e.currentTarget.style.transform = 'none';
+          }}
         >
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
           </svg>
         </motion.button>
