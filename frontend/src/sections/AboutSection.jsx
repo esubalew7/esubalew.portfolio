@@ -271,7 +271,7 @@ function MetricsTable({
   location,
   resumeUrl = '/resume.pdf',
   education = 'Bahir Dar University',
-  academicYear = '3rd Year · CS',
+  academicYear = 'B.Sc. Computer Science',
 }) {
   const defaultStats = [
     { value: 3, suffix: '+', label: 'Years of production code' },
@@ -321,12 +321,12 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Education
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
+          <span className="font-sans text-[0.85rem] text-content-secondary font-medium text-right">
             {education || 'Bahir Dar University'}
           </span>
         </motion.div>
@@ -341,13 +341,13 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Year
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
-            {academicYear || '3rd Year · CS'}
+          <span className="font-sans text-[0.85rem] text-content-primary font-semibold text-right">
+            {academicYear || 'B.Sc. Computer Science'}
           </span>
         </motion.div>
 
@@ -361,12 +361,12 @@ function MetricsTable({
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="flex items-center justify-between py-3 border-b border-border-subtle"
+          className="flex items-center justify-between gap-3 py-3 border-b border-border-subtle"
         >
-          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em]">
+          <span className="font-code text-[9px] text-content-muted uppercase tracking-[0.14em] shrink-0">
             Based
           </span>
-          <span className="font-sans text-[0.8rem] text-content-secondary font-medium">
+          <span className="font-sans text-[0.85rem] text-content-secondary font-medium text-right">
             {location || 'Bahir Dar, Ethiopia'}
           </span>
         </motion.div>
@@ -408,7 +408,7 @@ function CompetenciesTicker({ competencies }) {
 
   return (
     <div
-      className="overflow-hidden border-t border-b border-border-subtle py-2 mb-8 select-none"
+      className="w-full min-w-0 overflow-hidden border-t border-b border-border-subtle py-2 mb-8 select-none"
       aria-hidden="true"
     >
       <div className="about-ticker-track">
@@ -486,7 +486,7 @@ function StatementBlock({ description }) {
   const paragraphs = formatStatementParagraphs(text);
 
   return (
-    <div className="mb-8 relative">
+    <div className="mb-8 relative max-w-prose lg:max-w-2xl">
       {/* Large opening quote mark */}
       <span
         aria-hidden="true"
@@ -496,7 +496,7 @@ function StatementBlock({ description }) {
       </span>
 
       {/* Description paragraphs — fully visible across multiple lines without obstruction */}
-      <div className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10 space-y-4 break-words [overflow-wrap:anywhere]">
+      <div className="font-sans text-[1rem] md:text-[1.05rem] leading-[1.85] text-content-secondary relative z-10 space-y-4 break-words">
         {paragraphs.map((paragraph, idx) => (
           <p
             key={idx}
@@ -538,7 +538,7 @@ function AssignmentBlock({ assignments }) {
     : defaultAssignments;
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 max-w-prose lg:max-w-2xl">
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-content-muted mb-3 font-semibold">
         02 — Current Assignment
       </div>
@@ -549,7 +549,7 @@ function AssignmentBlock({ assignments }) {
         return (
           <div
             key={item.id || item._id || idx}
-            className={`flex items-start justify-between gap-3 py-3 ${!isLast ? 'border-b border-border-subtle' : ''}`}
+            className={`flex items-start justify-between gap-3 py-3 min-w-0 ${!isLast ? 'border-b border-border-subtle' : ''}`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
@@ -582,11 +582,11 @@ function AssignmentBlock({ assignments }) {
 function LeftColumn({ about, hero, contactInfo, isDarkMode, education, academicYear }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -32 }}
+      initial={{ opacity: 0, x: -16 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ delay: 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full"
+      className="w-full min-w-0"
     >
       <PhotoBlock
         image={about?.image}
@@ -631,11 +631,11 @@ function RightColumn({ about, hero, inView, socialLinks = [], education }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 32 }}
+      initial={{ opacity: 0, x: 16 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full"
+      className="w-full min-w-0 pr-2 sm:pr-4 lg:pr-6"
     >
       {/* SECTION INDEX LABEL */}
       <div className="font-code text-[9px] uppercase tracking-[0.2em] text-accent mb-6 md:mb-8 font-semibold">
@@ -748,14 +748,19 @@ export const AboutSection = () => {
 
   const resolvedEducation =
     about?.education?.institution ||
+    about?.education?.school ||
+    about?.education?.university ||
     eduAssignment?.organization ||
     'Bahir Dar University';
 
   const resolvedAcademicYear =
     about?.education?.degree ||
     about?.education?.year ||
+    about?.education?.academicYear ||
+    about?.academicYear ||
+    about?.degree ||
     eduAssignment?.role ||
-    '3rd Year · CS';
+    'B.Sc. Computer Science';
 
   return (
     <section
@@ -774,7 +779,7 @@ export const AboutSection = () => {
 
       {/* Two-Column Grid Inner Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-10 md:gap-14 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)] gap-8 md:gap-10 lg:gap-14 items-start">
           <LeftColumn
             about={{ ...about, resume }}
             hero={hero}

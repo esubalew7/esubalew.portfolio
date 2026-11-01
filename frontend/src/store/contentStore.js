@@ -49,6 +49,11 @@ export const defaultContent = {
     description:
       "I'm Esubalew Molla — a full-stack engineer based in Ethiopia and a Computer Science student at Bahir Dar University, currently interning at Askuala Link.\n\nI architect and ship distributed systems that handle real-world production loads: from JWT + TOTP 2FA backends to live WebSocket-synced admin dashboards.\n\nMy approach is architecture-first: prioritizing clean event flows, intelligent caching layers, and resilient separation of concerns before writing code — building software that scales reliably under production workloads.",
     image: '/images/esu.png',
+    education: {
+      institution: 'Bahir Dar University',
+      degree: 'B.Sc. Computer Science',
+      year: 'B.Sc. Computer Science',
+    },
     stats: [
       { value: 3, suffix: '+', label: 'Years of production code' },
       { value: 15, suffix: '+', label: 'Full-stack systems shipped' },
@@ -488,6 +493,7 @@ export function mapBackendContent(raw) {
       personnelId: data.about?.personnelId || defaultContent.about.personnelId,
       description: data.about?.description || defaultContent.about.description,
       image: data.about?.image || defaultContent.about.image,
+      education: data.about?.education || defaultContent.about.education,
       stats: Array.isArray(data.about?.stats) && data.about.stats.length
         ? data.about.stats
         : defaultContent.about.stats,
